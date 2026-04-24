@@ -1060,6 +1060,72 @@ header {
   }
 }
 
+
+/* ── TABLA CONTACTOS ADMIN ─────────────────────────────────────── */
+.contacts-admin-panel {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 22px;
+}
+.contacts-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.contacts-toolbar .pa-input {
+  max-width: 420px;
+}
+.contacts-count {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.contacts-table-wrap {
+  width: 100%;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(13,31,78,.10);
+  background: #fff;
+}
+.contacts-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+  font-size: .84rem;
+}
+.contacts-table thead {
+  background: linear-gradient(135deg, rgba(13,31,78,.06), rgba(201,162,39,.08));
+}
+.contacts-table th {
+  text-align: left;
+  color: var(--navy);
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(13,31,78,.10);
+  white-space: nowrap;
+}
+.contacts-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(13,31,78,.07);
+  color: var(--text);
+  vertical-align: top;
+}
+.contacts-table tbody tr:hover {
+  background: rgba(13,31,78,.035);
+}
+.contact-email {
+  color: var(--navy-mid);
+  font-weight: 600;
+}
+.contact-empty-cell {
+  color: var(--muted);
+  opacity: .65;
+}
+
 </style>
 </head>
 <body>
@@ -1588,48 +1654,45 @@ header {
       </div>
     </div>
 
-    <!-- CONTACTOS -->
+        <!-- CONTACTOS -->
     <div class="section" id="s-contactos">
       <div class="section-header">
         <div class="breadcrumb">PAIDEIA · Administración</div>
         <h2>Contactos</h2>
-        <p>Gestión de contactos y mensajes internos. Esta sección solo está disponible para administradores.</p>
+        <p>Base de referentes jurisdiccionales. Esta sección solo está disponible para administradores.</p>
       </div>
 
-      <div class="pa-panel">
-        <h3 style="color:var(--navy);margin-bottom:10px;">Agregar contacto</h3>
-        <div class="pa-form-grid">
-          <input class="pa-input" id="contactName" placeholder="Nombre del contacto">
-          <input class="pa-input" id="contactEmail" placeholder="Email">
-          <button class="pa-btn" type="button" onclick="createContact()">Agregar contacto</button>
-        </div>
-      </div>
-
-      <div class="pa-split">
-        <div class="pa-panel">
-          <h3 style="color:var(--navy);margin-bottom:10px;">Listado de contactos</h3>
-          <div id="contactsList" class="pa-list">
-            <div class="pa-empty">Cargando contactos...</div>
-          </div>
+      <div class="contacts-admin-panel">
+        <div class="contacts-toolbar">
+          <input type="text" id="searchContact" class="pa-input" placeholder="Buscar por nombre, email, jurisdicción, institución o cargo..." onkeyup="filterContactsTable()">
+          <button class="pa-btn secondary" type="button" onclick="loadContacts()">Actualizar</button>
+          <span class="contacts-count" id="contactsCount">Cargando contactos...</span>
         </div>
 
-        <div class="pa-panel">
-          <h3 style="color:var(--navy);margin-bottom:10px;" id="contactSelectedTitle">Seleccioná un contacto</h3>
-          <p class="pa-muted" id="contactSelectedEmail">Podrás crear mensajes asociados a ese contacto.</p>
-
-          <div id="contactMessagesList" class="pa-list" style="margin-top:16px;">
-            <div class="pa-empty">Todavía no hay contacto seleccionado.</div>
-          </div>
-
-          <div id="contactMessageBox" style="display:none;margin-top:16px;">
-            <textarea class="pa-textarea" id="contactMessageContent" placeholder="Escribí un mensaje"></textarea>
-            <button class="pa-btn" type="button" onclick="createContactMessage()" style="margin-top:10px;">Crear mensaje</button>
-          </div>
+        <div class="contacts-table-wrap">
+          <table class="contacts-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Jurisdicción</th>
+                <th>Institución</th>
+                <th>Cargo</th>
+                <th>Teléfono</th>
+                <th>Responsable</th>
+              </tr>
+            </thead>
+            <tbody id="contactsTableBody">
+              <tr>
+                <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-  </main>
+</main>
 </div>
 -->
 <script>
@@ -2560,155 +2623,102 @@ async function createForumPost() {
   await loadForumPosts(currentTopicId);
 }
 
+
 /* ── CONTACTOS ──────────────────────────────────────────────────── */
-async function createContact() {
-  if (currentRole !== 'admin') {
-    alert('Solo el administrador puede crear contactos.');
-    return;
-  }
-
-  const name = document.getElementById('contactName')?.value.trim();
-  const email = document.getElementById('contactEmail')?.value.trim();
-
-  if (!name || !email) {
-    alert('Completá nombre y email.');
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from('contacts')
-    .insert({ name, email });
-
-  if (error) {
-    alert('No se pudo crear el contacto: ' + error.message);
-    return;
-  }
-
-  document.getElementById('contactName').value = '';
-  document.getElementById('contactEmail').value = '';
-  await loadContacts();
-}
+let allContacts = [];
 
 async function loadContacts() {
-  const container = document.getElementById('contactsList');
-  if (!container || !supabaseClient || currentRole !== 'admin') return;
+  const tbody = document.getElementById('contactsTableBody');
+  const count = document.getElementById('contactsCount');
 
-  container.innerHTML = '<div class="pa-empty">Cargando contactos...</div>';
+  if (!tbody || !supabaseClient || currentRole !== 'admin') return;
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
+    </tr>
+  `;
+  if (count) count.textContent = 'Cargando contactos...';
 
   const { data, error } = await supabaseClient
     .from('contacts')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('jurisdiccion', { ascending: true })
+    .order('full_name', { ascending: true });
 
   if (error) {
-    container.innerHTML = `<div class="pa-empty">No se pudieron cargar los contactos: ${escapeHtml(error.message)}</div>`;
+    console.error('Error cargando contactos:', error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="contact-empty-cell">No se pudieron cargar los contactos: ${escapeHtml(error.message)}</td>
+      </tr>
+    `;
+    if (count) count.textContent = 'Error al cargar';
     return;
   }
 
-  if (!data || !data.length) {
-    container.innerHTML = '<div class="pa-empty">Todavía no hay contactos cargados.</div>';
+  allContacts = data || [];
+  renderContactsTable(allContacts);
+}
+
+function renderContactsTable(items) {
+  const tbody = document.getElementById('contactsTableBody');
+  const count = document.getElementById('contactsCount');
+  if (!tbody) return;
+
+  if (!items || !items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="contact-empty-cell">No hay contactos para mostrar.</td>
+      </tr>
+    `;
+    if (count) count.textContent = '0 contactos';
     return;
   }
 
-  container.innerHTML = data.map(c => `
-    <div class="pa-contact-card">
-      <div class="pa-contact-head">
-        <div>
-          <div class="pa-contact-title">${escapeHtml(c.name)}</div>
-          <div class="pa-muted">${escapeHtml(c.email)}</div>
-        </div>
-        <button class="pa-btn secondary" type="button" onclick="openContact('${c.id}')">Abrir</button>
-      </div>
-    </div>
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
+    </tr>
   `).join('');
+
+  if (count) {
+    count.textContent = `${items.length} contacto${items.length === 1 ? '' : 's'}`;
+  }
 }
 
-async function openContact(contactId) {
-  if (currentRole !== 'admin') return;
+function filterContactsTable() {
+  const input = document.getElementById('searchContact');
+  const q = (input?.value || '').toLowerCase().trim();
 
-  currentContactId = contactId;
-
-  const { data: contact, error } = await supabaseClient
-    .from('contacts')
-    .select('*')
-    .eq('id', contactId)
-    .single();
-
-  if (error) {
-    alert('No se pudo abrir el contacto: ' + error.message);
+  if (!q) {
+    renderContactsTable(allContacts);
     return;
   }
 
-  document.getElementById('contactSelectedTitle').textContent = contact.name || 'Contacto';
-  document.getElementById('contactSelectedEmail').textContent = contact.email || '';
-  document.getElementById('contactMessageBox').style.display = 'block';
+  const filtered = allContacts.filter(c => {
+    const text = [
+      c.full_name,
+      c.email,
+      c.jurisdiccion,
+      c.institucion,
+      c.cargo,
+      c.telefono,
+      c.responsable
+    ].join(' ').toLowerCase();
 
-  await loadContactMessages(contactId);
+    return text.includes(q);
+  });
+
+  renderContactsTable(filtered);
 }
 
-async function loadContactMessages(contactId) {
-  const container = document.getElementById('contactMessagesList');
-  if (!container) return;
-
-  container.innerHTML = '<div class="pa-empty">Cargando mensajes...</div>';
-
-  const { data, error } = await supabaseClient
-    .from('contact_messages')
-    .select('*')
-    .eq('contact_id', contactId)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    container.innerHTML = `<div class="pa-empty">No se pudieron cargar los mensajes: ${escapeHtml(error.message)}</div>`;
-    return;
-  }
-
-  if (!data || !data.length) {
-    container.innerHTML = '<div class="pa-empty">Todavía no hay mensajes para este contacto.</div>';
-    return;
-  }
-
-  container.innerHTML = data.map(m => `
-    <div class="pa-message-box">
-      <div class="pa-message-meta">PaideIA · ${formatDate(m.created_at)}</div>
-      <div class="pa-message-content">${escapeHtml(m.message)}</div>
-    </div>
-  `).join('');
-}
-
-async function createContactMessage() {
-  if (currentRole !== 'admin') {
-    alert('Solo el administrador puede crear mensajes.');
-    return;
-  }
-
-  if (!currentContactId) {
-    alert('Seleccioná un contacto primero.');
-    return;
-  }
-
-  const message = document.getElementById('contactMessageContent')?.value.trim();
-  if (!message) {
-    alert('Escribí un mensaje.');
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from('contact_messages')
-    .insert({
-      contact_id: currentContactId,
-      message,
-      sender: currentUser?.id
-    });
-
-  if (error) {
-    alert('No se pudo crear el mensaje: ' + error.message);
-    return;
-  }
-
-  document.getElementById('contactMessageContent').value = '';
-  await loadContactMessages(currentContactId);
-}
 </script>
 
 <!-- LOGIN + SUPABASE -->
