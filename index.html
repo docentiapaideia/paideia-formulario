@@ -1,0 +1,3964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaideIA</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:      #0d1f4e;
+  --navy-mid:  #1a3070;
+  --navy-soft: #243d7a;
+  --gold:      #c9a227;
+  --gold-lt:   #e8be3d;
+  --white:     #ffffff;
+  --bg:        #f0f3f8;
+  --text:      #1a2340;
+  --muted:     #5a6a90;
+  --nav-w:     280px;
+  --header-h:  70px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+header {
+  height: var(--header-h);
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 20px rgba(13,31,78,.25);
+  z-index: 100;
+  position: relative;
+}
+
+.header-logo {
+  width: 44px; height: 44px;
+  background: rgba(201,162,39,.15);
+  border: 1.5px solid rgba(201,162,39,.4);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.header-logo svg { width: 26px; height: 26px; fill: var(--gold); }
+
+.header-brand h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--white);
+  line-height: 1.1;
+}
+.header-brand p {
+  font-size: .72rem;
+  color: rgba(255,255,255,.55);
+  font-weight: 300;
+  margin-top: 1px;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-badge {
+  font-size: .68rem;
+  color: var(--gold);
+  border: 1px solid rgba(201,162,39,.35);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── NAV TRIGGER ZONE ───────────────────────────────────────────── */
+.nav-trigger {
+  position: absolute;
+  left: 0; top: 0;
+  width: 18px;
+  height: 100%;
+  z-index: 200;
+  cursor: pointer;
+}
+
+/* Indicador visual en el borde */
+.nav-trigger::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60px;
+  background: var(--gold);
+  border-radius: 0 4px 4px 0;
+  opacity: .7;
+  transition: opacity .2s, height .2s;
+}
+.nav-trigger:hover::after { opacity: 1; height: 80px; }
+
+/* Flecha hint */
+.nav-hint {
+  position: absolute;
+  left: 8px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  opacity: .45;
+  transition: opacity .2s;
+  pointer-events: none;
+}
+.nav-trigger:hover .nav-hint { opacity: .8; }
+.nav-hint span {
+  display: block;
+  width: 5px; height: 5px;
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  transform: rotate(-45deg);
+}
+
+/* ── SIDEBAR NAV ─────────────────────────────────────────────────── */
+.sidebar {
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--nav-w);
+  height: 100%;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
+  box-shadow: 4px 0 30px rgba(13,31,78,.35);
+  transform: translateX(-100%);
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar.open { transform: translateX(0); }
+
+/* ── Sidebar header ── */
+.sidebar-head {
+  padding: 24px 22px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.sidebar-head .s-title {
+  font-family: 'Playfair Display', serif;
+  font-size: .95rem;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+.sidebar-head .s-sub {
+  font-size: .72rem;
+  color: rgba(255,255,255,.4);
+  font-weight: 300;
+}
+
+/* ── Nav items ── */
+.nav-list { flex: 1; overflow-y: auto; padding: 12px 0; }
+.nav-list::-webkit-scrollbar { width: 4px; }
+.nav-list::-webkit-scrollbar-track { background: transparent; }
+.nav-list::-webkit-scrollbar-thumb { background: rgba(201,162,39,.3); border-radius: 4px; }
+
+.nav-section-label {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  padding: 14px 22px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 22px;
+  cursor: pointer;
+  transition: background .18s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); }
+.nav-item.active {
+  background: rgba(201,162,39,.12);
+  border-left-color: var(--gold);
+}
+
+.nav-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background .18s;
+}
+.nav-item.active .nav-icon { background: rgba(201,162,39,.2); }
+
+.nav-text { flex: 1; }
+.nav-text strong {
+  display: block;
+  font-size: .85rem;
+  color: rgba(255,255,255,.9);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.nav-text span {
+  font-size: .7rem;
+  color: rgba(255,255,255,.38);
+  font-weight: 300;
+}
+
+.nav-arrow {
+  font-size: .65rem;
+  color: rgba(255,255,255,.25);
+  transition: color .18s, transform .18s;
+}
+.nav-item:hover .nav-arrow,
+.nav-item.active .nav-arrow { color: var(--gold); transform: translateX(2px); }
+
+/* Close button */
+.sidebar-close {
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.btn-close-nav {
+  display: flex; align-items: center; gap: 8px;
+  font-size: .75rem;
+  color: rgba(255,255,255,.35);
+  cursor: pointer;
+  background: none; border: none;
+  transition: color .18s;
+  font-family: inherit;
+}
+.btn-close-nav:hover { color: rgba(255,255,255,.7); }
+
+/* ── OVERLAY ─────────────────────────────────────────────────────── */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,31,78,.45);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .32s;
+  z-index: 140;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ── MAIN CONTENT ────────────────────────────────────────────────── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  transition: filter .32s;
+}
+.main.blurred { filter: blur(1px); }
+.main::-webkit-scrollbar { width: 6px; }
+.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-thumb { background: rgba(13,31,78,.2); border-radius: 4px; }
+
+/* ── SECTIONS ────────────────────────────────────────────────────── */
+.section { display: none; animation: fadeIn .35s ease; }
+.section.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── INICIO ─── */
+.inicio-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.inicio-hero h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.inicio-hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 300;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.infografia-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 40px;
+  max-width: 900px;
+}
+.infografia-wrap img {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(13,31,78,.18);
+  border: 2px solid rgba(201,162,39,.2);
+}
+
+.quick-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.qcard {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 22px 20px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 12px rgba(13,31,78,.05);
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.qcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(13,31,78,.12);
+  border-color: rgba(201,162,39,.35);
+}
+.qcard-icon { font-size: 1.6rem; flex-shrink: 0; }
+.qcard h3 { font-size: .9rem; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.qcard p  { font-size: .78rem; color: var(--muted); line-height: 1.5; font-weight: 300; }
+
+/* ── SECCIÓN GENÉRICA ── */
+.section-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(13,31,78,.07);
+}
+.section-header .breadcrumb {
+  font-size: .72rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.section-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.section-header p {
+  color: var(--muted);
+  font-size: .93rem;
+  font-weight: 300;
+}
+
+/* Cards de experiencias */
+.exp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.exp-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 22px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 12px rgba(13,31,78,.05);
+  transition: transform .2s, box-shadow .2s;
+}
+.exp-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(13,31,78,.1); }
+.exp-tag {
+  display: inline-block;
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.tag-primaria  { background: #E3F2FD; color: #1565C0; }
+.tag-secundaria{ background: #E8F5E9; color: #2E7D32; }
+.tag-superior  { background: #FFF3E0; color: #E65100; }
+.tag-formacion { background: #F3E5F5; color: #6A1B9A; }
+.exp-card h3 { font-size: .95rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; line-height: 1.3; }
+.exp-card p  { font-size: .8rem; color: var(--muted); line-height: 1.55; font-weight: 300; }
+.exp-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid rgba(13,31,78,.06);
+}
+.exp-author { font-size: .72rem; color: var(--muted); }
+.exp-btn {
+  font-size: .72rem; font-weight: 600;
+  color: var(--navy-mid);
+  background: none; border: 1px solid rgba(13,31,78,.15);
+  padding: 4px 12px; border-radius: 20px;
+  cursor: pointer; font-family: inherit;
+  transition: background .18s, color .18s;
+}
+.exp-btn:hover { background: var(--navy); color: var(--white); }
+
+/* Búsqueda */
+.search-bar {
+  display: flex; gap: 10px;
+  margin-bottom: 24px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1.5px solid rgba(13,31,78,.12);
+  border-radius: 10px;
+  font-family: inherit; font-size: .9rem;
+  background: var(--white);
+  outline: none; color: var(--text);
+  transition: border-color .18s;
+}
+.search-input:focus { border-color: var(--navy-mid); }
+.search-btn {
+  padding: 10px 20px;
+  background: var(--navy);
+  color: var(--white);
+  border: none; border-radius: 10px;
+  font-family: inherit; font-size: .85rem; font-weight: 600;
+  cursor: pointer; transition: background .18s;
+}
+.search-btn:hover { background: var(--navy-mid); }
+
+/* Filtros */
+.filters {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 24px;
+}
+.filter-chip {
+  font-size: .75rem; font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(13,31,78,.12);
+  background: var(--white);
+  cursor: pointer; transition: all .18s;
+  font-family: inherit; color: var(--muted);
+}
+.filter-chip.active, .filter-chip:hover {
+  background: var(--navy); color: var(--white); border-color: var(--navy);
+}
+
+/* Materiales */
+.mat-list { display: flex; flex-direction: column; gap: 14px; }
+.mat-item {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 1px 8px rgba(13,31,78,.04);
+  transition: box-shadow .2s, border-color .2s;
+}
+.mat-item:hover { box-shadow: 0 4px 18px rgba(13,31,78,.09); border-color: rgba(13,31,78,.14); }
+.mat-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.mat-icon.pdf  { background: #FDECEA; }
+.mat-icon.doc  { background: #E3F2FD; }
+.mat-icon.link { background: #E8F5E9; }
+.mat-info { flex: 1; }
+.mat-info h4 { font-size: .88rem; font-weight: 600; color: var(--navy); margin-bottom: 2px; }
+.mat-info p  { font-size: .75rem; color: var(--muted); font-weight: 300; }
+.mat-dl {
+  font-size: .75rem; color: var(--navy-mid); font-weight: 600;
+  background: none; border: 1px solid rgba(13,31,78,.15);
+  padding: 5px 14px; border-radius: 20px;
+  cursor: pointer; font-family: inherit; flex-shrink: 0;
+  transition: background .18s, color .18s;
+}
+.mat-dl:hover { background: var(--navy); color: var(--white); }
+
+
+.mat-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.mat-preview-card {
+  cursor: pointer;
+}
+.mat-preview-btn {
+  font-size: .75rem;
+  color: var(--navy-mid);
+  font-weight: 600;
+  background: none;
+  border: 1px solid rgba(13,31,78,.15);
+  padding: 5px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .18s, color .18s;
+}
+.mat-preview-btn:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+.pdf-preview-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,31,78,.58);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  z-index: 5000;
+}
+.pdf-preview-modal.show {
+  display: flex;
+}
+.pdf-preview-dialog {
+  width: min(1180px, 96vw);
+  height: min(88vh, 860px);
+  background: var(--white);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(13,31,78,.30);
+  display: flex;
+  flex-direction: column;
+}
+.pdf-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(13,31,78,.08);
+  background: linear-gradient(135deg, rgba(13,31,78,.03) 0%, rgba(26,48,112,.05) 100%);
+}
+.pdf-preview-kicker {
+  font-size: .68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+}
+.pdf-preview-header h3 {
+  font-size: 1.1rem;
+  color: var(--navy);
+}
+.pdf-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pdf-preview-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(13,31,78,.12);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.pdf-preview-body {
+  flex: 1;
+  background: #eef2f8;
+}
+.pdf-preview-body iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--white);
+}
+
+
+/* Buenas prácticas */
+.bp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 18px; }
+.bp-card {
+  background: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 12px rgba(13,31,78,.05);
+  transition: transform .2s, box-shadow .2s;
+}
+.bp-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(13,31,78,.1); }
+.bp-card-top {
+  height: 6px;
+  background: linear-gradient(90deg, var(--navy) 0%, var(--gold) 100%);
+}
+.bp-card-body { padding: 20px; }
+.bp-nivel { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); margin-bottom: 8px; }
+.bp-card h3 { font-size: .95rem; font-weight: 600; color: var(--navy); margin-bottom: 8px; line-height: 1.3; }
+.bp-card p  { font-size: .8rem; color: var(--muted); line-height: 1.55; font-weight: 300; }
+.bp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.bp-tag {
+  font-size: .65rem; padding: 2px 10px; border-radius: 20px;
+  background: rgba(13,31,78,.06); color: var(--navy);
+}
+.bp-footer {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(13,31,78,.06);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.bp-author { font-size: .72rem; color: var(--muted); }
+.bp-share {
+  font-size: .72rem; font-weight: 600; color: var(--navy-mid);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  transition: color .18s;
+}
+.bp-share:hover { color: var(--gold); }
+
+/* Formulario carga */
+.form-section { max-width: 680px; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: .82rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid rgba(13,31,78,.12);
+  border-radius: 10px;
+  font-family: inherit; font-size: .88rem;
+  background: var(--white); color: var(--text);
+  outline: none; transition: border-color .18s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--navy-mid); }
+.form-textarea { resize: vertical; min-height: 100px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.btn-submit {
+  padding: 12px 28px;
+  background: var(--navy);
+  color: var(--white);
+  border: none; border-radius: 10px;
+  font-family: inherit; font-size: .9rem; font-weight: 600;
+  cursor: pointer; transition: background .18s;
+}
+.btn-submit:hover { background: var(--navy-mid); }
+
+/* Sobre el programa */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+.about-block {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 24px;
+  border: 1.5px solid rgba(13,31,78,.07);
+}
+.about-block h3 { font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+.about-block p  { font-size: .85rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+.about-full {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  border-radius: 14px;
+  padding: 28px;
+  color: rgba(255,255,255,.85);
+  font-size: .88rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 24px;
+}
+.about-full strong { color: var(--gold); font-weight: 600; }
+
+/* Stats */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+  max-width: 900px;
+}
+.stat-box {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  border: 1.5px solid rgba(13,31,78,.07);
+}
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--navy);
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl { font-size: .72rem; color: var(--muted); font-weight: 300; }
+
+.about-grid-topics { align-items: stretch; }
+.about-topic-card {
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, border-color .2s, background .2s;
+}
+.about-topic-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(13,31,78,.12);
+  border-color: rgba(201,162,39,.35);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+}
+.about-topic-card::after {
+  content: 'Ver más';
+  display: inline-block;
+  margin-top: 14px;
+  font-size: .73rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--navy-mid);
+}
+
+.about-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,31,78,.58);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  z-index: 9999;
+}
+.about-modal.show { display: flex; }
+.about-modal-box {
+  width: min(980px, 96vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(13,31,78,.28);
+  padding: 28px 28px 24px;
+  position: relative;
+}
+.about-modal-close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: #eef2f8;
+  color: var(--navy);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.about-modal-close:hover { background: #dfe6f2; }
+.about-modal-title {
+  font-family: 'Playfair Display', serif;
+  color: var(--navy);
+  font-size: 1.7rem;
+  margin-bottom: 18px;
+  padding-right: 50px;
+}
+.about-modal-content h4 {
+  color: var(--navy);
+  font-size: 1rem;
+  margin: 16px 0 8px;
+}
+.about-modal-content p,
+.about-modal-content li {
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.7;
+}
+.about-modal-content ul {
+  margin: 8px 0 14px 20px;
+}
+@media (max-width: 900px) {
+  .about-grid-topics { grid-template-columns: 1fr; }
+}
+
+
+.auth-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f3f8;
+  font-family: 'Source Sans 3', Arial, sans-serif;
+  padding: 24px;
+}
+.auth-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(13,31,78,.18);
+  padding: 34px 28px;
+  text-align: center;
+  border: 1px solid rgba(13,31,78,.08);
+}
+.auth-login-card img {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  margin: 0 auto 16px;
+  display: block;
+}
+.auth-login-card h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  color: #0d1f4e;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+}
+.auth-login-card p {
+  margin: 0 0 22px;
+  color: #5a6a90;
+  line-height: 1.5;
+  text-align: center;
+}
+.auth-login-card input {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.auth-login-card button {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #0d1f4e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.auth-login-error {
+  display: none;
+  margin-top: 12px;
+  color: #b91c1c;
+  font-size: .9rem;
+}
+
+
+.auth-login-error {
+  display: none;
+  margin-top: 12px;
+  color: #b91c1c;
+  font-size: .9rem;
+}
+.auth-login-card button:disabled {
+  opacity: .7;
+  cursor: wait;
+}
+
+
+/* ── FORO Y CONTACTOS ───────────────────────────────────────────── */
+.pa-panel {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.pa-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.pa-input, .pa-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid rgba(13,31,78,.14);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: .9rem;
+  outline: none;
+  color: var(--text);
+  background: var(--white);
+}
+.pa-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+.pa-input:focus, .pa-textarea:focus {
+  border-color: var(--navy-mid);
+  box-shadow: 0 0 0 4px rgba(26,48,112,.10);
+}
+.pa-btn {
+  padding: 10px 18px;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pa-btn:hover { background: var(--navy-mid); }
+.pa-btn.secondary {
+  background: #eef2ff;
+  color: var(--navy);
+}
+.pa-btn.danger {
+  background: #b91c1c;
+  color: #fff;
+}
+.pa-muted {
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+.pa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pa-topic-card, .pa-contact-card {
+  background: var(--white);
+  border: 1.5px solid rgba(13,31,78,.07);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 8px rgba(13,31,78,.04);
+}
+.pa-topic-head, .pa-contact-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.pa-topic-title, .pa-contact-title {
+  font-size: 1rem;
+  color: var(--navy);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pa-message-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 0;
+}
+.pa-message-meta {
+  color: var(--muted);
+  font-size: .72rem;
+  margin-bottom: 4px;
+}
+.pa-message-content {
+  color: var(--text);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.pa-admin-only {
+  display: none;
+}
+.pa-admin-visible {
+  display: block;
+}
+.pa-empty {
+  background: rgba(13,31,78,.04);
+  border: 1px dashed rgba(13,31,78,.18);
+  border-radius: 14px;
+  padding: 18px;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.pa-split {
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) minmax(320px, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .pa-split { grid-template-columns: 1fr; }
+}
+
+
+/* ── FORMULARIO EMBEBIDO ────────────────────────────────────────── */
+.iframe-form-shell {
+  background: var(--white);
+  border-radius: 18px;
+  border: 1.5px solid rgba(13,31,78,.08);
+  box-shadow: 0 14px 42px rgba(13,31,78,.10);
+  overflow: hidden;
+  height: calc(100vh - 210px);
+  min-height: 620px;
+}
+.iframe-form-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(13,31,78,.04), rgba(201,162,39,.06));
+  border-bottom: 1px solid rgba(13,31,78,.08);
+}
+.iframe-form-toolbar strong {
+  color: var(--navy);
+  font-size: .92rem;
+}
+.iframe-form-toolbar span {
+  color: var(--muted);
+  font-size: .78rem;
+}
+.iframe-form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.iframe-form-btn {
+  font-size: .76rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--white);
+  border: 1px solid rgba(13,31,78,.15);
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.iframe-form-btn:hover {
+  background: var(--navy);
+  color: var(--white);
+}
+.iframe-form-shell iframe {
+  width: 100%;
+  height: calc(100% - 58px);
+  border: none;
+  display: block;
+  background: #f5f7fb;
+}
+@media (max-width: 700px) {
+  .iframe-form-shell {
+    height: calc(100vh - 170px);
+    min-height: 560px;
+  }
+  .iframe-form-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+/* ── TABLA CONTACTOS ADMIN ─────────────────────────────────────── */
+.contacts-admin-panel {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 22px;
+}
+.contacts-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.contacts-toolbar .pa-input {
+  max-width: 420px;
+}
+.contacts-count {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.contacts-table-wrap {
+  width: 100%;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(13,31,78,.10);
+  background: #fff;
+}
+.contacts-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+  font-size: .84rem;
+}
+.contacts-table thead {
+  background: linear-gradient(135deg, rgba(13,31,78,.06), rgba(201,162,39,.08));
+}
+.contacts-table th {
+  text-align: left;
+  color: var(--navy);
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(13,31,78,.10);
+  white-space: nowrap;
+}
+.contacts-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(13,31,78,.07);
+  color: var(--text);
+  vertical-align: top;
+}
+.contacts-table tbody tr:hover {
+  background: rgba(13,31,78,.035);
+}
+.contact-email {
+  color: var(--navy-mid);
+  font-weight: 600;
+}
+.contact-empty-cell {
+  color: var(--muted);
+  opacity: .65;
+}
+
+
+/* ── EXPERIENCIAS DINÁMICAS / VALIDACIÓN ADMIN ─────────────────── */
+.repo-admin-panel {
+  display: none;
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 22px;
+  margin-bottom: 26px;
+}
+.repo-admin-panel.show { display: block; }
+.repo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.repo-toolbar .pa-input { max-width: 420px; }
+.repo-pending-list { display: flex; flex-direction: column; gap: 14px; }
+.repo-pending-card {
+  background: #fff;
+  border: 1.5px solid rgba(13,31,78,.08);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 8px rgba(13,31,78,.04);
+}
+.repo-pending-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+.repo-pending-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.repo-pending-meta {
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+.repo-pending-desc {
+  margin-top: 10px;
+  color: var(--text);
+  font-size: .86rem;
+  line-height: 1.55;
+}
+.repo-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.repo-empty {
+  background: rgba(13,31,78,.04);
+  border: 1px dashed rgba(13,31,78,.18);
+  border-radius: 14px;
+  padding: 18px;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.approved-title-block {
+  margin: 4px 0 18px;
+}
+.approved-title-block h3 {
+  color: var(--navy);
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+.approved-title-block p {
+  color: var(--muted);
+  font-size: .9rem;
+}
+.material-admin-box {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 20px;
+  margin-bottom: 22px;
+}
+.material-admin-box h3 {
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.material-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.material-admin-grid .full { grid-column: 1 / -1; }
+.material-note {
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.45;
+  margin: 8px 0 14px;
+}
+@media (max-width: 760px) {
+  .material-admin-grid { grid-template-columns: 1fr; }
+  .material-admin-grid .full { grid-column: auto; }
+}
+
+.exp-btn-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+
+/* ── FICHA COMPLETA DE EXPERIENCIA ─────────────────────────────── */
+.exp-card { cursor: pointer; }
+.exp-detail-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,31,78,.62);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  z-index: 7000;
+}
+.exp-detail-modal.show { display: flex; }
+.exp-detail-sheet {
+  width: min(980px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(13,31,78,.35);
+  border: 1px solid rgba(13,31,78,.08);
+}
+.exp-detail-header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f7fc 100%);
+  border-bottom: 1px solid rgba(13,31,78,.10);
+  padding: 24px 28px 18px;
+  z-index: 1;
+}
+.exp-detail-kicker {
+  font-size: .72rem;
+  color: var(--gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+.exp-detail-header h3 {
+  color: var(--navy);
+  font-size: 1.45rem;
+  line-height: 1.25;
+  margin-right: 52px;
+}
+.exp-detail-close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(13,31,78,.12);
+  background: #fff;
+  color: var(--navy);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.exp-detail-body { padding: 24px 28px 30px; }
+.exp-detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.exp-detail-meta {
+  background: #f7f9fd;
+  border: 1px solid rgba(13,31,78,.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.exp-detail-meta span {
+  display: block;
+  font-size: .68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 4px;
+}
+.exp-detail-meta strong {
+  color: var(--navy);
+  font-size: .9rem;
+  line-height: 1.3;
+}
+.exp-detail-section p {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.exp-detail-url {
+  display: block;
+  margin-top: 8px;
+  color: var(--navy-mid);
+  font-weight: 700;
+  word-break: break-all;
+}
+.exp-detail-section {
+  border-top: 1px solid rgba(13,31,78,.08);
+  padding-top: 18px;
+  margin-top: 18px;
+}
+.exp-detail-section h4 {
+  color: var(--navy);
+  font-size: .96rem;
+  margin-bottom: 8px;
+}
+.exp-detail-section p {
+  color: var(--text);
+  font-size: .92rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.exp-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+@media (max-width: 760px) {
+  .exp-detail-meta-grid { grid-template-columns: 1fr; }
+  .exp-detail-modal { padding: 12px; }
+}
+
+
+/* ── ADMIN: edición simple de tarjetas y administradores ───────── */
+.about-admin-box, .admins-admin-box {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1.5px solid rgba(13,31,78,.07);
+  box-shadow: 0 2px 14px rgba(13,31,78,.06);
+  padding: 22px;
+  margin-bottom: 24px;
+}
+.about-admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.about-admin-grid .full { grid-column: 1 / -1; }
+.about-admin-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.forum-topic-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+@media (max-width: 760px) {
+  .about-admin-grid { grid-template-columns: 1fr; }
+  .about-admin-grid .full { grid-column: auto; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN INICIAL -->
+<div id="loginScreen" class="auth-login-page">
+  <div class="auth-login-card">
+    <img src="logo.png" alt="PaideIA" onerror="this.style.display='none';">
+    <h1>Ingreso PaideIA</h1>
+    <p>Accedé con tu usuario autorizado para ingresar al portal.</p>
+    <input id="loginEmail" type="email" placeholder="Email" autocomplete="username">
+    <input id="loginPassword" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="loginButton" type="button" onclick="login()">Ingresar</button>
+    <div id="authLoginError" class="auth-login-error"></div>
+  </div>
+</div>
+
+<!-- CONTENIDO PROTEGIDO -->
+<div id="appContent" style="display:none;flex-direction:column;min-height:100vh;">
+
+<!-- HEADER -->
+<header>
+  <div class="header-logo" style="background:none;border:none;padding:2px;"><img src="logo.png" alt="PaideIA" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';"></div>
+  <div class="header-brand">
+    <h1>PaideIA</h1>
+    <p>Programa Argentino de Innovación Educativa con IA</p>
+  </div>
+  <div class="header-right">
+    <button id="btnLogout" onclick="logout()" style="display:none;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;cursor:pointer;font-family:inherit;transition:background .18s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">Cerrar sesión</button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- NAV TRIGGER -->
+  <div class="nav-trigger" id="navTrigger">
+    <div class="nav-hint">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="s-title">Navegación</div>
+      <div class="s-sub">Seleccioná una sección</div>
+    </div>
+
+    <div class="nav-list">
+      <div class="nav-section-label">Principal</div>
+
+      <div class="nav-item active" data-section="inicio">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-text">
+          <strong>Inicio</strong>
+          <span>12 claves PAIDEIA</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-item" data-section="sobre">
+        <div class="nav-icon">ℹ️</div>
+        <div class="nav-text">
+          <strong>Sobre el programa</strong>
+          <span>Objetivos y alcance</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-section-label">Repositorio</div>
+
+      <div class="nav-item" data-section="repositorio">
+        <div class="nav-icon">📚</div>
+        <div class="nav-text">
+          <strong>Repositorio de experiencias</strong>
+          <span>Buscar y explorar</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-item" data-section="carga">
+        <div class="nav-icon">✏️</div>
+        <div class="nav-text">
+          <strong>Cargar experiencia</strong>
+          <span>Compartí tu práctica</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-section-label">Recursos</div>
+
+      <div class="nav-item" data-section="materiales">
+        <div class="nav-icon">📄</div>
+        <div class="nav-text">
+          <strong>Materiales de apoyo</strong>
+          <span>Guías e informes</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-item" data-section="foro">
+        <div class="nav-icon">💬</div>
+        <div class="nav-text">
+          <strong>Foro</strong>
+          <span>Intercambio docente</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-item" data-section="perfil">
+        <div class="nav-icon">👤</div>
+        <div class="nav-text">
+          <strong>Perfil</strong>
+          <span>Mis datos y contraseña</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <div class="nav-item pa-admin-only" id="navContactos" data-section="contactos">
+        <div class="nav-icon">📩</div>
+        <div class="nav-text">
+          <strong>Contactos</strong>
+          <span>Gestión admin</span>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+    </div>
+
+    <div class="sidebar-close">
+      <button class="btn-close-nav" id="closeNav">
+        ‹ Cerrar menú
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+
+    <!-- INICIO -->
+    <div class="section active" id="s-inicio">
+      <div class="inicio-hero">
+        <h2>12 Claves PAIDEIA para usar IA con criterio</h2>
+        <p>IA + educación con sentido pedagógico</p>
+      </div>
+
+     <div class="infografia-wrap">
+  <img src="12Pilares.png" alt="12 Claves PAIDEIA" onerror="this.onerror=null;this.src='logo.png';this.style.maxWidth='180px';this.style.margin='0 auto';this.style.objectFit='contain';">
+</div>
+
+
+    </div>
+
+    <!-- SOBRE EL PROGRAMA -->
+    <div class="section" id="s-sobre">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Principal</div>
+        <h2>Sobre el programa</h2>
+        <p>El Programa Argentino de Innovación Educativa con Inteligencia Artificial</p>
+      </div>
+
+      <div class="about-admin-box pa-admin-only" id="aboutCardsAdminBox">
+        <h3 style="color:var(--navy);margin-bottom:8px;">Administrar tarjetas de “Sobre el programa”</h3>
+        <p class="pa-muted" style="margin-bottom:14px;">Desde acá podés editar una tarjeta existente o agregar una nueva. Se guarda en el navegador del portal y se refleja en esta página.</p>
+        <div class="about-admin-grid">
+          <div>
+            <label class="pa-muted">Tarjeta existente</label>
+            <select class="pa-input" id="aboutCardSelect" onchange="loadAboutCardForEdit()">
+              <option value="">Nueva tarjeta</option>
+            </select>
+          </div>
+          <div>
+            <label class="pa-muted">Ícono</label>
+            <input class="pa-input" id="aboutCardIcon" placeholder="Ej.: 📌">
+          </div>
+          <div class="full">
+            <label class="pa-muted">Título</label>
+            <input class="pa-input" id="aboutCardTitle" placeholder="Título de la tarjeta">
+          </div>
+          <div class="full">
+            <label class="pa-muted">Texto breve</label>
+            <textarea class="pa-textarea" id="aboutCardShort" placeholder="Texto que se ve en la tarjeta"></textarea>
+          </div>
+          <div class="full">
+            <label class="pa-muted">Contenido completo</label>
+            <textarea class="pa-textarea" id="aboutCardContent" placeholder="Contenido que se abre al hacer clic"></textarea>
+          </div>
+          <div class="full about-admin-actions">
+            <button class="pa-btn" type="button" onclick="saveAboutCardAdmin()">Guardar tarjeta</button>
+            <button class="pa-btn secondary" type="button" onclick="clearAboutCardForm()">Nueva</button>
+            <button class="pa-btn danger" type="button" onclick="deleteAboutCardAdmin()">Eliminar tarjeta</button>
+            <button class="pa-btn secondary" type="button" onclick="resetAboutCardsAdmin()">Restaurar originales</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num">24</div><div class="stat-lbl">Provincias participantes</div></div>
+        <div class="stat-box"><div class="stat-num">+2k</div><div class="stat-lbl">Docentes involucrados</div></div>
+        <div class="stat-box"><div class="stat-num">12</div><div class="stat-lbl">Claves pedagógicas</div></div>
+        <div class="stat-box"><div class="stat-num">2025</div><div class="stat-lbl">Año de lanzamiento</div></div>
+      </div>
+
+      <div class="about-full">
+        <strong>PaideIA</strong> es el Programa Argentino de Innovación Educativa con Inteligencia Artificial. Su objetivo es acompañar a docentes, equipos directivos e instituciones educativas en la integración crítica y pedagógicamente fundamentada de la inteligencia artificial en los procesos de enseñanza y aprendizaje.
+      </div>
+
+      <div class="about-grid about-grid-topics">
+        <div class="about-block about-topic-card" data-topic="desafios">
+          <h3>🧩 Desafíos Básicos</h3>
+          <p>Cambio de narrativa, cambio de modelo y cambio de paradigma para pensar la IA en educación.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="principios">
+          <h3>📘 Principios Rectores</h3>
+          <p>La IA como extensión de la racionalidad humana, aliada colaborativa, no neutral y sin reemplazo del docente.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="abordaje">
+          <h3>🔗 Abordaje General</h3>
+          <p>Una integración interdisciplinar, intersectorial y centrada en los vínculos pedagógicos y humanos.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="vision">
+          <h3>🌍 Visión de la IA en Educación</h3>
+          <p>Una mirada humanista que integra la IA con sentido ético, crítico y orientado al desarrollo integral.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="alcance">
+          <h3>🎯 Alcance del Programa PAIDEIA</h3>
+          <p>Tres objetivos principales: pensamiento computacional, aplicación de IA y desarrollo de inteligencia artificial.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="ejes">
+          <h3>🏫 Ejes transversales</h3>
+          <p>Estudiantes, docencia, contenidos curriculares y sistemas de gestión como dimensiones de transformación.</p>
+        </div>
+        <div class="about-block about-topic-card" data-topic="recursos">
+          <h3>📚 Contenidos y Recursos</h3>
+          <p>Lineamientos, guías y materiales para acompañar a docentes, equipos técnicos, instituciones y familias.</p>
+        </div>
+      </div>
+    </div>
+
+        <!-- REPOSITORIO -->
+    <div class="section" id="s-repositorio">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Repositorio</div>
+        <h2>Repositorio de experiencias</h2>
+        <p>Prácticas pedagógicas con IA validadas por el equipo PaideIA.</p>
+      </div>
+
+      <div class="repo-admin-panel" id="repoAdminPanel">
+        <h3 style="color:var(--navy);margin-bottom:8px;">Experiencias pendientes de validación</h3>
+        <p class="pa-muted" style="margin-bottom:16px;">Estas experiencias se leen desde el Google Sheet. Al validar, se publican en Supabase para que las vean los usuarios.</p>
+
+        <div class="repo-toolbar">
+          <input class="pa-input" id="pendingSearch" type="text" placeholder="Buscar pendientes..." onkeyup="filterPendingExperiences()">
+          <button class="pa-btn secondary" type="button" onclick="loadPendingExperiences()">Actualizar pendientes</button>
+          <span class="contacts-count" id="pendingCount">Pendientes: —</span>
+        </div>
+
+        <div class="repo-pending-list" id="pendingExperiencesList">
+          <div class="repo-empty">Cargando experiencias pendientes...</div>
+        </div>
+      </div>
+
+      <div class="approved-title-block">
+        <h3>Fichas aprobadas</h3>
+        <p>Experiencias validadas disponibles para consulta pública.</p>
+      </div>
+
+      <div class="filters">
+        <button class="filter-chip active" type="button" onclick="setRepoLevelFilter('')">Todos los niveles</button>
+        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Inicial')">Inicial</button>
+        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Primario')">Primario</button>
+        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Secundario')">Secundario</button>
+        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Superior')">Superior</button>
+      </div>
+
+      <div class="exp-grid" id="repoGrid">
+        <div class="pa-empty">Cargando experiencias validadas...</div>
+      </div>
+    </div>
+
+<!-- CARGA DE EXPERIENCIA -->
+    <div class="section" id="s-carga">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Repositorio</div>
+        <h2>Cargar una experiencia</h2>
+        <p>Completá el formulario oficial de buenas prácticas docentes con IA. La información se guarda en el Google Sheet conectado.</p>
+      </div>
+
+      <div class="iframe-form-shell">
+        <div class="iframe-form-toolbar">
+          <div>
+            <strong></strong><br>
+            <span></span>
+          </div>
+          <div class="iframe-form-actions">
+            <button class="iframe-form-btn" type="button" onclick="reloadExperienceForm()">Recargar formulario</button>
+          </div>
+        </div>
+        <iframe id="experienceFormIframe" src="Formulario(1).html" title="Formulario PAIDEIA - Cargar experiencia"></iframe>
+      </div>
+    </div>
+
+<!-- MATERIALES -->
+    <div class="section" id="s-materiales">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Recursos</div>
+        <h2>Materiales de apoyo</h2>
+        <p>Guías, informes tecnopedagógicos y recursos para la práctica docente</p>
+      </div>
+
+      <div class="material-admin-box pa-admin-only" id="materialsAdminBox">
+        <h3>Agregar material de apoyo</h3>
+        <p class="material-note">Pegá una URL pública del material, por ejemplo un PDF subido al repositorio, Google Drive o recurso externo. Al guardarlo, queda listado en materiales para usuarios y administradores.</p>
+        <div class="material-admin-grid">
+          <input class="pa-input" id="materialTitle" type="text" placeholder="Título del material">
+          <input class="pa-input" id="materialType" type="text" placeholder="Tipo / categoría. Ej.: Guía, PDF, enlace">
+          <input class="pa-input full" id="materialUrl" type="url" placeholder="URL pública del material">
+          <textarea class="pa-textarea full" id="materialDescription" placeholder="Descripción breve"></textarea>
+          <button class="pa-btn" type="button" onclick="addSupportMaterial()">Agregar material</button>
+          <button class="pa-btn secondary" type="button" onclick="loadSupportMaterials()">Actualizar listado</button>
+        </div>
+      </div>
+
+      <div class="filters" style="margin-bottom:24px">
+        <button class="filter-chip active">Todos</button>
+        <button class="filter-chip">Guías</button>
+      </div>
+
+      <div class="mat-list" id="materialsList">
+        <div class="mat-item mat-preview-card" data-pdf="documento_ia-aula_secundaria_-_28-digital_1.pdf" data-title="Inteligencia Artificial en la escuela secundaria">
+          <div class="mat-icon pdf">📄</div>
+          <div class="mat-info">
+            <h4>Inteligencia Artificial en la escuela secundaria</h4>
+            <p>Propuestas didácticas para una integración crítica y creativa en el aula · PDF</p>
+          </div>
+          <div class="mat-actions">
+            <button class="mat-preview-btn" type="button">Vista previa</button>
+            <a href="documento_ia-aula_secundaria_-_28-digital_1.pdf" download class="mat-dl">Descargar</a>
+          </div>
+        </div>
+
+        <div class="mat-item mat-preview-card" data-pdf="documento_guia_de_integracion_vf_digital.pdf" data-title="Guía para la Integración de las Inteligencias Artificiales en Educación">
+          <div class="mat-icon pdf">📄</div>
+          <div class="mat-info">
+            <h4>Guía para la Integración de las Inteligencias Artificiales en Educación</h4>
+            <p>Documento orientador para docentes y directivos sobre el uso de IA en educación · PDF</p>
+          </div>
+          <div class="mat-actions">
+            <button class="mat-preview-btn" type="button">Vista previa</button>
+            <a href="documento_guia_de_integracion_vf_digital.pdf" download class="mat-dl">Descargar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pdf-preview-modal" id="pdfPreviewModal" aria-hidden="true">
+        <div class="pdf-preview-dialog">
+          <div class="pdf-preview-header">
+            <div>
+              <div class="pdf-preview-kicker">PAIDEIA · Vista previa</div>
+              <h3 id="pdfPreviewTitle">Documento</h3>
+            </div>
+            <div class="pdf-preview-actions">
+              <a id="pdfPreviewDownload" class="mat-dl" href="#" download>Descargar</a>
+              <button type="button" class="pdf-preview-close" id="pdfPreviewClose" aria-label="Cerrar">×</button>
+            </div>
+          </div>
+          <div class="pdf-preview-body">
+            <iframe id="pdfPreviewFrame" src="" title="Vista previa PDF" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUENAS PRÁCTICAS<!-- BUENAS PRÁCTICAS 
+    <div class="section" id="s-practicas">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Recursos</div>
+        <h2>Buenas prácticas</h2>
+        <p>Intercambio de experiencias entre docentes y referentes de todo el país</p>
+      </div>
+
+      <div class="bp-grid">
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Secundaria · Lengua</div>
+            <h3>Revisión crítica de textos generados por IA</h3>
+            <p>En lugar de prohibir la IA, la usamos como primer borrador. Los estudiantes identifican errores, sesgos y mejoran el texto. El proceso es la evaluación.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 6</span>
+              <span class="bp-tag">Clave 8</span>
+              <span class="bp-tag">Escritura</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Córdoba</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Primaria · Ciencias Naturales</div>
+            <h3>El científico y la máquina: preguntar bien para aprender</h3>
+            <p>Los alumnos formulan preguntas a una IA sobre fenómenos naturales y luego contrastan las respuestas con experimentos reales. El error de la IA es el punto de partida.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 2</span>
+              <span class="bp-tag">Clave 7</span>
+              <span class="bp-tag">Indagación</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Entre Ríos</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Formación docente · Didáctica</div>
+            <h3>IA como espejo: reflexionar sobre la propia práctica</h3>
+            <p>Los futuros docentes le piden a la IA que planifique una clase y luego la analizan críticamente usando los marcos teóricos del profesorado. La IA como objeto de estudio.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 1</span>
+              <span class="bp-tag">Clave 5</span>
+              <span class="bp-tag">Reflexión</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Santa Fe</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Secundaria · Ciudadanía</div>
+            <h3>Deepfakes en el aula: identidad y verdad en la era IA</h3>
+            <p>Análisis de videos manipulados con IA para trabajar identidad digital, consentimiento y responsabilidad. La IA como tema de debate ético más que como herramienta.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 9</span>
+              <span class="bp-tag">Clave 12</span>
+              <span class="bp-tag">Ética</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Neuquén</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Superior · Ingeniería</div>
+            <h3>Código asistido: aprender a revisar lo que la IA produce</h3>
+            <p>Los estudiantes usan asistentes de código pero deben documentar cada modificación que hacen al código generado. El aprendizaje está en la revisión, no en la generación.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 8</span>
+              <span class="bp-tag">Clave 11</span>
+              <span class="bp-tag">Programación</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Mendoza</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+
+        <div class="bp-card">
+          <div class="bp-card-top"></div>
+          <div class="bp-card-body">
+            <div class="bp-nivel">Primaria · Matemática</div>
+            <h3>¿La IA sabe sumar? Verificar para aprender</h3>
+            <p>Los niños le piden a una IA que resuelva problemas de matemática y luego verifican si el resultado es correcto. Aprenden a no confiar ciegamente y a valorar su propio razonamiento.</p>
+            <div class="bp-tags">
+              <span class="bp-tag">Clave 4</span>
+              <span class="bp-tag">Clave 8</span>
+              <span class="bp-tag">Razonamiento</span>
+            </div>
+          </div>
+          <div class="bp-footer">
+            <span class="bp-author">Docente referente · Buenos Aires</span>
+            <button class="bp-share">Compartir ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  
+    <!-- FORO -->
+    <div class="section" id="s-foro">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Comunidad</div>
+        <h2>Foro</h2>
+        <p>Espacio de intercambio docente. El administrador crea los temas y los usuarios pueden responder.</p>
+      </div>
+
+      <div class="pa-panel pa-admin-only" id="forumCreatePanel">
+        <h3 style="color:var(--navy);margin-bottom:10px;">Crear nuevo tema</h3>
+        <div class="pa-form-grid">
+          <input class="pa-input" id="forumTopicTitle" placeholder="Título del tema">
+          <textarea class="pa-textarea" id="forumTopicBody" placeholder="Mensaje o consigna publicada por PaideIA"></textarea>
+          <button class="pa-btn" type="button" onclick="createForumTopic()">Crear tema</button>
+        </div>
+      </div>
+
+      <div class="pa-split">
+        <div class="pa-panel">
+          <h3 style="color:var(--navy);margin-bottom:10px;">Temas disponibles</h3>
+          <div id="forumTopicsList" class="pa-list">
+            <div class="pa-empty">Cargando temas...</div>
+          </div>
+        </div>
+
+        <div class="pa-panel">
+          <h3 style="color:var(--navy);margin-bottom:10px;" id="forumSelectedTitle">Seleccioná un tema</h3>
+          <p class="pa-muted" id="forumSelectedBody">Al seleccionar un tema vas a ver las respuestas y podrás participar.</p>
+
+          <div id="forumPostsList" class="pa-list" style="margin-top:16px;">
+            <div class="pa-empty">Todavía no hay tema seleccionado.</div>
+          </div>
+
+          <div id="forumReplyBox" style="display:none;margin-top:16px;">
+            <textarea class="pa-textarea" id="forumReplyContent" placeholder="Escribí tu respuesta"></textarea>
+            <button class="pa-btn" type="button" onclick="createForumPost()" style="margin-top:10px;">Responder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- PERFIL -->
+    <div class="section" id="s-perfil">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Usuario</div>
+        <h2>Perfil</h2>
+        <p>Actualizá tus datos personales y cambiá tu contraseña.</p>
+      </div>
+
+      <div class="pa-panel" style="max-width:760px;margin:0 auto 20px auto;">
+        <h3 style="color:var(--navy);margin-bottom:10px;">Mis datos</h3>
+        <p class="pa-muted" style="margin-bottom:16px;">Estos datos se toman de la tabla de perfiles del sistema.</p>
+
+        <div class="pa-form-grid">
+          <label class="pa-muted">Correo electrónico</label>
+          <input type="email" id="profile_email" class="pa-input" placeholder="Email" disabled>
+
+          <label class="pa-muted">Nombre completo</label>
+          <input type="text" id="profile_name" class="pa-input" placeholder="Nombre completo">
+
+          <label class="pa-muted">Jurisdicción</label>
+          <input type="text" id="profile_jur" class="pa-input" placeholder="Jurisdicción">
+
+          <label class="pa-muted">Institución</label>
+          <input type="text" id="profile_inst" class="pa-input" placeholder="Institución">
+
+          <button class="pa-btn" type="button" onclick="saveProfile()">Guardar cambios</button>
+        </div>
+      </div>
+
+      <div class="pa-panel" style="max-width:760px;margin:0 auto 20px auto;">
+        <h3 style="color:var(--navy);margin-bottom:10px;">Cambiar contraseña</h3>
+        <p class="pa-muted" style="margin-bottom:16px;">La contraseña nueva debe tener al menos 8 caracteres.</p>
+
+        <div class="pa-form-grid">
+          <input type="password" id="new_pass" class="pa-input" placeholder="Nueva contraseña">
+          <input type="password" id="new_pass_repeat" class="pa-input" placeholder="Repetir nueva contraseña">
+          <button class="pa-btn secondary" type="button" onclick="changePassword()">Actualizar contraseña</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTOS -->
+    <div class="section" id="s-contactos">
+      <div class="section-header">
+        <div class="breadcrumb">PAIDEIA · Administración</div>
+        <h2>Contactos</h2>
+        <p>Base de referentes jurisdiccionales. Esta sección solo está disponible para administradores.</p>
+      </div>
+
+      <div class="admins-admin-box pa-admin-only" id="adminsAdminBox">
+        <h3 style="color:var(--navy);margin-bottom:8px;">Agregar administradores</h3>
+        <p class="pa-muted" style="margin-bottom:14px;">Ingresá el correo de un usuario ya registrado para convertirlo en administrador.</p>
+        <div class="contacts-toolbar">
+          <input type="email" id="newAdminEmail" class="pa-input" placeholder="email@dominio.com">
+          <button class="pa-btn" type="button" onclick="grantAdminByEmail()">Agregar admin</button>
+        </div>
+      </div>
+
+      <div class="contacts-admin-panel">
+        <div class="contacts-toolbar">
+          <input type="text" id="searchContact" class="pa-input" placeholder="Buscar por nombre, email, jurisdicción, institución o cargo..." onkeyup="filterContactsTable()">
+          <button class="pa-btn secondary" type="button" onclick="loadContacts()">Actualizar</button>
+          <span class="contacts-count" id="contactsCount">Cargando contactos...</span>
+        </div>
+
+        <div class="contacts-table-wrap">
+          <table class="contacts-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Jurisdicción</th>
+                <th>Institución</th>
+                <th>Cargo</th>
+                <th>Teléfono</th>
+                <th>Responsable</th>
+              </tr>
+            </thead>
+            <tbody id="contactsTableBody">
+              <tr>
+                <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+</main>
+</div>
+-->
+<script>
+// ── NAV LOGIC ─────────────────────────────────────────────────────
+const sidebar  = document.getElementById('sidebar');
+const overlay  = document.getElementById('overlay');
+const main     = document.getElementById('main');
+const trigger  = document.getElementById('navTrigger');
+const closeBtn = document.getElementById('closeNav');
+
+function openNav() {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  main.classList.add('blurred');
+}
+function closeNav() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  main.classList.remove('blurred');
+}
+
+trigger.addEventListener('mouseenter', openNav);
+overlay.addEventListener('click', closeNav);
+closeBtn.addEventListener('click', closeNav);
+
+// Cerrar si el mouse sale del sidebar por la derecha
+sidebar.addEventListener('mouseleave', (e) => {
+  if (e.clientX > sidebar.getBoundingClientRect().right) closeNav();
+});
+
+// ── SECTION NAVIGATION ───────────────────────────────────────────
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('.section');
+
+function goSection(id) {
+  navItems.forEach(i => i.classList.toggle('active', i.dataset.section === id));
+  sections.forEach(s => s.classList.toggle('active', s.id === 's-' + id));
+  main.scrollTop = 0;
+  closeNav();
+  if (id === 'perfil' && typeof loadProfile === 'function') loadProfile();
+  if (id === 'materiales' && typeof loadSupportMaterials === 'function') loadSupportMaterials();
+  if (id === 'repositorio') {
+    if (typeof loadExperienciasPublicas === 'function') loadExperienciasPublicas();
+    if (currentRole === 'admin' && typeof loadPendingExperiences === 'function') loadPendingExperiences();
+  }
+}
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => goSection(item.dataset.section));
+});
+
+// ── FILTER CHIPS ─────────────────────────────────────────────────
+document.querySelectorAll('.filters').forEach(filterGroup => {
+  filterGroup.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterGroup.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+});
+</script>
+
+<!-- ══════════════ CHATBOT PAIDEIA ══════════════ -->
+<style>
+  :root{ --pa-blue:#2e6ebf; --panel:#737373; --sky1:#eaf3ff; --sky2:#d7e9ff; }
+
+  .p-floating{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:999999;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+
+  /* Avatar flotante */
+  .p-toggle{
+    position:absolute;
+    right:0;
+    bottom:100%;
+    margin-bottom:10px;
+    width:190px;
+    height:150px;
+    cursor:pointer;
+    border:none;
+    background:transparent;
+    outline:none;
+  }
+  .p-toggle img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#fff;
+    border-radius:12px;
+    position:relative;
+    z-index:2;
+  }
+  .p-toggle::after{
+    content:'';
+    position:absolute;
+    inset:-10px;
+    border-radius:16px;
+    background:radial-gradient(60% 60% at 50% 50%,rgba(46,110,191,.28),rgba(46,110,191,0) 70%);
+    filter:blur(8px);
+    opacity:1;
+    animation:p-pulse 2s infinite ease-in-out;
+  }
+  @keyframes p-pulse{
+    0%,100%{ box-shadow:0 0 25px 6px rgba(46,110,191,.25); }
+    50%    { box-shadow:0 0 40px 14px rgba(46,110,191,.55); }
+  }
+
+  /* Panel */
+  .p-panel{
+    position:relative;
+    margin-top:14px;
+    padding-top:46px;
+    width:420px;
+    max-width:100vw;
+    background:linear-gradient(145deg,var(--sky1),var(--sky2));
+    border-radius:22px;
+    box-shadow:0 24px 60px rgba(0,0,0,.4);
+    overflow:hidden;
+    color:#111;
+    display:none;
+  }
+  .p-panel.open{ display:block; }
+
+  .p-topbar{
+    position:absolute;
+    top:8px;
+    left:10px;
+    right:10px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .p-drag{
+    flex:1;
+    background:rgba(0,0,0,.28);
+    border-radius:999px;
+    padding:4px 10px;
+    color:#fff;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:move;
+    user-select:none;
+  }
+  .p-close{
+    border:none;
+    border-radius:999px;
+    padding:4px 10px;
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#444;
+    color:#fff;
+    font-weight:bold;
+    width:28px;
+  }
+
+  .p-body{
+    padding:52px 14px 16px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .p-card{
+    background:#fff;
+    border-radius:14px;
+    padding:10px 12px;
+    font-size:14px;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);
+    cursor:pointer;
+    transition:.12s;
+  }
+  .p-card strong{ font-size:15px; }
+  .p-option:hover{
+    transform:translateY(-1px);
+    box-shadow:0 3px 9px rgba(0,0,0,.22);
+    background:#fdfdfd;
+  }
+  .p-option.active{
+    outline:2px solid var(--pa-blue);
+    background:#f3f7ff;
+  }
+
+  .p-subbox{
+    margin-top:10px;
+    background:#fff;
+    border-radius:10px;
+    padding:10px 12px;
+    max-height:calc(100vh - 220px);
+    overflow-y:auto;
+    display:none;
+    user-select:text;
+  }
+  .p-subbox h4{ margin:.2rem 0 .1rem;font-size:14px; }
+  .p-subbox p{ margin:.1rem 0 .35rem;font-size:13px;line-height:1.35; }
+  .p-subbox ul{ margin:.15rem 0 .4rem 1.1rem;padding:0;font-size:13px; }
+  .p-subbox li{ margin-bottom:.15rem; }
+
+  .p-footer{
+    font-size:11px;
+    color:#222;
+    opacity:.9;
+    text-align:center;
+    margin-bottom:4px;
+  }
+  .p-footer span{ font-weight:600;color:#1a4e93; }
+
+  .p-controls{
+    padding:0 14px 14px 14px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+  }
+  .p-voice,.p-stop{
+    border:none;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+  .p-voice{ background:#fff;color:#333; }
+  .p-voice.off{ opacity:.5; }
+  .p-stop{ background:#f44336;color:#fff;font-weight:600; }
+
+  .p-hidden{ display:none!important; }
+
+  @media(max-width:480px){
+    .p-panel{ width:100vw;border-radius:0;margin:0;bottom:0;left:0;right:0; }
+    .p-floating{ right:0;left:0;bottom:0;display:flex;justify-content:center; }
+    .p-toggle{ right:10px;bottom:100%;margin-bottom:12px; }
+  }
+</style>
+
+<div class="p-floating" id="pChat">
+  <button class="p-toggle" id="pToggle" title="Abrir PAIDEIA">
+    <img src="blanco.png" alt="PAIDEIA">
+  </button>
+
+  <div class="p-panel" id="pPanel" role="dialog" aria-live="polite">
+    <div class="p-topbar">
+      <div class="p-drag" id="pDrag">⠿ PAIDEIA</div>
+      <button class="p-close" id="pClose" title="Cerrar">×</button>
+    </div>
+
+    <div class="p-body">
+      <div class="p-footer">
+        Programa <span>PaideIA</span> – Inteligencia Artificial en la Escuela
+      </div>
+
+      <div class="p-card"><strong>Seleccione el tema de PAIDEIA</strong></div>
+
+      <div class="p-card p-option" data-key="fundamentos">
+        Sobre los fundamentos del Programa PAIDEIA
+        <div class="p-subbox" id="fundamentosBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="condiciones">
+        Sobre las condiciones para abordar el pensamiento computacional, la aplicación de IAs y el desarrollo de las IAs
+        <div class="p-subbox" id="condicionesBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="formacion">
+        Sobre la formación y el rol del docente
+        <div class="p-subbox" id="formacionBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="estudiantes">
+        Sobre el uso de las IAs con los estudiantes
+        <div class="p-subbox" id="estudiantesBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="accesibilidad">
+        Sobre la accesibilidad y la libertad con las IAs en los procesos educativos
+        <div class="p-subbox" id="accesibilidadBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="privacidad">
+        Sobre la privacidad y el uso responsable
+        <div class="p-subbox" id="privacidadBox"></div>
+      </div>
+
+      <div class="p-card p-option" data-key="seguimiento">
+        Sobre el seguimiento del Programa PAIDEIA
+        <div class="p-subbox" id="seguimientoBox"></div>
+      </div>
+    </div>
+
+    <div class="p-controls">
+      <button class="p-voice" id="pVoice" title="Activar/Desactivar voz">🔊 Voz</button>
+      <button class="p-stop"  id="pStop"  title="Detener voz">⏹ Detener</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const panel  = document.getElementById('pPanel');
+  const toggle = document.getElementById('pToggle');
+  const drag   = document.getElementById('pDrag');
+  const voiceB = document.getElementById('pVoice');
+  const stopB  = document.getElementById('pStop');
+  const closeB = document.getElementById('pClose');
+  const options = [...document.querySelectorAll('.p-option')];
+
+  const VOICE_INTRO =
+    "PAIDEIA integra la inteligencia artificial con sentido pedagógico, humanista y crítico. " +
+    "Promueve pensamiento computacional, uso responsable y desarrollo ético. " +
+    "La inteligencia artificial potencia la enseñanza, pero no reemplaza el vínculo docente.";
+
+  const HTML_FUNDAMENTOS=`
+    <h4>1) Enfoque de inclusión de IAs</h4>
+    <p>PAIDEIA reconoce que las IAs ya están en la vida escolar y que las políticas públicas deben acompañar su integración con criterio pedagógico, ético y de equidad. No se trata de incorporar tecnología por sí misma, sino de ponerla al servicio de mejores experiencias de enseñanza y aprendizaje.</p>
+    <h4>2) Pensamiento computacional, uso y desarrollo de IA</h4>
+    <p>El pensamiento computacional fortalece habilidades transversales como la descomposición de problemas, el diseño de algoritmos, la representación de datos y la creatividad. PAIDEIA propone articularlo con el uso y el desarrollo de herramientas de IA en una progresión curricular gradual según la etapa educativa.</p>
+    <h4>3) Aplicación de los cuatro principios de PAIDEIA</h4>
+    <p>Las IAs son sistemas creados por personas y no agentes humanos. Por eso, el programa subraya cuatro principios: centralidad pedagógica, equidad y justicia social, perspectiva de derechos y ética de la información. El lugar del docente es insustituible: la IA potencia, no reemplaza, la enseñanza.</p>
+    <h4>4) Sobre la antropomorfización</h4>
+    <p>No debemos atribuir intenciones, emociones ni conciencia a los sistemas de IA. PAIDEIA invita a trabajar con los estudiantes la diferencia entre comprender el funcionamiento técnico de la IA y la tendencia a imaginarla como un sujeto. Esta mirada crítica ayuda a evitar malentendidos y discursos deterministas.</p>
+  `;
+
+  const HTML_CONDICIONES=`
+    <h4>1) Condiciones institucionales</h4>
+    <p>Para implementar PAIDEIA se requieren acuerdos institucionales claros: definición de objetivos, lineamientos para el uso responsable, criterios de selección de herramientas y espacios de trabajo colaborativo entre docentes. La IA no se agrega como un "extra", sino que se integra a los proyectos existentes.</p>
+    <h4>2) Infraestructura y conectividad</h4>
+    <p>Es importante considerar la disponibilidad de dispositivos, la conectividad y las estrategias para compartir recursos cuando no se cuenta con equipamiento individual. PAIDEIA contempla distintos escenarios y propone actividades que se pueden trabajar desde el aula, el laboratorio o con organización por estaciones.</p>
+    <h4>3) Tiempos institucionales y acompañamiento</h4>
+    <p>La escuela necesita tiempos para la exploración, la planificación conjunta y la reflexión sobre la práctica. PAIDEIA sugiere instancias de acompañamiento entre pares, talleres de intercambio y seguimiento pedagógico de las experiencias para evitar que la incorporación de IA quede sólo en usos aislados.</p>
+  `;
+
+  const HTML_FORMACION=`
+    <h4>1) Acompañamiento al rol docente</h4>
+    <p>El programa parte de la idea de que ningún modelo de IA puede reemplazar la mediación docente. La formación se orienta a fortalecer el rol profesional del docente como diseñador de experiencias de aprendizaje, curador de recursos, mediador crítico de la información y garante del enfoque de derechos.</p>
+    <h4>2) Saberes necesarios</h4>
+    <p>PAIDEIA apunta a construir saberes en tres planos: comprensión general de qué son las IAs y cómo funcionan; criterios pedagógicos para integrarlas a la enseñanza; y nociones básicas sobre riesgos, sesgos, privacidad y seguridad. El propósito es que el docente pueda tomar decisiones informadas en su contexto real.</p>
+    <h4>3) Trabajo colectivo y comunidades de práctica</h4>
+    <p>La integración de IA se sostiene mejor cuando se trabaja en equipo. El programa propone que cada institución genere espacios de intercambio donde se compartan proyectos, problemas y soluciones, y se construyan acuerdos comunes sobre usos aceptables, límites y oportunidades.</p>
+  `;
+
+  const HTML_ESTUDIANTES=`
+    <h4>1) Protagonismo de las y los estudiantes</h4>
+    <p>PAIDEIA busca que los estudiantes no sean sólo usuarios pasivos de tecnologías, sino protagonistas de proyectos donde analicen, produzcan y evalúen soluciones con IA. Esto incluye desde el uso de asistentes conversacionales hasta actividades de programación, diseño de prompts y proyectos interdisciplinarios.</p>
+    <h4>2) Desarrollo de ciudadanía digital e informacional</h4>
+    <p>El programa enfatiza la formación en pensamiento crítico: verificar información, reconocer sesgos, entender cómo se entrenan los modelos y qué implicancias tienen los datos que se comparten. La IA se trabaja siempre articulada con nociones de ciudadanía digital, derechos y responsabilidades.</p>
+    <h4>3) Inclusión y acompañamiento</h4>
+    <p>La IA puede ser un apoyo para la accesibilidad y la inclusión, por ejemplo con herramientas de lectura en voz alta, subtitulado, traducción o apoyos visuales. PAIDEIA propone usarlas de manera situada, acompañando a los estudiantes que lo necesiten sin etiquetar ni estigmatizar.</p>
+  `;
+
+  const HTML_ACCESIBILIDAD=`
+    <h4>1) IAs como recurso de apoyo</h4>
+    <p>Las herramientas de IA pueden facilitar la accesibilidad: lectura de textos, resúmenes orales, descripción de imágenes, traducción, entre otros. PAIDEIA alienta a que estas posibilidades se pongan al servicio de la inclusión, respetando siempre la autonomía y la dignidad de las personas.</p>
+    <h4>2) Diseño universal para el aprendizaje</h4>
+    <p>El programa se articula con el enfoque de Diseño Universal para el Aprendizaje, promoviendo múltiples formas de acceso a la información, de expresión de lo aprendido y de participación en las actividades. La IA puede colaborar en crear materiales adaptados a diferentes necesidades.</p>
+    <h4>3) Brechas de acceso</h4>
+    <p>Al mismo tiempo, se reconoce que existen brechas de conectividad y dispositivos. PAIDEIA no propone soluciones que profundicen esas desigualdades, sino que invita a diseñar experiencias escalables que puedan adaptarse a los recursos disponibles y a políticas que garanticen mayor equidad.</p>
+  `;
+
+  const HTML_PRIVACIDAD=`
+    <h4>17) Criterios para elegir herramientas de IA</h4>
+    <p>Precisión, actualización y verificabilidad de la información; transparencia del procesamiento; cumplimiento de protección de datos, sobre todo con niñas, niños y adolescentes; alineación pedagógica; adaptabilidad; fomento del pensamiento crítico y participación; facilidad de uso y accesibilidad; soporte y costo-beneficio. Elegir bien mejora la experiencia y promueve un uso responsable y ético.</p>
+    <h4>18) Estrategias para proteger la privacidad</h4>
+    <p>Cumplir leyes y buenas prácticas; políticas y protocolos institucionales consistentes; consentimiento informado cuando sea necesario; limitar datos personales que se comparten con aplicaciones de IA; trabajar casos con los estudiantes para que comprendan la importancia de resguardar su información.</p>
+    <h4>19) Perspectiva ética y de derechos</h4>
+    <p>La escuela debe ayudar a reflexionar sobre quién diseña las IAs, con qué datos se entrenan y a qué intereses responden. PAIDEIA enfatiza la ética de la información, la equidad y la no discriminación como criterios para el diseño y la selección de herramientas, siempre desde una perspectiva de derechos.</p>
+  `;
+
+  const HTML_SEGUIMIENTO=`
+    <h4>1) Acompañamiento y evaluación pedagógica</h4>
+    <p>PAIDEIA propone que el seguimiento no se reduzca a indicadores técnicos de uso de plataformas, sino que se centre en las experiencias de enseñanza y aprendizaje: qué proyectos se llevan adelante, qué cambios se observan en las prácticas, qué aprendizajes se construyen y qué desafíos aparecen.</p>
+    <h4>2) Espacios de retroalimentación</h4>
+    <p>Es clave habilitar instancias donde docentes, equipos directivos y estudiantes puedan compartir sus miradas. El seguimiento se concibe como un proceso participativo en el que las decisiones se ajustan según la evidencia y las necesidades reales de cada comunidad educativa.</p>
+    <h4>3) Construcción de una cultura de innovación responsable</h4>
+    <p>Más que sumar modas tecnológicas, PAIDEIA apunta a instalar una cultura de innovación sostenida, con objetivos claros y evaluación continua. El programa se fortalece cuando las instituciones lo adaptan a su identidad, lo revisan críticamente y lo articulan con otros proyectos pedagógicos.</p>
+  `;
+
+  const contentMap={
+    fundamentos:HTML_FUNDAMENTOS,
+    condiciones:HTML_CONDICIONES,
+    formacion:HTML_FORMACION,
+    estudiantes:HTML_ESTUDIANTES,
+    accesibilidad:HTML_ACCESIBILIDAD,
+    privacidad:HTML_PRIVACIDAD,
+    seguimiento:HTML_SEGUIMIENTO
+  };
+
+  options.forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const key = opt.dataset.key;
+      const box = opt.querySelector('.p-subbox');
+      const isOpen = opt.classList.contains('active');
+
+      if(isOpen){
+        stopSpeaking();
+        opt.classList.remove('active');
+        box.style.display='none';
+        return;
+      }
+
+      options.forEach(o=>{
+        o.classList.remove('active');
+        const b=o.querySelector('.p-subbox');
+        if(b) b.style.display='none';
+      });
+
+      opt.classList.add('active');
+      box.innerHTML = contentMap[key] || '<p>Contenido en preparación.</p>';
+      box.style.display='block';
+      box.scrollTop=0;
+
+      const firstText = box.textContent.trim().split('.').slice(0,2).join('. ');
+      stopSpeaking();
+      speakSequence([
+        {text: opt.firstChild.textContent.trim(), opts:{rate:0.96,pitch:1.05}},
+        {text: firstText,                           opts:{rate:0.98,pitch:1.05}}
+      ]);
+    });
+  });
+
+  const synth = window.speechSynthesis || null;
+  let chosenVoice=null;
+  let voiceOn=true;
+
+  function pickArgentinianFemaleVoice(voices) {
+    if (!voices || !voices.length) return null;
+    const preferredPatterns = [
+      /Google español latinoamericano/i,
+      /Google español de Estados Unidos/i,
+      /es[-_]AR/i,
+      /Argentina/i,
+      /Paulina/i,
+      /M[oó]nica/i,
+      /Lucia|Lucía/i,
+      /Camila/i,
+      /Sofia|Sofía/i,
+      /Valeria/i
+    ];
+    for (const rx of preferredPatterns) {
+      const v = voices.find(vv => rx.test(vv.name) || rx.test(vv.voiceURI));
+      if (v) return v;
+    }
+    const femaleES = voices.filter(v => /^es[-_]/i.test(v.lang) && /(female|mujer|woman|Google)/i.test(v.name));
+    if (femaleES.length) return femaleES[0];
+    const es = voices.filter(v => /^es[-_]/i.test(v.lang));
+    return es[0] || voices[0];
+  }
+
+  function loadVoices(){
+    if(!synth) return;
+    const v = synth.getVoices();
+    if(!v.length) return;
+    chosenVoice = pickArgentinianFemaleVoice(v);
+  }
+  if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+
+  voiceB.addEventListener('click',()=>{
+    voiceOn=!voiceOn;
+    voiceB.classList.toggle('off',!voiceOn);
+    voiceB.textContent = voiceOn ? '🔊 Voz' : '🔇 Voz';
+    if(!voiceOn) stopSpeaking();
+  });
+
+  function speak(text,opts={}){
+    if(!voiceOn || !synth || !text) return;
+    const u=new SpeechSynthesisUtterance(text);
+    if(chosenVoice){ u.voice=chosenVoice; u.lang=chosenVoice.lang||'es-AR'; }
+    else{ u.lang='es-AR'; }
+    u.rate=opts.rate??0.96; u.pitch=opts.pitch??1.05; u.volume=1.0;
+    synth.cancel(); synth.speak(u);
+  }
+
+  function stopSpeaking(){ if(synth) synth.cancel(); }
+  stopB.addEventListener('click',stopSpeaking);
+
+  function speakSequence(parts){
+    if(!parts||!parts.length||!synth||!voiceOn) return;
+    let idx=0;
+    synth.cancel();
+    const next=()=>{
+      if(idx>=parts.length) return;
+      const {text,opts}=parts[idx++];
+      if(!text){ next(); return; }
+      const u=new SpeechSynthesisUtterance(text);
+      if(chosenVoice){ u.voice=chosenVoice; u.lang=chosenVoice.lang||'es-AR'; }
+      else{ u.lang='es-AR'; }
+      u.rate=opts?.rate??0.97; u.pitch=opts?.pitch??1.05; u.volume=1.0;
+      u.onend=()=>setTimeout(next,120);
+      synth.speak(u);
+    };
+    next();
+  }
+
+  function openPanel(){
+    panel.classList.add('open');
+    toggle.classList.add('p-hidden');
+    stopSpeaking();
+    speak(VOICE_INTRO,{rate:0.96,pitch:1.05});
+  }
+  function closePanel(){
+    panel.classList.remove('open');
+    toggle.classList.remove('p-hidden');
+    stopSpeaking();
+  }
+  toggle.addEventListener('click',()=> panel.classList.contains('open') ? closePanel() : openPanel());
+  closeB.addEventListener('click',closePanel);
+
+  (function makeDraggable(panel,handle){
+    let startX=0,startY=0,origX=0,origY=0,isDown=false;
+    const onMove=e=>{
+      if(!isDown)return;
+      e.preventDefault();
+      const pt=getPoint(e);
+      panel.style.right='auto'; panel.style.bottom='auto';
+      panel.style.left=(origX+(pt.x-startX))+'px';
+      panel.style.top =(origY+(pt.y-startY))+'px';
+    };
+    const onUp=()=>{
+      isDown=false;
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);
+      document.removeEventListener('touchend',onUp);
+    };
+    const onDown=e=>{
+      e.preventDefault(); isDown=true;
+      const rect=panel.getBoundingClientRect();
+      origX=rect.left; origY=rect.top;
+      const pt=getPoint(e);
+      startX=pt.x; startY=pt.y;
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+      document.addEventListener('touchmove',onMove,{passive:false});
+      document.addEventListener('touchend',onUp);
+    };
+    const getPoint=e=>{
+      if(e.touches&&e.touches.length) return {x:e.touches[0].clientX,y:e.touches[0].clientY};
+      return {x:e.clientX,y:e.clientY};
+    };
+    handle.addEventListener('mousedown',onDown);
+    handle.addEventListener('touchstart',onDown,{passive:false});
+  })(panel,drag);
+
+})();
+</script>
+<!-- ══════════════ FIN CHATBOT ══════════════ -->
+
+<div class="about-modal" id="aboutModal">
+  <div class="about-modal-box">
+    <button class="about-modal-close" id="aboutModalClose" aria-label="Cerrar">×</button>
+    <div class="about-modal-title" id="aboutModalTitle"></div>
+    <div class="about-modal-content" id="aboutModalContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const topics = {
+    desafios: {
+      title: 'Desafíos Básicos',
+      content: `
+        <h4>Cambio de Narrativa</h4>
+        <p>PAIDEIA propone cambiar la forma en que hablamos de la inteligencia artificial en educación. Invita a evitar la atribución de intención, voluntad o conciencia a estas tecnologías y sugiere usar “IA” en singular para la teoría general y “las IAs” en plural para las tecnologías concretas.</p>
+        <h4>Cambio de Modelo</h4>
+        <p>La irrupción de las inteligencias artificiales habilita la revisión de un modelo educativo centrado en la repetición memorística. El programa plantea avanzar hacia experiencias de aprendizaje más significativas, creativas, reflexivas y centradas en las personas.</p>
+        <h4>Cambio de Paradigma</h4>
+        <p>La velocidad y el alcance de esta transformación vuelven necesaria una nueva forma de abordaje. La adopción tecnológica debe abrir oportunidades de innovación, pero también minimizar sesgos, errores y otros daños colaterales.</p>
+      `
+    },
+    principios: {
+      title: 'Principios Rectores',
+      content: `
+        <h4>Extensión de la racionalidad humana</h4>
+        <p>Las inteligencias artificiales son producto de desarrollos científicos, decisiones técnicas y elecciones de diseño realizadas por personas. Por eso deben comprenderse como productos culturales que amplían nuestras capacidades de análisis, reconocimiento de patrones y generación de respuestas.</p>
+        <h4>Aliadas colaborativas</h4>
+        <p>Su valor educativo está en fortalecer la tarea docente, enriquecer las experiencias de aprendizaje y ampliar la personalización, la creatividad y la retroalimentación.</p>
+        <h4>No son infalibles ni neutrales</h4>
+        <p>Funcionan con modelos probabilísticos, datos y decisiones algorítmicas que pueden contener errores, omisiones o sesgos. El programa destaca la necesidad de usarlas con pensamiento crítico, transparencia y responsabilidad.</p>
+        <h4>No reemplazan al docente</h4>
+        <p>PAIDEIA reafirma que ninguna IA puede sustituir el vínculo pedagógico, la lectura del contexto ni el acompañamiento de trayectorias que realiza el docente.</p>
+      `
+    },
+    abordaje: {
+      title: 'Abordaje General',
+      content: `
+        <h4>Enfoque Interdisciplinar</h4>
+        <p>La integración de la IA en educación requiere articular saberes técnicos, pedagógicos, éticos y sociales para construir propuestas situadas y relevantes.</p>
+        <h4>Acción Intersectorial</h4>
+        <p>El programa valora la colaboración entre industria, academia, organizaciones, gobierno e instituciones educativas para generar soluciones abiertas, innovadoras y adaptadas a distintas realidades.</p>
+        <h4>Contexto Interpersonal</h4>
+        <p>Más allá de la tecnología, la educación sigue siendo una experiencia profundamente humana. La incorporación de las IAs debe fortalecer el diálogo, la autonomía y la construcción de aprendizajes significativos.</p>
+      `
+    },
+    vision: {
+      title: 'Visión de la Inteligencia Artificial en Educación',
+      content: `
+        <p>PAIDEIA se apoya en una visión humanista que integra la inteligencia artificial como herramienta para ampliar, con sentido ético y crítico, las posibilidades de enseñar y aprender, al servicio del desarrollo integral de las personas.</p>
+        <p>El programa recupera además el sentido de la palabra “paideia”, asociada a educación, formación y transmisión de valores, cultura y saberes.</p>
+      `
+    },
+    alcance: {
+      title: 'Alcance del Programa PAIDEIA',
+      content: `
+        <p>El alcance del programa se organiza en tres objetivos principales, distribuidos por ciclo, edad y orientación, con foco en el desarrollo progresivo de capacidades.</p>
+        <h4>Pensamiento Computacional</h4>
+        <p>Busca favorecer en el nivel primario habilidades como descomposición de problemas, reconocimiento de patrones, secuenciación lógica, algoritmos simples y alfabetización digital.</p>
+        <h4>Aplicación de IA</h4>
+        <p>Promueve el uso consciente y creativo de herramientas de inteligencia artificial para organizar información, producir textos, analizar datos y resolver problemas con actitud crítica, ética y reflexiva.</p>
+        <h4>Desarrollo de IA</h4>
+        <p>Fomenta el diseño de soluciones tecnológicas basadas en IA mediante programación, análisis de datos, modelado de sistemas y comprensión de algoritmos.</p>
+      `
+    },
+    ejes: {
+      title: 'Ejes transversales de la IA en Educación',
+      content: `
+        <p>PAIDEIA plantea cuatro ejes transversales para pensar la inteligencia artificial como parte de una transformación educativa amplia y responsable.</p>
+        <ul>
+          <li><strong>Acompañar a estudiantes en el uso de las IA:</strong> promover autonomía, comprensión tecnológica y pensamiento reflexivo.</li>
+          <li><strong>Desarrollar competencias docentes para enseñar IA:</strong> integrar estas herramientas de manera pedagógica, innovadora y contextualizada.</li>
+          <li><strong>Generar contenidos específicos de IA para las currículas:</strong> incorporar enfoques actualizados e interdisciplinarios.</li>
+          <li><strong>Integrar las IAs en los sistemas de gestión:</strong> optimizar procesos, análisis de datos y toma de decisiones.</li>
+        </ul>
+      `
+    },
+    recursos: {
+      title: 'Contenidos y Recursos',
+      content: `
+        <p>Esta sección reúne materiales fundamentales para orientar la implementación del programa. Incluye lineamientos, guías y recursos pedagógicos destinados a acompañar a docentes, familias, estudiantes, instituciones y equipos técnicos.</p>
+        <p>Los contenidos publicados ofrecen un marco común de referencia y apoyan la apropiación pedagógica de la inteligencia artificial en distintos niveles y contextos educativos.</p>
+      `
+    }
+  };
+
+  const modal = document.getElementById('aboutModal');
+  const modalTitle = document.getElementById('aboutModalTitle');
+  const modalContent = document.getElementById('aboutModalContent');
+  const modalClose = document.getElementById('aboutModalClose');
+  const cards = document.querySelectorAll('.about-topic-card');
+
+  if (!modal || !modalTitle || !modalContent || !modalClose || !cards.length) return;
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const topic = topics[card.dataset.topic];
+      if (!topic) return;
+      modalTitle.innerHTML = topic.title;
+      modalContent.innerHTML = topic.content;
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function closeModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
+})();
+</script>
+
+
+<script>
+(function(){
+  const modal = document.getElementById('pdfPreviewModal');
+  const frame = document.getElementById('pdfPreviewFrame');
+  const title = document.getElementById('pdfPreviewTitle');
+  const closeBtn = document.getElementById('pdfPreviewClose');
+  const downloadBtn = document.getElementById('pdfPreviewDownload');
+  const cards = document.querySelectorAll('.mat-preview-card');
+
+  if (!modal || !frame || !title || !closeBtn || !downloadBtn || !cards.length) return;
+
+  function openPreview(pdf, docTitle) {
+    title.textContent = docTitle || 'Documento';
+    frame.src = pdf + '#view=FitH';
+    downloadBtn.href = pdf;
+    downloadBtn.setAttribute('download', '');
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePreview() {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    frame.src = '';
+    document.body.style.overflow = '';
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a.mat-dl')) return;
+      openPreview(card.dataset.pdf, card.dataset.title);
+    });
+  });
+
+  closeBtn.addEventListener('click', closePreview);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closePreview();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) closePreview();
+  });
+})();
+</script>
+</div>
+
+
+<script>
+let currentUser = null;
+let currentRole = 'user';
+let currentUserName = 'Usuario';
+let currentUserEmail = '';
+let currentTopicId = null;
+let currentContactId = null;
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function formatDate(value) {
+  if (!value) return '';
+  try {
+    return new Date(value).toLocaleString('es-AR');
+  } catch (e) {
+    return value;
+  }
+}
+
+async function loadCurrentProfile() {
+  if (!supabaseClient) return;
+
+  const { data: userData } = await supabaseClient.auth.getUser();
+  currentUser = userData?.user || null;
+
+  if (!currentUser) return;
+
+  const { data: profile, error } = await supabaseClient
+    .from('profiles')
+    .select('role,email,full_name')
+    .eq('id', currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn('No se pudo leer profiles:', error);
+  }
+
+  currentRole = profile?.role || 'user';
+  currentUserEmail = profile?.email || currentUser.email || '';
+  currentUserName = profile?.full_name || profile?.email || currentUser.email || 'Usuario';
+
+  if (currentRole === 'admin') {
+    document.querySelectorAll('.pa-admin-only').forEach(el => {
+      el.classList.add('pa-admin-visible');
+      if (el.id === 'navContactos') el.style.display = 'flex';
+      else el.style.display = 'block';
+    });
+  } else {
+    document.querySelectorAll('.pa-admin-only').forEach(el => {
+      el.classList.remove('pa-admin-visible');
+      el.style.display = 'none';
+    });
+  }
+
+  await loadForumTopics();
+
+  if (currentRole === 'admin') {
+    await loadContacts();
+  }
+}
+
+/* ── FORO ───────────────────────────────────────────────────────── */
+async function createForumTopic() {
+  if (currentRole !== 'admin') {
+    alert('Solo el administrador puede crear temas.');
+    return;
+  }
+
+  const title = document.getElementById('forumTopicTitle')?.value.trim();
+  const body = document.getElementById('forumTopicBody')?.value.trim();
+
+  if (!title) {
+    alert('Ingresá un título para el tema.');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('forum_topics')
+    .insert({
+      title,
+      body: body || '',
+      created_by: currentUser?.id
+    });
+
+  if (error) {
+    alert('No se pudo crear el tema: ' + error.message);
+    return;
+  }
+
+  document.getElementById('forumTopicTitle').value = '';
+  document.getElementById('forumTopicBody').value = '';
+  await loadForumTopics();
+}
+
+async function loadForumTopics() {
+  const container = document.getElementById('forumTopicsList');
+  if (!container || !supabaseClient) return;
+
+  container.innerHTML = '<div class="pa-empty">Cargando temas...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('forum_topics')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div class="pa-empty">No se pudieron cargar los temas: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    container.innerHTML = '<div class="pa-empty">Todavía no hay temas cargados.</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(t => `
+    <div class="pa-topic-card">
+      <div class="pa-topic-head">
+        <div>
+          <div class="pa-topic-title">${escapeHtml(t.title)}</div>
+          <div class="pa-muted">${escapeHtml(t.body || '')}</div>
+          <div class="pa-muted" style="margin-top:6px;">Publicado por PaideIA · ${formatDate(t.created_at)}</div>
+        </div>
+        <div class="forum-topic-actions">
+          <button class="pa-btn secondary" type="button" onclick="openForumTopic('${t.id}')">Ver</button>
+          ${currentRole === 'admin' ? `<button class="pa-btn danger" type="button" onclick="deleteForumTopic('${t.id}', '${escapeHtml(t.title || 'este tema')}')">Eliminar</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteForumTopic(topicId, topicTitle) {
+  if (currentRole !== 'admin') {
+    alert('Solo el administrador puede eliminar temas.');
+    return;
+  }
+
+  const ok = confirm('¿Seguro que querés eliminar el foro "' + (topicTitle || 'seleccionado') + '"?
+
+Se eliminará el tema y sus respuestas.');
+  if (!ok) return;
+
+  try {
+    const { error: postsError } = await supabaseClient
+      .from('forum_posts')
+      .delete()
+      .eq('topic_id', topicId);
+
+    if (postsError) {
+      alert('No se pudieron eliminar las respuestas: ' + postsError.message);
+      return;
+    }
+
+    const { error: topicError } = await supabaseClient
+      .from('forum_topics')
+      .delete()
+      .eq('id', topicId);
+
+    if (topicError) {
+      alert('No se pudo eliminar el foro: ' + topicError.message);
+      return;
+    }
+
+    if (currentTopicId === topicId) {
+      currentTopicId = null;
+      const title = document.getElementById('forumSelectedTitle');
+      const body = document.getElementById('forumSelectedBody');
+      const posts = document.getElementById('forumPostsList');
+      const reply = document.getElementById('forumReplyBox');
+      if (title) title.textContent = 'Seleccioná un tema';
+      if (body) body.textContent = 'Al seleccionar un tema vas a ver las respuestas y podrás participar.';
+      if (posts) posts.innerHTML = '<div class="pa-empty">Todavía no hay tema seleccionado.</div>';
+      if (reply) reply.style.display = 'none';
+    }
+
+    await loadForumTopics();
+  } catch (err) {
+    console.error(err);
+    alert('Error inesperado al eliminar el foro.');
+  }
+}
+
+async function openForumTopic(topicId) {
+  currentTopicId = topicId;
+
+  const { data: topic, error: topicError } = await supabaseClient
+    .from('forum_topics')
+    .select('*')
+    .eq('id', topicId)
+    .single();
+
+  if (topicError) {
+    alert('No se pudo abrir el tema: ' + topicError.message);
+    return;
+  }
+
+  document.getElementById('forumSelectedTitle').textContent = topic.title || 'Tema';
+  document.getElementById('forumSelectedBody').textContent = 'Publicado por PaideIA · ' + (topic.body || 'Sin descripción.');
+  document.getElementById('forumReplyBox').style.display = 'block';
+
+  await loadForumPosts(topicId);
+}
+
+async function loadForumPosts(topicId) {
+  const container = document.getElementById('forumPostsList');
+  if (!container) return;
+
+  container.innerHTML = '<div class="pa-empty">Cargando respuestas...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('forum_posts')
+    .select('*')
+    .eq('topic_id', topicId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="pa-empty">No se pudieron cargar las respuestas: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    container.innerHTML = '<div class="pa-empty">Todavía no hay respuestas. Sé el primero en responder.</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(p => `
+    <div class="pa-message-box">
+      <div class="pa-message-meta">${escapeHtml(p.author_name || 'Usuario')} · ${formatDate(p.created_at)}</div>
+      <div class="pa-message-content">${escapeHtml(p.content)}</div>
+    </div>
+  `).join('');
+}
+
+async function createForumPost() {
+  if (!currentTopicId) {
+    alert('Seleccioná un tema primero.');
+    return;
+  }
+
+  const content = document.getElementById('forumReplyContent')?.value.trim();
+  if (!content) {
+    alert('Escribí una respuesta.');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('forum_posts')
+    .insert({
+      topic_id: currentTopicId,
+      content,
+      user_id: currentUser?.id,
+      author_name: currentUserName
+    });
+
+  if (error) {
+    alert('No se pudo publicar la respuesta: ' + error.message);
+    return;
+  }
+
+  document.getElementById('forumReplyContent').value = '';
+  await loadForumPosts(currentTopicId);
+}
+
+
+/* ── CONTACTOS ──────────────────────────────────────────────────── */
+let allContacts = [];
+
+async function loadContacts() {
+  const tbody = document.getElementById('contactsTableBody');
+  const count = document.getElementById('contactsCount');
+
+  if (!tbody || !supabaseClient || currentRole !== 'admin') return;
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
+    </tr>
+  `;
+  if (count) count.textContent = 'Cargando contactos...';
+
+  const { data, error } = await supabaseClient
+    .from('contacts')
+    .select('*')
+    .order('jurisdiccion', { ascending: true })
+    .order('full_name', { ascending: true });
+
+  if (error) {
+    console.error('Error cargando contactos:', error);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="contact-empty-cell">No se pudieron cargar los contactos: ${escapeHtml(error.message)}</td>
+      </tr>
+    `;
+    if (count) count.textContent = 'Error al cargar';
+    return;
+  }
+
+  allContacts = data || [];
+  renderContactsTable(allContacts);
+}
+
+function renderContactsTable(items) {
+  const tbody = document.getElementById('contactsTableBody');
+  const count = document.getElementById('contactsCount');
+  if (!tbody) return;
+
+  if (!items || !items.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="contact-empty-cell">No hay contactos para mostrar.</td>
+      </tr>
+    `;
+    if (count) count.textContent = '0 contactos';
+    return;
+  }
+
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
+    </tr>
+  `).join('');
+
+  if (count) {
+    count.textContent = `${items.length} contacto${items.length === 1 ? '' : 's'}`;
+  }
+}
+
+function filterContactsTable() {
+  const input = document.getElementById('searchContact');
+  const q = (input?.value || '').toLowerCase().trim();
+
+  if (!q) {
+    renderContactsTable(allContacts);
+    return;
+  }
+
+  const filtered = allContacts.filter(c => {
+    const text = [
+      c.full_name,
+      c.email,
+      c.jurisdiccion,
+      c.institucion,
+      c.cargo,
+      c.telefono,
+      c.responsable
+    ].join(' ').toLowerCase();
+
+    return text.includes(q);
+  });
+
+  renderContactsTable(filtered);
+}
+
+</script>
+
+<!-- LOGIN + SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://mhwcnlkrwylloyxpmmqu.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU";
+
+let supabaseClient = null;
+
+function showLogin(message = "") {
+  const loginScreen = document.getElementById("loginScreen");
+  const appContent = document.getElementById("appContent");
+  const err = document.getElementById("authLoginError");
+
+  if (appContent) appContent.style.display = "none";
+  if (loginScreen) loginScreen.style.display = "flex";
+
+  if (err) {
+    err.style.display = message ? "block" : "none";
+    err.textContent = message;
+  }
+}
+
+function showApp() {
+  const loginScreen = document.getElementById("loginScreen");
+  const appContent = document.getElementById("appContent");
+  const btnLogout = document.getElementById("btnLogout");
+
+  if (loginScreen) loginScreen.style.display = "none";
+  if (appContent) appContent.style.display = "flex";
+  if (btnLogout) btnLogout.style.display = "inline-block";
+
+  // Deja el menú cerrado al entrar, para evitar pantalla borrosa.
+  document.getElementById("sidebar")?.classList.remove("open");
+  document.getElementById("overlay")?.classList.remove("show");
+  document.getElementById("main")?.classList.remove("blurred");
+
+  if (typeof loadCurrentProfile === 'function') loadCurrentProfile();
+}
+
+function initSupabase() {
+  if (!window.supabase) {
+    showLogin("No se pudo cargar Supabase. Revisá tu conexión o recargá la página.");
+    return false;
+  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return true;
+}
+
+async function initAuth() {
+  if (!initSupabase()) return;
+
+  try {
+    // Siempre forzamos el login al ingresar a la página.
+    // Esto evita que Supabase saltee el formulario por una sesión guardada en el navegador.
+    await supabaseClient.auth.signOut();
+    showLogin();
+  } catch (err) {
+    console.error("Error initAuth:", err);
+    showLogin("Ocurrió un error al iniciar. Recargá la página.");
+  }
+}
+
+async function login() {
+  if (!supabaseClient && !initSupabase()) return;
+
+  const email = document.getElementById("loginEmail")?.value.trim() || "";
+  const password = document.getElementById("loginPassword")?.value || "";
+  const button = document.getElementById("loginButton");
+
+  if (!email || !password) {
+    showLogin("Completá email y contraseña.");
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Ingresando...";
+  }
+
+  try {
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      showLogin(error.message || "Credenciales incorrectas.");
+      return;
+    }
+
+    showApp();
+  } catch (err) {
+    console.error("Error login:", err);
+    showLogin("No se pudo iniciar sesión. Intentá nuevamente.");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Ingresar";
+    }
+  }
+}
+
+async function logout() {
+  if (!supabaseClient && !initSupabase()) return;
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+  currentRole = 'user';
+  currentUserName = 'Usuario';
+  currentUserEmail = '';
+
+  showLogin();
+}
+
+document.addEventListener("DOMContentLoaded", initAuth);
+</script>
+
+<script>
+function reloadExperienceForm() {
+  const iframe = document.getElementById('experienceFormIframe');
+  if (iframe) iframe.src = iframe.src;
+}
+</script>
+
+
+<script>
+window.addEventListener('message', function(event) {
+  if (!event.data || event.data.type !== 'PAIDEIA_FORM_SUCCESS') return;
+
+  const inicioNav = document.querySelector('.nav-item[data-section="inicio"]');
+  if (inicioNav) inicioNav.click();
+
+  const main = document.getElementById('main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
+
+
+<script>
+/* PERFIL */
+async function loadProfile() {
+  if (!supabaseClient) return;
+
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+  const user = userData?.user;
+
+  if (userError || !user) {
+    console.warn('No se pudo leer el usuario actual', userError);
+    return;
+  }
+
+  const emailInput = document.getElementById('profile_email');
+  const nameInput = document.getElementById('profile_name');
+  const jurInput = document.getElementById('profile_jur');
+  const instInput = document.getElementById('profile_inst');
+
+  if (emailInput) emailInput.value = user.email || '';
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('email, full_name, jurisdiccion, institucion, role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    alert('No se pudieron cargar los datos del perfil: ' + error.message);
+    return;
+  }
+
+  if (nameInput) nameInput.value = data?.full_name || '';
+  if (jurInput) jurInput.value = data?.jurisdiccion || '';
+  if (instInput) instInput.value = data?.institucion || '';
+}
+
+async function saveProfile() {
+  if (!supabaseClient) return;
+
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData?.user;
+  if (!user) {
+    alert('No hay usuario logueado.');
+    return;
+  }
+
+  const payload = {
+    id: user.id,
+    email: user.email || document.getElementById('profile_email')?.value || '',
+    full_name: document.getElementById('profile_name')?.value.trim() || '',
+    jurisdiccion: document.getElementById('profile_jur')?.value.trim() || '',
+    institucion: document.getElementById('profile_inst')?.value.trim() || '',
+    role: currentRole || 'user'
+  };
+
+  const { error } = await supabaseClient
+    .from('profiles')
+    .upsert(payload, { onConflict: 'id' });
+
+  if (error) {
+    alert('No se pudo guardar el perfil: ' + error.message);
+    return;
+  }
+
+  currentUserName = payload.full_name || payload.email || 'Usuario';
+  alert('Perfil actualizado correctamente.');
+}
+
+async function changePassword() {
+  if (!supabaseClient) return;
+
+  const pass = document.getElementById('new_pass')?.value || '';
+  const repeat = document.getElementById('new_pass_repeat')?.value || '';
+
+  if (pass.length < 8) {
+    alert('La contraseña debe tener al menos 8 caracteres.');
+    return;
+  }
+
+  if (pass !== repeat) {
+    alert('Las contraseñas no coinciden.');
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.updateUser({ password: pass });
+
+  if (error) {
+    alert('No se pudo cambiar la contraseña: ' + error.message);
+    return;
+  }
+
+  document.getElementById('new_pass').value = '';
+  document.getElementById('new_pass_repeat').value = '';
+  alert('Contraseña actualizada correctamente.');
+}
+</script>
+
+
+
+<script>
+/* EXPERIENCIAS: Sheet pendientes + Supabase validadas */
+const EXPERIENCE_SHEET_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AWDtjMWQ094RK1x-HbN8RbaJXShkqgdJRbVLh-F7DjYxkXlVTnIwGZLATBHLTTGg0rpf-fcE51Z_IRf9zV241WU9JgHLIFT_vbpRkiR3pp89GUAaereGal_EijuR-fOJ8Irrxr33Gyyrq7hngs2Kg0Q9PuGIqK4Yf0Tjwql9CectEZ5E0_1Xb3kNB5d9FjDcHghFdQ9ERZk1yVgkyAzBk2IUOpYYd-ghDtL3UMeawot3-e4XRKUTvydVXHDfd_d7mq14d_kBlj9071dQj13Vop9LVlFYVmA7Yw&lib=M-wrtkyPP0DhvwVZ62uoCAXc0_V3iTLHf";
+
+let publicExperiences = [];
+let renderedPublicExperiences = [];
+let pendingExperiences = [];
+let repoLevelFilter = "";
+
+function normalizeText(value) {
+  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function expEscape(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getField(obj, keys) {
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== "") return String(obj[key]).trim();
+  }
+  const norm = {};
+  Object.keys(obj || {}).forEach(k => norm[normalizeText(k).replace(/\s+/g, "")] = obj[k]);
+  for (const key of keys) {
+    const nk = normalizeText(key).replace(/\s+/g, "");
+    if (norm[nk] !== undefined && norm[nk] !== null && String(norm[nk]).trim() !== "") return String(norm[nk]).trim();
+  }
+  return "";
+}
+
+function normalizeSheetExperience(raw, index) {
+  return {
+    rowIndex: raw.rowIndex || raw._row || raw.fila || index + 2,
+    nombre: getField(raw, ["nombre", "Nombre", "Nombre y apellido", "Nombre completo"]),
+    email: getField(raw, ["email", "Email", "correo", "Correo", "Correo electrónico"]),
+    institucion: getField(raw, ["institucion", "Institución", "Nombre de la institución educativa"]),
+    jurisdiccion: getField(raw, ["jurisdiccion", "Jurisdicción", "Provincia"]),
+    nivel: getField(raw, ["nivel", "Nivel"]),
+    area: getField(raw, ["area", "Área", "Area"]),
+    titulo: getField(raw, ["titulo", "Título", "Título de la experiencia", "Titulo"]),
+    anio: getField(raw, ["anio", "Año"]),
+    herramientas: getField(raw, ["herramientas", "Herramientas", "Herramientas utilizadas"]),
+    ejes: getField(raw, ["ejes", "Ejes", "Ejes temáticos"]),
+    descripcion: getField(raw, ["descripcion", "Descripción", "Descripcion", "Breve descripción de la experiencia"]),
+    rolIA: getField(raw, ["rolIA", "Rol IA", "Rol de la IA"]),
+    enlace: getField(raw, ["enlace", "Enlace", "Link", "URL", "Evidencia"]),
+    p1: getField(raw, ["p1", "P1", "P1 Propósito"]),
+    p2: getField(raw, ["p2", "P2", "P2 Por qué IA"]),
+    p3: getField(raw, ["p3", "P3", "P3 Mirada crítica"]),
+    p4: getField(raw, ["p4", "P4", "P4 Oportunidades"]),
+    p5: getField(raw, ["p5", "P5", "P5 Innovación"]),
+    p6: getField(raw, ["p6", "P6", "P6 Ajustes"]),
+    p7: getField(raw, ["p7", "P7", "P7 Transferencia"]),
+    estado: getField(raw, ["estado", "Estado", "validated", "validada", "validado"])
+  };
+}
+
+function isPendingExperience(exp) {
+  const estado = normalizeText(exp.estado || "");
+  if (!estado) return true;
+  return !(estado.includes("valid") || estado === "si" || estado === "sí" || estado === "true" || estado.includes("aprob"));
+}
+
+function nivelClass(nivel) {
+  const n = normalizeText(nivel);
+  if (n.includes("prim")) return "tag-primaria";
+  if (n.includes("sec")) return "tag-secundaria";
+  if (n.includes("sup")) return "tag-superior";
+  return "tag-formacion";
+}
+
+async function loadExperienciasPublicas() {
+  const container = document.getElementById("repoGrid");
+  if (!container || !supabaseClient) return;
+  container.innerHTML = '<div class="pa-empty">Cargando experiencias validadas...</div>';
+
+  const { data, error } = await supabaseClient
+    .from("experiences")
+    .select("*")
+    .eq("validated", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error experiencias públicas:", error);
+    container.innerHTML = '<div class="pa-empty">No se pudieron cargar las experiencias validadas: ' + expEscape(error.message) + '</div>';
+    return;
+  }
+
+  publicExperiences = data || [];
+  renderPublicExperiences(publicExperiences);
+}
+
+function getExperienceSummary(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return "Sin descripción disponible.";
+  const cleaned = raw.split("\n\nDATOS COMPLETOS DE LA EXPERIENCIA")[0].trim();
+  return cleaned.length > 220 ? cleaned.slice(0, 220).trim() + "..." : cleaned;
+}
+
+function buildFullFichaText(exp) {
+  const rows = [
+    ["Nombre y apellido", exp.nombre],
+    ["Email", exp.email],
+    ["Institución", exp.institucion],
+    ["Jurisdicción", exp.jurisdiccion],
+    ["Nivel", exp.nivel],
+    ["Área", exp.area],
+    ["Año", exp.anio],
+    ["Herramientas utilizadas", exp.herramientas],
+    ["Ejes de la experiencia", exp.ejes],
+    ["Rol de la IA", exp.rolIA],
+    ["Enlace / Drive", exp.enlace],
+    ["P1 · Propósito", exp.p1],
+    ["P2 · Por qué IA", exp.p2],
+    ["P3 · Mirada crítica", exp.p3],
+    ["P4 · Oportunidades", exp.p4],
+    ["P5 · Innovación", exp.p5],
+    ["P6 · Ajustes", exp.p6],
+    ["P7 · Transferencia", exp.p7]
+  ];
+  const detalle = rows
+    .filter(([_, value]) => String(value || "").trim() !== "")
+    .map(([label, value]) => label + ": " + String(value).trim())
+    .join("\n\n");
+  return ((exp.descripcion || "") + "\n\nDATOS COMPLETOS DE LA EXPERIENCIA\n\n" + detalle).trim();
+}
+
+function renderPublicExperiences(items) {
+  const container = document.getElementById("repoGrid");
+  if (!container) return;
+  renderedPublicExperiences = Array.isArray(items) ? items : [];
+  if (!items || !items.length) {
+    container.innerHTML = '<div class="pa-empty">Todavía no hay experiencias validadas para mostrar.</div>';
+    return;
+  }
+
+  container.innerHTML = items.map((exp, idx) => `
+    <div class="exp-card" onclick="openExperienceDetail(${idx})" title="Abrir ficha completa">
+      <span class="exp-tag ${nivelClass(exp.nivel)}">${expEscape(exp.nivel || "Experiencia")}</span>
+      <h3>${expEscape(exp.titulo || "Sin título")}</h3>
+      <p>${expEscape(getExperienceSummary(exp.descripcion || "Sin descripción disponible."))}</p>
+      <div class="exp-meta">
+        <span class="exp-author">📍 ${expEscape(exp.jurisdiccion || "Sin jurisdicción")} · ${expEscape(exp.anio || "")}</span>
+        <button class="exp-btn" type="button" onclick="event.stopPropagation(); openExperienceDetail(${idx});">Ver ficha</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function expField(exp, keys) {
+  return getField(exp || {}, keys);
+}
+
+function expSection(title, value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return `
+    <div class="exp-detail-section">
+      <h4>${expEscape(title)}</h4>
+      <p>${expEscape(text)}</p>
+    </div>
+  `;
+}
+
+function openExperienceDetail(index) {
+  const exp = (renderedPublicExperiences && renderedPublicExperiences[index]) || publicExperiences[index];
+  if (!exp) return alert("No se encontró la ficha.");
+
+  const modal = document.getElementById("experienceDetailModal");
+  const title = document.getElementById("experienceDetailTitle");
+  const body = document.getElementById("experienceDetailBody");
+  if (!modal || !title || !body) return;
+
+  const nombre = expField(exp, ["nombre", "Nombre"]);
+  const email = expField(exp, ["email", "Email"]);
+  const institucion = expField(exp, ["institucion", "Institución"]);
+  const jurisdiccion = expField(exp, ["jurisdiccion", "Jurisdicción"]);
+  const nivel = expField(exp, ["nivel", "Nivel"]);
+  const area = expField(exp, ["area", "Área", "Area"]);
+  const anio = expField(exp, ["anio", "Año"]);
+  const herramientas = expField(exp, ["herramientas", "Herramientas"]);
+  const ejes = expField(exp, ["ejes", "Ejes"]);
+  const enlace = expField(exp, ["enlace", "Enlace"]);
+
+  title.textContent = expField(exp, ["titulo", "Título", "Titulo"]) || "Experiencia PAIDEIA";
+
+  body.innerHTML = `
+    <div class="exp-detail-meta-grid">
+      <div class="exp-detail-meta"><span>Autor/a</span><strong>${expEscape(nombre || "No informado")}</strong></div>
+      <div class="exp-detail-meta"><span>Email</span><strong>${expEscape(email || "No informado")}</strong></div>
+      <div class="exp-detail-meta"><span>Institución</span><strong>${expEscape(institucion || "No informada")}</strong></div>
+      <div class="exp-detail-meta"><span>Jurisdicción</span><strong>${expEscape(jurisdiccion || "No informada")}</strong></div>
+      <div class="exp-detail-meta"><span>Nivel / Área</span><strong>${expEscape([nivel, area].filter(Boolean).join(" · ") || "No informado")}</strong></div>
+      <div class="exp-detail-meta"><span>Año</span><strong>${expEscape(anio || "No informado")}</strong></div>
+      <div class="exp-detail-meta"><span>Herramientas</span><strong>${expEscape(herramientas || "No informadas")}</strong></div>
+      <div class="exp-detail-meta"><span>Eje</span><strong>${expEscape(ejes || "No informado")}</strong></div>
+      <div class="exp-detail-meta"><span>Estado</span><strong>Validada</strong></div>
+    </div>
+
+    ${expSection("Descripción / ficha completa", expField(exp, ["descripcion", "Descripción", "Descripcion"]))}
+    ${enlace ? `
+      <div class="exp-detail-section">
+        <h4>Enlace a evidencia / carpeta de Drive</h4>
+        <p>El material de respaldo está disponible en el siguiente enlace:</p>
+        <a class="exp-detail-url" href="${expEscape(enlace)}" target="_blank" rel="noopener">${expEscape(enlace)}</a>
+      </div>
+    ` : ""}
+    ${expSection("Rol de la IA", expField(exp, ["rolIA", "rol_ia", "Rol IA", "Rol de la IA"]))}
+    ${expSection("P1 · Propósito", expField(exp, ["p1", "P1 Propósito", "q1", "Q1"]))}
+    ${expSection("P2 · Por qué IA", expField(exp, ["p2", "P2 Por qué IA", "q2", "Q2"]))}
+    ${expSection("P3 · Mirada crítica", expField(exp, ["p3", "P3 Mirada crítica", "q3", "Q3"]))}
+    ${expSection("P4 · Oportunidades", expField(exp, ["p4", "P4 Oportunidades", "q4", "Q4"]))}
+    ${expSection("P5 · Innovación", expField(exp, ["p5", "P5 Innovación", "q5", "Q5"]))}
+    ${expSection("P6 · Ajustes", expField(exp, ["p6", "P6 Ajustes", "q6", "Q6"]))}
+    ${expSection("P7 · Transferencia", expField(exp, ["p7", "P7 Transferencia", "q7", "Q7"]))}
+
+    <div class="exp-detail-actions">
+      ${enlace ? `<a class="pa-btn secondary exp-btn-link" href="${expEscape(enlace)}" target="_blank" rel="noopener">Ver evidencia / carpeta compartida</a>` : ""}
+      <button class="pa-btn" type="button" onclick="window.print()">Imprimir ficha</button>
+    </div>
+  `;
+
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeExperienceDetail() {
+  const modal = document.getElementById("experienceDetailModal");
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") closeExperienceDetail();
+});
+
+
+function filterPublicExperiences() {
+  const level = normalizeText(repoLevelFilter);
+  renderPublicExperiences(publicExperiences.filter(exp => {
+    return !level || normalizeText(exp.nivel).includes(level);
+  }));
+}
+
+function setRepoLevelFilter(level) {
+  repoLevelFilter = level || "";
+  filterPublicExperiences();
+}
+
+const DEFAULT_SUPPORT_MATERIALS = [
+  { title: "Inteligencia Artificial en la escuela secundaria", description: "Propuestas didácticas para una integración crítica y creativa en el aula", url: "documento_ia-aula_secundaria_-_28-digital_1.pdf", type: "PDF" },
+  { title: "Guía para la Integración de las Inteligencias Artificiales en Educación", description: "Documento orientador para docentes y directivos sobre el uso de IA en educación", url: "documento_guia_de_integracion_vf_digital.pdf", type: "PDF" }
+];
+
+function materialIcon(type, url) {
+  const t = normalizeText(type || url || "");
+  if (t.includes("pdf")) return "📄";
+  if (t.includes("doc") || t.includes("word")) return "📝";
+  return "🔗";
+}
+
+function renderSupportMaterials(items) {
+  const list = document.getElementById("materialsList");
+  if (!list) return;
+  const all = Array.isArray(items) && items.length ? items : DEFAULT_SUPPORT_MATERIALS;
+  list.innerHTML = all.map(mat => {
+    const title = mat.title || mat.titulo || "Material sin título";
+    const desc = mat.description || mat.descripcion || "Material de apoyo PAIDEIA";
+    const url = mat.url || mat.enlace || mat.file_url || "#";
+    const type = mat.type || mat.tipo || "Material";
+    const isPdf = normalizeText(url).includes(".pdf") || normalizeText(type).includes("pdf");
+    return `
+      <div class="mat-item ${isPdf ? "mat-preview-card" : ""}" data-pdf="${expEscape(url)}" data-title="${expEscape(title)}">
+        <div class="mat-icon ${isPdf ? "pdf" : "link"}">${materialIcon(type, url)}</div>
+        <div class="mat-info">
+          <h4>${expEscape(title)}</h4>
+          <p>${expEscape(desc)} · ${expEscape(type)}</p>
+        </div>
+        <div class="mat-actions">
+          ${isPdf ? `<button class="mat-preview-btn" type="button" onclick="openMaterialPreview('${expEscape(url)}','${expEscape(title)}')">Vista previa</button>` : ""}
+          <a href="${expEscape(url)}" target="_blank" rel="noopener" class="mat-dl">Abrir</a>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function loadSupportMaterials() {
+  let custom = [];
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from("materials")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error && Array.isArray(data)) custom = data;
+    if (error) console.warn("No se pudieron leer materiales dinámicos:", error.message);
+  }
+  renderSupportMaterials([...custom, ...DEFAULT_SUPPORT_MATERIALS]);
+}
+
+async function addSupportMaterial() {
+  if (currentRole !== "admin") return alert("Solo un administrador puede agregar materiales.");
+  const title = document.getElementById("materialTitle")?.value.trim();
+  const description = document.getElementById("materialDescription")?.value.trim();
+  const url = document.getElementById("materialUrl")?.value.trim();
+  const type = document.getElementById("materialType")?.value.trim() || "Material";
+  if (!title || !url) return alert("Completá al menos título y URL pública del material.");
+
+  const payload = { title, description, url, type, created_by: currentUser?.id || null };
+  const { error } = await supabaseClient.from("materials").insert(payload);
+  if (error) {
+    alert("No se pudo guardar el material: " + error.message + "\n\nSi es la primera vez, creá la tabla materials en Supabase.");
+    return;
+  }
+  document.getElementById("materialTitle").value = "";
+  document.getElementById("materialDescription").value = "";
+  document.getElementById("materialUrl").value = "";
+  document.getElementById("materialType").value = "";
+  alert("Material agregado correctamente.");
+  await loadSupportMaterials();
+}
+
+function openMaterialPreview(url, docTitle) {
+  const modal = document.getElementById('pdfPreviewModal');
+  const frame = document.getElementById('pdfPreviewFrame');
+  const title = document.getElementById('pdfPreviewTitle');
+  const downloadBtn = document.getElementById('pdfPreviewDownload');
+  if (!modal || !frame || !title || !downloadBtn) return window.open(url, '_blank');
+  title.textContent = docTitle || 'Documento';
+  frame.src = url + '#view=FitH';
+  downloadBtn.href = url;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+async function loadPendingExperiences() {
+  const panel = document.getElementById("repoAdminPanel");
+  const list = document.getElementById("pendingExperiencesList");
+  const count = document.getElementById("pendingCount");
+  if (!panel || !list || currentRole !== "admin") return;
+
+  panel.classList.add("show");
+  list.innerHTML = '<div class="repo-empty">Cargando experiencias pendientes...</div>';
+  if (count) count.textContent = "Pendientes: —";
+
+  try {
+    const separador = EXPERIENCE_SHEET_URL.includes("?") ? "&" : "?";
+    const response = await fetch(EXPERIENCE_SHEET_URL + separador + "cachebust=" + Date.now());
+    const result = await response.json();
+
+    // Soporta los dos formatos posibles del Apps Script:
+    // 1) { ok: true, experiencias: [...] }
+    // 2) { result: "ok", data: [...] }
+    const estaOk = result && (result.ok === true || result.result === "ok");
+    if (!estaOk) {
+      throw new Error(result?.error || result?.message || "No se pudo leer el Google Sheet.");
+    }
+
+    const rawData = Array.isArray(result.experiencias)
+      ? result.experiencias
+      : (Array.isArray(result.data) ? result.data : []);
+
+    const normalized = rawData.map(normalizeSheetExperience);
+
+    pendingExperiences = normalized.filter(exp =>
+      (exp.titulo || exp.descripcion || exp.nombre || exp.email) &&
+      normalizeText(exp.estado || "pendiente") === "pendiente"
+    );
+
+    renderPendingExperiences(pendingExperiences, rawData.length);
+  } catch (err) {
+    console.error("Error pendientes:", err);
+    list.innerHTML = `<div class="repo-empty">No se pudieron cargar pendientes: ${expEscape(err.message)}<br>Revisá que la URL del Apps Script esté publicada y que devuelva ok:true con experiencias.</div>`;
+    if (count) count.textContent = "Error";
+  }
+}
+
+function renderPendingExperiences(items, totalFromSheet) {
+  const list = document.getElementById("pendingExperiencesList");
+  const count = document.getElementById("pendingCount");
+  if (!list) return;
+
+  if (!items || !items.length) {
+    const extra = totalFromSheet !== undefined ? `<br>Total leído desde el Sheet: ${totalFromSheet}` : "";
+    list.innerHTML = `<div class="repo-empty">No hay experiencias pendientes de validación.${extra}</div>`;
+    if (count) count.textContent = "Pendientes: 0";
+    return;
+  }
+
+  list.innerHTML = items.map((exp, idx) => `
+    <div class="repo-pending-card">
+      <div class="repo-pending-head">
+        <div>
+          <div class="repo-pending-title">${expEscape(exp.titulo || "Sin título")}</div>
+          <div class="repo-pending-meta">
+            ${expEscape(exp.nombre || "Sin autor")} · ${expEscape(exp.email || "")}<br>
+            ${expEscape(exp.jurisdiccion || "Sin jurisdicción")} · ${expEscape(exp.nivel || "")} · ${expEscape(exp.anio || "")}
+          </div>
+        </div>
+        <div class="repo-actions">
+          <button class="pa-btn secondary" type="button" onclick="openPendingExperienceDetail(${idx})">Ver ficha</button>
+          ${exp.enlace ? `<a class="pa-btn secondary exp-btn-link" href="${expEscape(exp.enlace)}" target="_blank" rel="noopener">Ver evidencia</a>` : ""}
+          <button class="pa-btn" type="button" onclick="validateExperience(${idx})">✓ Validar</button>
+        </div>
+      </div>
+      <div class="repo-pending-desc">${expEscape(exp.descripcion || "Sin descripción.")}</div>
+    </div>
+  `).join("");
+  if (count) count.textContent = `Pendientes: ${items.length}`;
+}
+
+function filterPendingExperiences() {
+  const q = normalizeText(document.getElementById("pendingSearch")?.value || "");
+  if (!q) return renderPendingExperiences(pendingExperiences);
+  renderPendingExperiences(pendingExperiences.filter(exp => normalizeText(Object.values(exp).join(" ")).includes(q)));
+}
+
+function openPendingExperienceDetail(index) {
+  const exp = pendingExperiences[index];
+  if (!exp) return alert('No se encontró la ficha.');
+
+  const modal = document.getElementById('experienceDetailModal');
+  const title = document.getElementById('experienceDetailTitle');
+  const body = document.getElementById('experienceDetailBody');
+  if (!modal || !title || !body) return;
+
+  title.textContent = exp.titulo || 'Experiencia PAIDEIA';
+  body.innerHTML = `
+    <div class="exp-detail-meta-grid">
+      <div class="exp-detail-meta"><span>Autor/a</span><strong>${expEscape(exp.nombre || 'No informado')}</strong></div>
+      <div class="exp-detail-meta"><span>Email</span><strong>${expEscape(exp.email || 'No informado')}</strong></div>
+      <div class="exp-detail-meta"><span>Institución</span><strong>${expEscape(exp.institucion || 'No informada')}</strong></div>
+      <div class="exp-detail-meta"><span>Jurisdicción</span><strong>${expEscape(exp.jurisdiccion || 'No informada')}</strong></div>
+      <div class="exp-detail-meta"><span>Nivel / Área</span><strong>${expEscape([exp.nivel, exp.area].filter(Boolean).join(' · ') || 'No informado')}</strong></div>
+      <div class="exp-detail-meta"><span>Año</span><strong>${expEscape(exp.anio || 'No informado')}</strong></div>
+      <div class="exp-detail-meta"><span>Herramientas</span><strong>${expEscape(exp.herramientas || 'No informadas')}</strong></div>
+      <div class="exp-detail-meta"><span>Eje</span><strong>${expEscape(exp.ejes || 'No informado')}</strong></div>
+      <div class="exp-detail-meta exp-detail-meta-full"><span>URL Drive / evidencia</span><strong>${exp.enlace ? `<a href="${expEscape(exp.enlace)}" target="_blank" rel="noopener">${expEscape(exp.enlace)}</a>` : 'No informada'}</strong></div>
+    </div>
+    ${expSection('Descripción', exp.descripcion)}
+    ${expSection('Rol de la IA', exp.rolIA)}
+    ${expSection('P1 · Propósito', exp.p1)}
+    ${expSection('P2 · Por qué IA', exp.p2)}
+    ${expSection('P3 · Mirada crítica', exp.p3)}
+    ${expSection('P4 · Oportunidades', exp.p4)}
+    ${expSection('P5 · Innovación', exp.p5)}
+    ${expSection('P6 · Ajustes', exp.p6)}
+    ${expSection('P7 · Transferencia', exp.p7)}
+    <div class="exp-detail-actions">
+      ${exp.enlace ? `<a class="pa-btn exp-btn-link" href="${expEscape(exp.enlace)}" target="_blank" rel="noopener">Abrir evidencia</a>` : ''}
+      <button class="pa-btn secondary" type="button" onclick="window.print()">Imprimir ficha</button>
+    </div>
+  `;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+async function validateExperience(index) {
+  if (currentRole !== "admin") return alert("Solo un administrador puede validar experiencias.");
+  const exp = pendingExperiences[index];
+  if (!exp) return alert("No se encontró la experiencia seleccionada.");
+
+  // IMPORTANTE:
+  // Supabase solo acepta columnas que existan en la tabla "experiences".
+  // El error anterior venía porque se intentaba guardar "rolIA", pero esa columna no existe.
+  // Por eso acá enviamos únicamente los campos principales que usa el repositorio público.
+  const payload = {
+    titulo: exp.titulo || "",
+    // Guardamos la ficha completa en descripcion para no depender de columnas extra en Supabase.
+    // Así la vista pública muestra TODOS los datos cargados, incluidos P1-P7 y la URL de Drive.
+    descripcion: buildFullFichaText(exp),
+    nombre: exp.nombre || "",
+    email: exp.email || "",
+    institucion: exp.institucion || "",
+    jurisdiccion: exp.jurisdiccion || "",
+    nivel: exp.nivel || "",
+    area: exp.area || "",
+    anio: exp.anio || "",
+    herramientas: exp.herramientas || "",
+    ejes: exp.ejes || "",
+    enlace: exp.enlace || "",
+    validated: true
+  };
+
+  const { error } = await supabaseClient.from("experiences").insert(payload);
+  if (error) {
+    console.error("Error validando:", error);
+    alert("No se pudo validar: " + error.message);
+    return;
+  }
+
+  alert("Experiencia validada y publicada correctamente.");
+  pendingExperiences.splice(index, 1);
+  renderPendingExperiences(pendingExperiences);
+  await loadExperienciasPublicas();
+}
+
+
+/* ── ADMIN: SOBRE EL PROGRAMA ─────────────────────────────────── */
+const ABOUT_CARDS_KEY = 'paideia_about_cards_v1';
+let aboutCardsData = [];
+
+function getDefaultAboutCardsData() {
+  return [
+    { id:'desafios', icon:'🧩', title:'Desafíos Básicos', short:'Cambio de narrativa, cambio de modelo y cambio de paradigma para pensar la IA en educación.', content:'PAIDEIA propone cambiar la forma en que hablamos de la inteligencia artificial en educación, revisar el modelo educativo centrado en la repetición memorística y avanzar hacia experiencias más significativas, creativas, reflexivas y centradas en las personas.' },
+    { id:'principios', icon:'📘', title:'Principios Rectores', short:'La IA como extensión de la racionalidad humana, aliada colaborativa, no neutral y sin reemplazo del docente.', content:'Las inteligencias artificiales son productos culturales y técnicos. Su valor educativo está en fortalecer la tarea docente, enriquecer experiencias de aprendizaje y ampliar la personalización, sin reemplazar el vínculo pedagógico.' },
+    { id:'abordaje', icon:'🔗', title:'Abordaje General', short:'Una integración interdisciplinar, intersectorial y centrada en los vínculos pedagógicos y humanos.', content:'La integración de IA requiere articular saberes técnicos, pedagógicos, éticos y sociales, con colaboración entre industria, academia, gobierno e instituciones educativas.' },
+    { id:'vision', icon:'🌍', title:'Visión de la IA en Educación', short:'Una mirada humanista que integra la IA con sentido ético, crítico y orientado al desarrollo integral.', content:'PAIDEIA se apoya en una visión humanista que integra la inteligencia artificial como herramienta para ampliar las posibilidades de enseñar y aprender con sentido ético y crítico.' },
+    { id:'alcance', icon:'🎯', title:'Alcance del Programa PAIDEIA', short:'Tres objetivos principales: pensamiento computacional, aplicación de IA y desarrollo de inteligencia artificial.', content:'El alcance se organiza en pensamiento computacional, aplicación de IA y desarrollo de IA, distribuidos por ciclo, edad y orientación.' },
+    { id:'ejes', icon:'🏫', title:'Ejes transversales', short:'Estudiantes, docencia, contenidos curriculares y sistemas de gestión como dimensiones de transformación.', content:'PAIDEIA plantea cuatro ejes: acompañar estudiantes en el uso de IA, desarrollar competencias docentes, generar contenidos curriculares e integrar IA en sistemas de gestión.' },
+    { id:'recursos', icon:'📚', title:'Contenidos y Recursos', short:'Lineamientos, guías y materiales para acompañar a docentes, equipos técnicos, instituciones y familias.', content:'Esta sección reúne materiales fundamentales para orientar la implementación del programa y acompañar la apropiación pedagógica de la inteligencia artificial.' }
+  ];
+}
+function loadAboutCardsData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ABOUT_CARDS_KEY) || 'null');
+    aboutCardsData = Array.isArray(saved) && saved.length ? saved : getDefaultAboutCardsData();
+  } catch(e) { aboutCardsData = getDefaultAboutCardsData(); }
+}
+function persistAboutCardsData() { localStorage.setItem(ABOUT_CARDS_KEY, JSON.stringify(aboutCardsData)); }
+function renderAboutCardsPublic() {
+  const grid = document.querySelector('#s-sobre .about-grid-topics');
+  if (!grid) return;
+  grid.innerHTML = aboutCardsData.map(card => `
+    <div class="about-block about-topic-card" data-topic="${expEscape(card.id)}" onclick="openAboutCardDynamic('${expEscape(card.id)}')">
+      <h3>${expEscape(card.icon || '📌')} ${expEscape(card.title || 'Sin título')}</h3>
+      <p>${expEscape(card.short || '')}</p>
+    </div>
+  `).join('');
+}
+function renderAboutCardsAdminSelect() {
+  const select = document.getElementById('aboutCardSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">Nueva tarjeta</option>' + aboutCardsData.map(card => `<option value="${expEscape(card.id)}">${expEscape(card.title)}</option>`).join('');
+}
+function openAboutCardDynamic(id) {
+  const card = aboutCardsData.find(c => c.id === id);
+  if (!card) return;
+  const modal = document.getElementById('aboutModal');
+  const modalTitle = document.getElementById('aboutModalTitle');
+  const modalContent = document.getElementById('aboutModalContent');
+  if (!modal || !modalTitle || !modalContent) return;
+  modalTitle.innerHTML = expEscape(card.title || 'Detalle');
+  modalContent.innerHTML = '<p>' + expEscape(card.content || card.short || '').replace(/
+/g, '<br>') + '</p>';
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function loadAboutCardForEdit() {
+  const id = document.getElementById('aboutCardSelect')?.value || '';
+  const card = aboutCardsData.find(c => c.id === id);
+  document.getElementById('aboutCardIcon').value = card?.icon || '';
+  document.getElementById('aboutCardTitle').value = card?.title || '';
+  document.getElementById('aboutCardShort').value = card?.short || '';
+  document.getElementById('aboutCardContent').value = card?.content || '';
+}
+function clearAboutCardForm() {
+  document.getElementById('aboutCardSelect').value = '';
+  document.getElementById('aboutCardIcon').value = '';
+  document.getElementById('aboutCardTitle').value = '';
+  document.getElementById('aboutCardShort').value = '';
+  document.getElementById('aboutCardContent').value = '';
+}
+function saveAboutCardAdmin() {
+  if (currentRole !== 'admin') return alert('Solo un administrador puede editar esta sección.');
+  const selectedId = document.getElementById('aboutCardSelect')?.value || '';
+  const title = document.getElementById('aboutCardTitle')?.value.trim();
+  if (!title) return alert('Ingresá un título.');
+  const card = {
+    id: selectedId || ('card_' + Date.now()),
+    icon: document.getElementById('aboutCardIcon')?.value.trim() || '📌',
+    title,
+    short: document.getElementById('aboutCardShort')?.value.trim() || '',
+    content: document.getElementById('aboutCardContent')?.value.trim() || ''
+  };
+  const idx = aboutCardsData.findIndex(c => c.id === card.id);
+  if (idx >= 0) aboutCardsData[idx] = card; else aboutCardsData.push(card);
+  persistAboutCardsData(); renderAboutCardsPublic(); renderAboutCardsAdminSelect();
+  document.getElementById('aboutCardSelect').value = card.id;
+  alert('Tarjeta guardada.');
+}
+function deleteAboutCardAdmin() {
+  if (currentRole !== 'admin') return alert('Solo un administrador puede editar esta sección.');
+  const id = document.getElementById('aboutCardSelect')?.value || '';
+  if (!id) return alert('Seleccioná una tarjeta para eliminar.');
+  if (!confirm('¿Eliminar esta tarjeta?')) return;
+  aboutCardsData = aboutCardsData.filter(c => c.id !== id);
+  persistAboutCardsData(); renderAboutCardsPublic(); renderAboutCardsAdminSelect(); clearAboutCardForm();
+}
+function resetAboutCardsAdmin() {
+  if (currentRole !== 'admin') return alert('Solo un administrador puede editar esta sección.');
+  if (!confirm('¿Restaurar las tarjetas originales?')) return;
+  aboutCardsData = getDefaultAboutCardsData(); persistAboutCardsData(); renderAboutCardsPublic(); renderAboutCardsAdminSelect(); clearAboutCardForm();
+}
+async function grantAdminByEmail() {
+  if (currentRole !== 'admin') return alert('Solo un administrador puede agregar administradores.');
+  const email = document.getElementById('newAdminEmail')?.value.trim().toLowerCase();
+  if (!email) return alert('Ingresá un email.');
+  const { data, error } = await supabaseClient.from('profiles').select('id,email,role').eq('email', email).maybeSingle();
+  if (error) return alert('No se pudo buscar el usuario: ' + error.message);
+  if (!data) return alert('No encontré un perfil con ese email. Primero el usuario debe iniciar sesión alguna vez.');
+  const { error: updateError } = await supabaseClient.from('profiles').update({ role: 'admin' }).eq('id', data.id);
+  if (updateError) return alert('No se pudo agregar como admin: ' + updateError.message);
+  document.getElementById('newAdminEmail').value = '';
+  alert('Administrador agregado correctamente.');
+}
+loadAboutCardsData();
+renderAboutCardsPublic();
+renderAboutCardsAdminSelect();
+
+</script>
+
+
+
+<div class="exp-detail-modal" id="experienceDetailModal" aria-hidden="true">
+  <div class="exp-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="experienceDetailTitle">
+    <div class="exp-detail-header">
+      <div class="exp-detail-kicker">PAIDEIA · Ficha de experiencia</div>
+      <h3 id="experienceDetailTitle">Detalle de experiencia</h3>
+      <button class="exp-detail-close" type="button" onclick="closeExperienceDetail()" aria-label="Cerrar">×</button>
+    </div>
+    <div class="exp-detail-body" id="experienceDetailBody"></div>
+  </div>
+</div>
+
+</body>
+</html>
