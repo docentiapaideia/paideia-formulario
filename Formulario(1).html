@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buenas Practicas</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #22304a;
+      --muted: #5f6b84;
+      --line: #d9e1ef;
+      --primary: #294da9;
+      --primary-soft: #e8f0ff;
+      --success: #0f766e;
+      --danger: #b91c1c;
+      --shadow: 0 10px 30px rgba(34,48,74,0.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Arial,Helvetica,sans-serif; background:var(--bg); color:var(--text); }
+    .page { max-width:1240px; margin:0 auto; padding:28px; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg,#21356b 0%,#294da9 100%);
+      color:white; border-radius:24px; padding:24px 28px;
+      box-shadow:var(--shadow); margin-bottom:24px;
+      display:flex; align-items:center; gap:20px;
+    }
+    .hero img { height:72px; background:white; padding:8px 12px; border-radius:14px; flex-shrink:0; }
+    .hero-text h1 { margin:0 0 8px; font-size:26px; line-height:1.15; }
+    .hero-text p  { margin:0; font-size:14px; line-height:1.55; opacity:.93; }
+
+    /* STEPPER */
+    .stepper { display:flex; gap:0; margin-bottom:24px; background:white;
+      border-radius:16px; padding:6px; box-shadow:var(--shadow); border:1px solid var(--line); }
+    .step-btn {
+      flex:1; border:none; background:none; padding:13px 8px; border-radius:12px;
+      cursor:pointer; font-size:13px; font-weight:700; color:var(--muted);
+      display:flex; align-items:center; justify-content:center; gap:8px; transition:.2s;
+    }
+    .step-btn.active { background:var(--primary); color:white; }
+    .step-btn.done   { background:var(--primary-soft); color:var(--primary); }
+    .step-num {
+      width:24px; height:24px; border-radius:50%; background:rgba(0,0,0,.08);
+      display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;
+    }
+    .step-btn.active .step-num { background:rgba(255,255,255,.25); color:white; }
+    .step-btn.done   .step-num { background:var(--primary); color:white; }
+
+    /* LAYOUT BLOQUE 1 — con preview */
+    .layout-preview { display:grid; grid-template-columns:1.1fr 0.9fr; gap:24px; align-items:start; }
+
+    /* LAYOUT BLOQUES 2 y 3 — dos columnas sin preview */
+    .layout-cols { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+
+    .panel { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--line); overflow:hidden; }
+    .panel-header { padding:18px 22px; border-bottom:1px solid var(--line); background:#fbfcff; }
+    .panel-header h2 { margin:0 0 4px; font-size:20px; }
+    .panel-header p  { margin:0; color:var(--muted); font-size:13px; line-height:1.4; }
+    .panel-body { padding:22px; }
+
+    /* Bloques */
+    .bloque { display:none; }
+    .bloque.active { display:block; }
+
+    .grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .field { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+    .field.full { grid-column:1/-1; }
+
+    label { font-weight:700; font-size:14px; }
+    .req { color:var(--danger); }
+    .hint { color:var(--muted); font-size:12px; margin-top:-3px; }
+
+    input, select, textarea {
+      width:100%; border:1px solid #cbd5e1; border-radius:12px;
+      padding:11px 13px; font-size:14px; color:var(--text); background:white;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    textarea { min-height:110px; resize:vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline:none; border-color:var(--primary);
+      box-shadow:0 0 0 4px rgba(41,77,169,.12);
+    }
+
+    .checkboxes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 12px; padding-top:6px; }
+    .checkbox-item { display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:400; cursor:pointer; line-height:1.4; }
+    .checkbox-item input { width:auto; margin:0; margin-top:2px; flex-shrink:0; }
+
+    .radio-group { display:flex; gap:16px; flex-wrap:wrap; padding-top:4px; }
+    .radio-item { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:400; cursor:pointer; }
+    .radio-item input { width:auto; margin:0; }
+
+    .actions { display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; }
+    button { border:none; border-radius:12px; padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer; transition:.15s; }
+    button:hover { transform:translateY(-1px); opacity:.9; }
+    .btn-primary  { background:var(--primary); color:white; }
+    .btn-secondary{ background:#eef2ff; color:#1e3a8a; }
+    .btn-success  { background:#0f766e; color:white; }
+
+    .message { margin-top:14px; padding:12px 14px; border-radius:12px; font-size:14px; display:none; }
+    .message.success { display:block; background:#ecfdf5; color:var(--success); border:1px solid #a7f3d0; }
+    .message.error   { display:block; background:#fef2f2; color:var(--danger);  border:1px solid #fecaca; }
+    .message.info    { display:block; background:#eff6ff; color:var(--primary); border:1px solid #bfdbfe; }
+
+    /* PREVIEW */
+    .preview-card { border:1px solid var(--line); border-radius:18px; padding:20px; background:linear-gradient(180deg,#fff 0%,#f9fbff 100%); }
+    .chip-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip { background:var(--primary-soft); color:#1e40af; border:1px solid #c7d7ff; padding:5px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+    .preview-card h3 { margin:0 0 10px; font-size:20px; line-height:1.2; }
+    .preview-card .pdesc { color:#334155; line-height:1.5; margin:0 0 14px; font-size:13px; }
+    .meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:14px 0; }
+    .meta-item { background:white; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+    .meta-item strong { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:4px; }
+    .meta-item span { font-size:13px; }
+    .empty-state { background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px; padding:16px; color:var(--muted); line-height:1.5; margin-top:14px; font-size:13px; }
+
+    /* Columna bloque 2/3 — separador visual */
+    .col-section { margin-bottom:0; }
+    .col-section h3 { font-size:14px; font-weight:700; color:var(--primary); border-bottom:2px solid var(--primary-soft); padding-bottom:6px; margin:0 0 14px; text-transform:uppercase; letter-spacing:.04em; }
+
+    @media(max-width:1000px){
+      .layout-preview, .layout-cols { grid-template-columns:1fr; }
+    }
+    @media(max-width:700px){
+      .grid2, .meta, .checkboxes { grid-template-columns:1fr; }
+      .page { padding:14px; }
+      .hero { flex-direction:column; text-align:center; }
+      .hero-text h1 { font-size:22px; }
+      .stepper { flex-direction:column; }
+    }
+  
+    .success-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(34,48,74,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 9999;
+    }
+    .success-modal.show { display: flex; }
+    .success-box {
+      width: min(460px, 92vw);
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 24px 70px rgba(34,48,74,.28);
+      padding: 30px 28px;
+      text-align: center;
+      border: 1px solid var(--line);
+    }
+    .success-icon {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      margin: 0 auto 16px;
+      font-weight: 700;
+    }
+    .success-box h2 {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: 22px;
+    }
+    .success-box p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+  
+
+/* ── MEJORAS URGENTES PAIDEIA ───────────────────────────────────── */
+.menu-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.24);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+}
+.menu-open-btn:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
+.menu-open-icon { font-size: 1.15rem; line-height: 1; color: var(--gold); }
+.password-field { position: relative; width: 100%; margin: 0 0 12px; }
+.password-field input,
+.auth-login-card .password-field input {
+  width: 100%;
+  margin: 0;
+  padding-right: 48px;
+}
+button.password-toggle,
+.auth-login-card button.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0d1f4e;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+button.password-toggle:hover,
+.auth-login-card button.password-toggle:hover { background: #eef2f8; }
+@media (max-width: 640px) {
+  .menu-open-btn span:last-child { display: none; }
+  .menu-open-btn { padding: 8px 11px; }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <img src="logo.png" alt="PAIDEIA" />
+    <div class="hero-text">
+      
+    </div>
+  </section>
+
+  <!-- STEPPER -->
+  <div class="stepper">
+    <button class="step-btn active" onclick="goToBloque(1)" id="sBtn1"><span class="step-num">1</span> Identificaci&oacute;n</button>
+    <button class="step-btn"        onclick="goToBloque(2)" id="sBtn2"><span class="step-num">2</span> Experiencia</button>
+    <button class="step-btn"        onclick="goToBloque(3)" id="sBtn3"><span class="step-num">3</span> Reflexi&oacute;n metacognitiva</button>
+  </div>
+
+  <form id="paideia-form" novalidate>
+
+    <!-- ===================== BLOQUE 1 ===================== -->
+    <div class="bloque active" id="bloque1">
+      <div class="layout-preview">
+        <!-- Formulario -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Bloque 1 &mdash; Identificaci&oacute;n</h2>
+            <p>Datos de la persona o equipo docente que presenta la experiencia.</p>
+          </div>
+          <div class="panel-body">
+            <div class="grid2">
+              <div class="field">
+                <label for="nombre">Nombre y apellido <span class="req">*</span></label>
+                <input id="nombre" name="nombre" type="text" placeholder="Mar&iacute;a Gonz&aacute;lez" required />
+              </div>
+              <div class="field">
+                <label for="email">Correo electr&oacute;nico <span class="req">*</span></label>
+                <input id="email" name="email" type="email" placeholder="docente@educacion.gob.ar" required />
+                <span class="hint">Aquí recibirás el acuse de recibo.</span>
+              </div>
+              <div class="field full">
+                <label for="institucion">Nombre de la instituci&oacute;n educativa <span class="req">*</span></label>
+                <input id="institucion" name="institucion" type="text" placeholder="Ej.: Escuela Secundaria N&deg; 12" required />
+              </div>
+              <div class="field">
+                <label for="jurisdiccion">Provincia / Jurisdicci&oacute;n <span class="req">*</span></label>
+                <select id="jurisdiccion" name="jurisdiccion" required>
+                  <option value="">Seleccionar</option>
+                  <option>Buenos Aires</option><option>CABA</option><option>Catamarca</option>
+                  <option>Chaco</option><option>Chubut</option><option>C&oacute;rdoba</option>
+                  <option>Corrientes</option><option>Entre R&iacute;os</option><option>Formosa</option>
+                  <option>Jujuy</option><option>La Pampa</option><option>La Rioja</option>
+                  <option>Mendoza</option><option>Misiones</option><option>Neuqu&eacute;n</option>
+                  <option>R&iacute;o Negro</option><option>Salta</option><option>San Juan</option>
+                  <option>San Luis</option><option>Santa Cruz</option><option>Santa Fe</option>
+                  <option>Santiago del Estero</option><option>Tierra del Fuego</option><option>Tucum&aacute;n</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="nivel">Nivel educativo <span class="req">*</span></label>
+                <select id="nivel" name="nivel" required>
+                  <option value="">Seleccionar</option>
+                  <option>Inicial</option><option>Primario</option><option>Secundario</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="area">&Aacute;rea o espacio curricular <span class="req">*</span></label>
+                <input id="area" name="area" type="text" placeholder="Ej.: Matem&aacute;tica, Lengua y Literatura, Educaci&oacute;n Tecnol&oacute;gica&hellip;" required />
+              </div>
+              <div class="field full">
+                <label>&iquest;La experiencia fue desarrollada en equipo?</label>
+                <div class="radio-group">
+                  <label class="radio-item"><input type="radio" name="equipo" value="No, fue individual" checked /> No, fue individual</label>
+                  <label class="radio-item"><input type="radio" name="equipo" value="S&iacute;, en equipo docente" /> S&iacute;, en equipo docente</label>
+                </div>
+              </div>
+              <div class="field full" id="campoEquipo" style="display:none">
+                <label for="equipoNombres">Nombre/s de los/las dem&aacute;s docentes del equipo</label>
+                <input id="equipoNombres" name="equipoNombres" type="text" placeholder="Ej.: Juan P&eacute;rez, Laura D&iacute;az" />
+              </div>
+            </div>
+            <div class="actions">
+              <button type="button" class="btn-primary" onclick="siguienteBloque(2)">Continuar &rarr;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Preview -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Vista previa de la ficha</h2>
+            <p>Se actualiza en tiempo real mientras complet&aacute;s el formulario.</p>
+          </div>
+          <div class="panel-body">
+            <div class="preview-card">
+              <div class="chip-row" id="previewChips">
+                <span class="chip">Jurisdicci&oacute;n</span><span class="chip">Nivel</span>
+              </div>
+              <h3 id="previewTitulo">T&iacute;tulo de la experiencia</h3>
+              <p class="pdesc" id="previewDesc">Complet&aacute; el formulario para ver la vista previa de la ficha.</p>
+              <div class="meta">
+                <div class="meta-item"><strong>Docente</strong><span id="pvNombre">&mdash;</span></div>
+                <div class="meta-item"><strong>Instituci&oacute;n</strong><span id="pvInstitucion">&mdash;</span></div>
+                <div class="meta-item"><strong>&Aacute;rea curricular</strong><span id="pvArea">&mdash;</span></div>
+                <div class="meta-item"><strong>A&ntilde;o</strong><span id="pvAnio">&mdash;</span></div>
+              </div>
+            </div>
+            <div class="empty-state" id="emptyState">
+              Complet&aacute; los datos para ver c&oacute;mo queda la ficha-resumen de la experiencia.
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================== BLOQUE 2 ===================== -->
+    <div class="bloque" id="bloque2">
+      <div class="layout-cols">
+        <!-- Col izquierda -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Bloque 2 &mdash; Caracterizaci&oacute;n</h2>
+            <p>Informaci&oacute;n general sobre la pr&aacute;ctica presentada.</p>
+          </div>
+          <div class="panel-body">
+            <div class="col-section">
+              <div class="field">
+                <label for="titulo">T&iacute;tulo de la experiencia <span class="req">*</span></label>
+                <input id="titulo" name="titulo" type="text" placeholder="Ej.: Escritura colaborativa con IA en 3&deg; a&ntilde;o" required />
+              </div>
+              <div class="field">
+                <label for="anio">A&ntilde;o de implementaci&oacute;n <span class="req">*</span></label>
+                <select id="anio" name="anio" required>
+                  <option value="">Seleccionar</option>
+                  <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="herramientas">Herramienta/s de IA utilizadas <span class="req">*</span></label>
+                <input id="herramientas" name="herramientas" type="text" placeholder="Ej.: ChatGPT, Canva IA, Gemini&hellip;" required />
+              </div>
+              <div class="field">
+                <label for="enlace">Enlace a evidencia o producto docente</label>
+                <input id="enlace" name="enlace" type="url" placeholder="https://drive.google.com/&hellip;" required />
+                <span class="hint">No adjuntar trabajos identificables de estudiantes menores de edad.</span>
+                <span class="hint">Asegúrese de que la carpeta mencionada esté compartida.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Col derecha -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Descripci&oacute;n y ejes</h2>
+            <p>Contex&shy;tualizaci&oacute;n de la propuesta y su encuadre tem&aacute;tico.</p>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Eje tem&aacute;tico <span class="req">*</span></label>
+              <span class="hint">Pod&eacute;s seleccionar m&aacute;s de uno.</span>
+              <div class="checkboxes" style="margin-top:8px">
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Transformaci&oacute;n de la ense&ntilde;anza con tecnolog&iacute;as emergentes" /> Transformaci&oacute;n de la ense&ntilde;anza con tecnolog&iacute;as emergentes</label>
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Nuevas formas de producir conocimiento" /> Nuevas formas de producir conocimiento</label>
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Evaluaci&oacute;n innovadora" /> Evaluaci&oacute;n innovadora</label>
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Aprendizaje activo y centrado en el estudiante" /> Aprendizaje activo y centrado en el estudiante</label>
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Ciudadan&iacute;a digital y pensamiento cr&iacute;tico" /> Ciudadan&iacute;a digital y pensamiento cr&iacute;tico</label>
+                <label class="checkbox-item"><input type="checkbox" name="ejes" value="Inclusi&oacute;n educativa mediada por tecnolog&iacute;as" /> Inclusi&oacute;n educativa mediada por tecnolog&iacute;as</label>
+              </div>
+            </div>
+            <div class="field" style="margin-top:14px">
+              <label for="descripcion">Descripci&oacute;n general de la propuesta <span class="req">*</span></label>
+              <textarea id="descripcion" name="descripcion" placeholder="Describ&iacute; brevemente en qu&eacute; consisti&oacute; la pr&aacute;ctica, el contexto escolar y los destinatarios." required></textarea>
+            </div>
+            
+          </div>
+        </section>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button type="button" class="btn-secondary" onclick="goToBloque(1)">&larr; Volver</button>
+        <button type="button" class="btn-primary" onclick="siguienteBloque(3)">Continuar &rarr;</button>
+      </div>
+    </div>
+
+    <!-- ===================== BLOQUE 3 ===================== -->
+    <div class="bloque" id="bloque3">
+      <div class="layout-cols">
+        <!-- Col izquierda: preguntas 1-4 -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Bloque 3 &mdash; Reflexi&oacute;n (1&ndash;4)</h2>
+            <p>Sistematizaci&oacute;n de la pr&aacute;ctica seg&uacute;n los criterios PAIDEIA.</p>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="q1">1. &iquest;Qu&eacute; prop&oacute;sito pedag&oacute;gico orient&oacute; esta pr&aacute;ctica y por qu&eacute; se eligi&oacute;? <span class="req">*</span></label>
+              <span class="hint">Criterio a &mdash; Intencionalidad pedag&oacute;gica y coherencia did&aacute;ctica.</span>
+              <textarea id="q1" name="q1" required></textarea>
+            </div>
+            <div class="field">
+              <label for="q2">2. &iquest;Por qu&eacute; la IA fue la v&iacute;a adecuada? &iquest;Qu&eacute; hizo posible que sin ella era m&aacute;s dif&iacute;cil o imposible? <span class="req">*</span></label>
+              <span class="hint">Criterio b &mdash; Uso significativo de la IA.</span>
+              <textarea id="q2" name="q2" required></textarea>
+            </div>
+            <div class="field">
+              <label for="q3">3. &iquest;Qu&eacute; instancias se incorporaron para trabajar la mirada cr&iacute;tica sobre la IA, sus sesgos, l&iacute;mites y criterios de validaci&oacute;n? <span class="req">*</span></label>
+              <span class="hint">Criterio c &mdash; Mirada cr&iacute;tica sobre la tecnolog&iacute;a.</span>
+              <textarea id="q3" name="q3" required></textarea>
+            </div>
+            <div class="field">
+              <label for="q4">4. &iquest;De qu&eacute; modo la pr&aacute;ctica ampli&oacute; las oportunidades de aprendizaje del grupo? <span class="req">*</span></label>
+              <span class="hint">Criterio d &mdash; Ampliaci&oacute;n de oportunidades de aprendizaje.</span>
+              <textarea id="q4" name="q4" required></textarea>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- Col derecha: preguntas 5-7 -->
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Reflexi&oacute;n (5&ndash;7)</h2>
+            <p>Innovaci&oacute;n, sistematizaci&oacute;n y transferencia de la experiencia.</p>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="q5">5. &iquest;Qu&eacute; aspecto de la ense&ntilde;anza se transform&oacute; con esta experiencia, y en qu&eacute; se diferencia de experiencias previas? <span class="req">*</span></label>
+              <span class="hint">Criterio e &mdash; Innovaci&oacute;n con sentido pedag&oacute;gico.</span>
+              <textarea id="q5" name="q5" required></textarea>
+            </div>
+            <div class="field">
+              <label for="q6">6. &iquest;Qu&eacute; ajustes se realizaron durante la implementaci&oacute;n y qu&eacute; aprendizajes docentes surgieron del proceso? <span class="req">*</span></label>
+              <span class="hint">Criterio f &mdash; Reflexi&oacute;n y sistematizaci&oacute;n de la pr&aacute;ctica.</span>
+              <textarea id="q6" name="q6" required></textarea>
+            </div>
+            <div class="field">
+              <label for="q7">7. &iquest;Qu&eacute; condiciones son necesarias para que esta pr&aacute;ctica pueda ser retomada por otros equipos docentes? <span class="req">*</span></label>
+              <span class="hint">Criterio g &mdash; Potencial de transferencia.</span>
+              <textarea id="q7" name="q7" required></textarea>
+            </div>
+            <div class="field">
+              <label for="rolIA">Rol de la inteligencia artificial <span class="req">*</span></label>
+              <textarea id="rolIA" name="rolIA" placeholder="Explic&aacute; para qu&eacute; se us&oacute; la IA: producci&oacute;n de contenidos, evaluaci&oacute;n, personalizaci&oacute;n, otro." required></textarea>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button type="button" class="btn-secondary" onclick="goToBloque(2)">&larr; Volver</button>
+        <button type="submit" class="btn-success">&#10003; Enviar experiencia</button>
+      </div>
+      <div id="formMessage" class="message"></div>
+    </div>
+
+  </form>
+</div>
+
+
+<div id="successModal" class="success-modal">
+  <div class="success-box">
+    <div class="success-icon">✓</div>
+    <h2>La carga se registró con éxito</h2>
+    <p>La experiencia fue enviada correctamente y quedó registrada en el sistema.</p>
+    <button type="button" class="btn-success" onclick="volverAlInicio()">Volver al inicio</button>
+  </div>
+</div>
+
+<script>
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  if (btn) {
+    btn.textContent = showing ? '👁️' : '🙈';
+    btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    btn.setAttribute('title', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  }
+}
+
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw50bAzFGUmVNied62HyFjGuMseYf-G7KerWdO8FATB1uxs5E9SQZtmoH5MP8G7IfQwMA/exec';
+  let bloqueActual = 1;
+
+  function goToBloque(n) {
+    document.getElementById('bloque' + bloqueActual).classList.remove('active');
+    document.getElementById('bloque' + n).classList.add('active');
+    bloqueActual = n;
+    for (let i = 1; i <= 3; i++) {
+      const btn = document.getElementById('sBtn' + i);
+      btn.classList.remove('active','done');
+      if (i === n) btn.classList.add('active');
+      else if (i < n) btn.classList.add('done');
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function validarBloque(n) {
+    const bloque = document.getElementById('bloque' + n);
+    let ok = true;
+    let firstError = null;
+
+    bloque.querySelectorAll('[required]').forEach(el => {
+      el.style.borderColor = '';
+      const visible = el.offsetParent !== null;
+      if (visible && !String(el.value || '').trim()) {
+        el.style.borderColor = '#b91c1c';
+        if (!firstError) firstError = el;
+        ok = false;
+      }
+    });
+
+    if (n === 2) {
+      const ejes = document.querySelectorAll('input[name="ejes"]:checked');
+      if (!ejes.length) {
+        ok = false;
+        showMsg('error','Seleccioná al menos un eje temático.');
+        return false;
+      }
+    }
+
+    if (!ok) {
+      showMsg('error','Completá todos los campos obligatorios antes de continuar.');
+      if (firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    return ok;
+  }
+
+  function siguienteBloque(sig) { if (validarBloque(bloqueActual)) goToBloque(sig); }
+
+  document.querySelectorAll('input[name="equipo"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const campo = document.getElementById('campoEquipo');
+      const inputEquipo = document.getElementById('equipoNombres');
+      const esEquipo = r.value.includes('equipo') && r.checked;
+      campo.style.display = esEquipo ? 'flex' : 'none';
+      if (inputEquipo) {
+        inputEquipo.required = esEquipo;
+        if (!esEquipo) inputEquipo.value = '';
+      }
+    });
+  });
+
+  function updatePreview() {
+    const g = id => (document.getElementById(id)||{}).value || '';
+    const nombre = g('nombre'), inst = g('institucion'), titulo = g('titulo');
+    const nivel = g('nivel'), jur = g('jurisdiccion'), area = g('area'), anio = g('anio'), desc = g('descripcion');
+    const chips = [jur, nivel].filter(Boolean);
+    document.getElementById('previewChips').innerHTML = chips.length
+      ? chips.map(c=>`<span class="chip">${c}</span>`).join('')
+      : '<span class="chip">Jurisdicción</span><span class="chip">Nivel</span>';
+    document.getElementById('previewTitulo').textContent = titulo || 'Título de la experiencia';
+    document.getElementById('previewDesc').textContent   = desc  || 'Completá el formulario para ver la vista previa.';
+    document.getElementById('pvNombre').textContent      = nombre || '—';
+    document.getElementById('pvInstitucion').textContent = inst   || '—';
+    document.getElementById('pvArea').textContent        = area   || '—';
+    document.getElementById('pvAnio').textContent        = anio   || '—';
+    document.getElementById('emptyState').style.display  = (nombre||titulo||desc) ? 'none' : 'block';
+  }
+
+  document.getElementById('paideia-form').addEventListener('input',  updatePreview);
+  document.getElementById('paideia-form').addEventListener('change', updatePreview);
+
+  function showMsg(type, text) {
+    const m = document.getElementById('formMessage');
+    if (!m) return;
+    m.className = 'message ' + type;
+    m.textContent = text;
+    m.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  function mostrarExito() {
+    const modal = document.getElementById('successModal');
+    if (modal) modal.classList.add('show');
+  }
+
+  function volverAlInicio() {
+    const modal = document.getElementById('successModal');
+    if (modal) modal.classList.remove('show');
+
+    document.getElementById('paideia-form').reset();
+    goToBloque(1);
+    updatePreview();
+
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'PAIDEIA_FORM_SUCCESS' }, '*');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  document.getElementById('paideia-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validarBloque(3)) return;
+    const ejes = [...document.querySelectorAll('input[name="ejes"]:checked')].map(el=>el.value).join(', ');
+    const equipo = document.querySelector('input[name="equipo"]:checked')?.value || '';
+    const payload = {
+      timestamp: new Date().toLocaleString('es-AR'),
+      nombre: document.getElementById('nombre').value,
+      email: document.getElementById('email').value,
+      institucion: document.getElementById('institucion').value,
+      jurisdiccion: document.getElementById('jurisdiccion').value,
+      nivel: document.getElementById('nivel').value,
+      area: document.getElementById('area').value,
+      equipo, equipoNombres: document.getElementById('equipoNombres').value,
+      titulo: document.getElementById('titulo').value,
+      anio: document.getElementById('anio').value,
+      herramientas: document.getElementById('herramientas').value,
+      ejes, descripcion: document.getElementById('descripcion').value,
+      rolIA: document.getElementById('rolIA').value,
+      enlace: document.getElementById('enlace').value,
+      q1: document.getElementById('q1').value,
+      q2: document.getElementById('q2').value,
+      q3: document.getElementById('q3').value,
+      q4: document.getElementById('q4').value,
+      q5: document.getElementById('q5').value,
+      q6: document.getElementById('q6').value,
+      q7: document.getElementById('q7').value,
+    };
+    if (SHEET_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT') {
+      showMsg('info','✓ Demo: formulario completo y listo. Configurá SHEET_URL para activar el guardado en Google Sheets.');
+      return;
+    }
+    showMsg('info','Enviando… por favor esperá.');
+    try {
+      const params = new URLSearchParams(payload).toString();
+      const img = new Image();
+      img.src = SHEET_URL + '?' + params;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      mostrarExito();
+    } catch(err) {
+      showMsg('error','Error al enviar. Escribí a paideia@educacion.gob.ar');
+    }
+  });
+
+  updatePreview();
+</script>
+</body>
+</html>
