@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PaideIA - Cargar experiencia</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #07184a;
+    }
+    .contenedor {
+      max-width: 980px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 32px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(7, 24, 74, .12);
+    }
+    h1 { margin-top: 0; }
+    .intro { color: #536188; line-height: 1.5; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .campo { display: flex; flex-direction: column; gap: 6px; }
+    .campo.full { grid-column: 1 / -1; }
+    label { font-weight: 700; font-size: 14px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d8deec;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      background: #fff;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .ayuda {
+      margin: 8px 0 18px;
+      color: #536188;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .acciones {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    button {
+      border: 0;
+      background: #07184a;
+      color: #fff;
+      border-radius: 14px;
+      padding: 14px 24px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .65; cursor: not-allowed; }
+    .mensaje { font-weight: 700; }
+    .ok { color: #0a7a31; }
+    .error { color: #b00020; }
+    @media (max-width: 720px) {
+      .contenedor { margin: 16px; padding: 22px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  
+
+/* ── MEJORAS URGENTES PAIDEIA ───────────────────────────────────── */
+.menu-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.24);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s, transform .18s;
+}
+.menu-open-btn:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
+.menu-open-icon { font-size: 1.15rem; line-height: 1; color: var(--gold); }
+.password-field { position: relative; width: 100%; margin: 0 0 12px; }
+.password-field input,
+.auth-login-card .password-field input {
+  width: 100%;
+  margin: 0;
+  padding-right: 48px;
+}
+button.password-toggle,
+.auth-login-card button.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0d1f4e;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+button.password-toggle:hover,
+.auth-login-card button.password-toggle:hover { background: #eef2f8; }
+@media (max-width: 640px) {
+  .menu-open-btn span:last-child { display: none; }
+  .menu-open-btn { padding: 8px 11px; }
+}
+
+</style>
+</head>
+<body>
+  <main class="contenedor">
+    <h1>Compartir experiencia PaideIA</h1>
+    <p class="intro">
+      Completá el formulario para cargar una experiencia. Una vez enviada, quedará pendiente de validación administrativa antes de publicarse.
+    </p>
+
+    <form id="formExperiencia">
+      <div class="grid">
+        <div class="campo">
+          <label for="nombre">Nombre y apellido</label>
+          <input id="nombre" type="text" name="Nombre" required />
+        </div>
+
+        <div class="campo">
+          <label for="email">Correo electrónico</label>
+          <input id="email" type="email" name="Email" required />
+        </div>
+
+        <div class="campo">
+          <label for="institucion">Institución</label>
+          <input id="institucion" type="text" name="Institución" required />
+        </div>
+
+        <div class="campo">
+          <label for="jurisdiccion">Jurisdicción</label>
+          <input id="jurisdiccion" type="text" name="Jurisdicción" placeholder="Ej.: Buenos Aires, CABA, Río Negro" required />
+        </div>
+
+        <div class="campo">
+          <label for="nivel">Nivel</label>
+          <select id="nivel" name="Nivel" required>
+            <option value="">Seleccionar nivel</option>
+            <option value="Inicial">Inicial</option>
+            <option value="Primario">Primario</option>
+            <option value="Secundario">Secundario</option>
+            <option value="Superior">Superior</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="area">Área</label>
+          <input id="area" type="text" name="Área" placeholder="Ej.: Lengua, Matemática, Ciencias" required />
+        </div>
+
+        <div class="campo">
+          <label for="equipo">Trabajo en equipo</label>
+          <select id="equipo" name="Equipo" required>
+            <option value="">Seleccionar</option>
+            <option value="No, fue individual">No, fue individual</option>
+            <option value="Sí, fue en equipo">Sí, fue en equipo</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="nombresEquipo">Nombres del equipo</label>
+          <input id="nombresEquipo" type="text" name="Nombres equipo" placeholder="Completar si corresponde" />
+        </div>
+
+        <div class="campo">
+          <label for="titulo">Título de la experiencia</label>
+          <input id="titulo" type="text" name="Título" required />
+        </div>
+
+        <div class="campo">
+          <label for="anio">Año</label>
+          <input id="anio" type="number" name="Año" min="2020" max="2035" required />
+        </div>
+
+        <div class="campo full">
+          <label for="herramientas">Herramientas utilizadas</label>
+          <input id="herramientas" type="text" name="Herramientas" placeholder="Ej.: ChatGPT, Gemini, Canva, etc." required />
+        </div>
+
+        <div class="campo full">
+          <label for="ejes">Ejes de la experiencia</label>
+          <select id="ejes" name="Ejes" required>
+            <option value="">Seleccionar eje</option>
+            <option value="Transformación de la enseñanza con tecnologías emergentes">Transformación de la enseñanza con tecnologías emergentes</option>
+            <option value="Aprendizaje activo y centrado en el estudiante">Aprendizaje activo y centrado en el estudiante</option>
+            <option value="Nuevas formas de producir conocimiento">Nuevas formas de producir conocimiento</option>
+            <option value="Evaluación innovadora">Evaluación innovadora</option>
+            <option value="Inclusión educativa mediada por tecnologías">Inclusión educativa mediada por tecnologías</option>
+          </select>
+        </div>
+
+        <div class="campo full">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" name="Descripción" required></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="rolIA">Rol de la IA</label>
+          <textarea id="rolIA" name="Rol IA" required></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="enlace">Enlace a carpeta o material compartido</label>
+          <input id="enlace" type="url" name="Enlace" placeholder="https://drive.google.com/..." required />
+          <p class="ayuda">Por favor, verificá que la carpeta o archivo indicado esté compartido correctamente para que pueda ser revisado.</p>
+        </div>
+
+        <div class="campo full">
+          <label for="p1">P1 Propósito</label>
+          <textarea id="p1" name="P1 Propósito"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p2">P2 Por qué IA</label>
+          <textarea id="p2" name="P2 Por qué IA"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p3">P3 Mirada crítica</label>
+          <textarea id="p3" name="P3 Mirada crítica"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p4">P4 Oportunidades</label>
+          <textarea id="p4" name="P4 Oportunidades"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p5">P5 Innovación</label>
+          <textarea id="p5" name="P5 Innovación"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p6">P6 Ajustes</label>
+          <textarea id="p6" name="P6 Ajustes"></textarea>
+        </div>
+
+        <div class="campo full">
+          <label for="p7">P7 Transferencia</label>
+          <textarea id="p7" name="P7 Transferencia"></textarea>
+        </div>
+      </div>
+
+      <input type="hidden" name="Estado" value="pendiente" />
+
+      <div class="acciones">
+        <button id="btnEnviar" type="submit">Enviar experiencia</button>
+        <span id="mensaje" class="mensaje"></span>
+      </div>
+    </form>
+  </main>
+
+  <script>
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  if (btn) {
+    btn.textContent = showing ? '👁️' : '🙈';
+    btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    btn.setAttribute('title', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  }
+}
+
+   const URL_SCRIPT = 'https://script.googleusercontent.com/macros/echo?user_content_key=AWDtjMWQ094RK1x-HbN8RbaJXShkqgdJRbVLh-F7DjYxkXlVTnIwGZLATBHLTTGg0rpf-fcE51Z_IRf9zV241WU9JgHLIFT_vbpRkiR3pp89GUAaereGal_EijuR-fOJ8Irrxr33Gyyrq7hngs2Kg0Q9PuGIqK4Yf0Tjwql9CectEZ5E0_1Xb3kNB5d9FjDcHghFdQ9ERZk1yVgkyAzBk2IUOpYYd-ghDtL3UMeawot3-e4XRKUTvydVXHDfd_d7mq14d_kBlj9071dQj13Vop9LVlFYVmA7Yw&lib=M-wrtkyPP0DhvwVZ62uoCAXc0_V3iTLHf';
+
+    const form = document.getElementById('formExperiencia');
+    const btnEnviar = document.getElementById('btnEnviar');
+    const mensaje = document.getElementById('mensaje');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      mensaje.textContent = '';
+      mensaje.className = 'mensaje';
+
+      if (URL_SCRIPT.includes('PEGAR_ACA')) {
+        mensaje.textContent = 'Falta pegar la URL del Apps Script que termina en /exec.';
+        mensaje.classList.add('error');
+        return;
+      }
+
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = 'Enviando...';
+
+      try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // También mando alias en minúscula por si tu Apps Script todavía usa los nombres viejos.
+        data.nombre = data['Nombre'] || '';
+        data.email = data['Email'] || '';
+        data.institucion = data['Institución'] || '';
+        data.rol = data['Rol IA'] || '';
+        data.experiencia = data['Descripción'] || '';
+        data.enlace = data['Enlace'] || '';
+        data.estado = 'pendiente';
+
+        const respuesta = await fetch(URL_SCRIPT, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!resultado.ok) {
+          throw new Error(resultado.error || 'No se pudo enviar la experiencia.');
+        }
+
+        mensaje.textContent = 'Experiencia enviada correctamente. Quedó pendiente de validación.';
+        mensaje.classList.add('ok');
+        form.reset();
+      } catch (error) {
+        console.error(error);
+        mensaje.textContent = 'Error al enviar. Revisá la URL del Apps Script y la implementación web.';
+        mensaje.classList.add('error');
+      } finally {
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = 'Enviar experiencia';
+      }
+    });
+  </script>
+</body>
+</html>
