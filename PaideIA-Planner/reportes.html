@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Reportes | PaideIA Planner</title>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="img/logo.png" alt="Logo PaideIA" class="brand-logo">
+        <div>
+          <h1>PaideIA</h1>
+          <p>Planner</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <a href="index.html" class="menu-item">
+          <span>🏠</span>
+          Inicio
+        </a>
+
+        <a href="dashboard.html" class="menu-item">
+          <span>📊</span>
+          Dashboard
+        </a>
+
+        <a href="tablero.html" class="menu-item">
+          <span>🗂️</span>
+          Tablero
+        </a>
+
+        <a href="gantt.html" class="menu-item">
+          <span>📅</span>
+          Gantt
+        </a>
+
+        <a href="reportes.html" class="menu-item active">
+          <span>📑</span>
+          Reportes
+        </a>
+
+        <a href="usuarios.html" class="menu-item">
+          <span>👥</span>
+          Usuarios
+        </a>
+
+        <a href="configuracion.html" class="menu-item">
+          <span>⚙️</span>
+          Configuración
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Proyecto PAIDEIA</p>
+        <small>Gestión, seguimiento y reportes</small>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- HEADER -->
+      <header class="topbar">
+        <div>
+          <h2>Reportes</h2>
+          <p>Informes de avance, tareas finalizadas, pendientes, atrasadas y estado general del proyecto.</p>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">GL</div>
+          <div>
+            <strong>Germán Lamartine</strong>
+            <span>Administrador</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- REPORT TOOLBAR -->
+      <section class="report-hero">
+        <div>
+          <span class="badge">Informe de seguimiento</span>
+          <h3>Reporte general PAIDEIA</h3>
+          <p>
+            Período de análisis: últimas 3 semanas. Esta vista permitirá generar informes
+            por proyecto, etiqueta, responsable, estado y vencimiento.
+          </p>
+        </div>
+
+        <div class="report-actions">
+          <button class="btn-report light">Filtrar período</button>
+          <button class="btn-report light">Vista previa</button>
+          <button class="btn-report primary">Exportar informe</button>
+        </div>
+      </section>
+
+      <!-- REPORT SUMMARY -->
+      <section class="dashboard-grid report-summary">
+
+        <div class="stat-card">
+          <div class="stat-icon blue">📊</div>
+          <div>
+            <p>Total de tareas</p>
+            <h3>12</h3>
+            <small>Registradas en el período</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <p>Finalizadas</p>
+            <h3>6</h3>
+            <small>50% del total</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">⏳</div>
+          <div>
+            <p>En proceso</p>
+            <h3>6</h3>
+            <small>Requieren seguimiento</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">⚠️</div>
+          <div>
+            <p>Atrasadas</p>
+            <h3>4</h3>
+            <small>Prioridad de revisión</small>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- REPORT LAYOUT -->
+      <section class="report-layout">
+
+        <!-- LEFT -->
+        <div class="report-main">
+
+          <div class="panel report-document">
+
+            <div class="report-title">
+              <h3>6. PAIDEIA</h3>
+              <p><strong>Período:</strong> Últimas 3 semanas</p>
+            </div>
+
+            <div class="report-block">
+              <h4>Objetivo</h4>
+              <p>
+                Promover la organización, el seguimiento y la documentación del avance
+                de las tareas del proyecto, identificando todas las acciones realizadas
+                por etiqueta o línea de trabajo.
+              </p>
+            </div>
+
+            <div class="report-block">
+              <h4>Resumen general</h4>
+
+              <div class="report-kpis">
+                <div>
+                  <strong>12</strong>
+                  <span>Total de tareas</span>
+                </div>
+                <div>
+                  <strong>6</strong>
+                  <span>Finalizadas</span>
+                </div>
+                <div>
+                  <strong>6</strong>
+                  <span>En proceso</span>
+                </div>
+                <div>
+                  <strong>50%</strong>
+                  <span>Completado</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-block">
+              <h4>Acciones realizadas por proyecto / etiqueta</h4>
+
+              <div class="report-section-card">
+                <div class="report-section-header">
+                  <div>
+                    <h5>📁 Capacitación Docente</h5>
+                    <p>Total: 1 tarea | Finalizadas: 0 | En proceso: 1</p>
+                  </div>
+                  <span class="status-pill orange">0%</span>
+                </div>
+
+                <div class="report-task pending">
+                  <strong>Telecom Capacitación docente</strong>
+                  <p>Responsables: Germán Lamartine; Lourdes Moran; José María Tejedor; Rodrigo Di Bernardo</p>
+                  <small>📅 09/10 → 12/12/2025 | Progreso: En curso | ⚠️ Atrasada</small>
+                </div>
+              </div>
+
+              <div class="report-section-card">
+                <div class="report-section-header">
+                  <div>
+                    <h5>📁 Revisión y análisis de APPs</h5>
+                    <p>Total: 1 tarea | Finalizadas: 0 | En proceso: 1</p>
+                  </div>
+                  <span class="status-pill orange">0%</span>
+                </div>
+
+                <div class="report-task pending">
+                  <strong>Read Along y AIRA</strong>
+                  <p>Responsable: José María Tejedor</p>
+                  <small>📅 17/12 → 19/12/2025 | Progreso: No iniciado | En plazo</small>
+                </div>
+              </div>
+
+              <div class="report-section-card">
+                <div class="report-section-header">
+                  <div>
+                    <h5>📁 Eventos</h5>
+                    <p>Total: 1 tarea | Finalizadas: 1 | En proceso: 0</p>
+                  </div>
+                  <span class="status-pill green">100%</span>
+                </div>
+
+                <div class="report-task done">
+                  <strong>Evento Generación Única – Alianza Público-Privada Multisectorial UNICEF-SEDUC</strong>
+                  <p>Responsables: Lourdes Moran; Gustavo Riesgo; Constanza Etcheves</p>
+                  <small>✅ Completada: 02/12/2025</small>
+                </div>
+              </div>
+
+              <div class="report-section-card">
+                <div class="report-section-header">
+                  <div>
+                    <h5>📁 Proyectos en curso</h5>
+                    <p>Total: 2 tareas | Finalizadas: 0 | En proceso: 2</p>
+                  </div>
+                  <span class="status-pill orange">0%</span>
+                </div>
+
+                <div class="report-task pending">
+                  <strong>Reunión CFE ALFA UFI por FLEP</strong>
+                  <p>Responsable: Lourdes Moran</p>
+                  <small>📅 --- → 11/12/2025 | Progreso: No iniciado | ⚠️ Atrasada</small>
+                </div>
+
+                <div class="report-task pending">
+                  <strong>Reunión FLEP LIAA y PAIDEIA</strong>
+                  <p>Responsables: Germán Lamartine; Lourdes Moran; Constanza Etcheves</p>
+                  <small>📅 15/12 → --- | Progreso: No iniciado | En plazo</small>
+                </div>
+              </div>
+
+              <div class="report-section-card">
+                <div class="report-section-header">
+                  <div>
+                    <h5>📁 Sin proyecto</h5>
+                    <p>Total: 7 tareas | Finalizadas: 5 | En proceso: 2</p>
+                  </div>
+                  <span class="status-pill blue">71%</span>
+                </div>
+
+                <div class="report-task done">
+                  <strong>Informe para reunión Gus por María Guadalupe</strong>
+                  <p>Responsables: Lourdes Moran; Gustavo Riesgo; José María Tejedor</p>
+                  <small>✅ Completada: 01/12/2025</small>
+                </div>
+
+                <div class="report-task done">
+                  <strong>Reunión con Fundación Sadosky</strong>
+                  <p>Responsables: Lourdes Moran; Gustavo Riesgo; José María Tejedor; Constanza Etcheves</p>
+                  <small>✅ Completada: 04/12/2025</small>
+                </div>
+
+                <div class="report-task pending">
+                  <strong>Reunión con DNGU</strong>
+                  <p>Responsable: José María Tejedor</p>
+                  <small>📅 --- → 01/12/2025 | Progreso: No iniciado | ⚠️ Atrasada</small>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="report-side">
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Filtros del informe</h3>
+                <p>Parámetros para generar reportes.</p>
+              </div>
+            </div>
+
+            <div class="report-filter-list">
+
+              <div class="filter-box">
+                <label>Período</label>
+                <select>
+                  <option>Últimas 3 semanas</option>
+                  <option>Último mes</option>
+                  <option>Último trimestre</option>
+                  <option>Personalizado</option>
+                </select>
+              </div>
+
+              <div class="filter-box">
+                <label>Proyecto / etiqueta</label>
+                <select>
+                  <option>Todos</option>
+                  <option>Capacitación Docente</option>
+                  <option>Eventos</option>
+                  <option>Proyectos en curso</option>
+                  <option>Sin proyecto</option>
+                </select>
+              </div>
+
+              <div class="filter-box">
+                <label>Responsable</label>
+                <select>
+                  <option>Todos</option>
+                  <option>Germán Lamartine</option>
+                  <option>Lourdes Moran</option>
+                  <option>José María Tejedor</option>
+                  <option>Rodrigo Di Bernardo</option>
+                </select>
+              </div>
+
+              <div class="filter-box">
+                <label>Estado</label>
+                <select>
+                  <option>Todos</option>
+                  <option>Finalizadas</option>
+                  <option>En proceso</option>
+                  <option>Atrasadas</option>
+                  <option>En plazo</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Indicadores</h3>
+                <p>Lectura rápida del reporte.</p>
+              </div>
+            </div>
+
+            <div class="indicator-list">
+
+              <div class="indicator-item">
+                <span class="indicator-dot green"></span>
+                <div>
+                  <strong>50%</strong>
+                  <p>Avance general</p>
+                </div>
+              </div>
+
+              <div class="indicator-item">
+                <span class="indicator-dot red"></span>
+                <div>
+                  <strong>4</strong>
+                  <p>Tareas atrasadas</p>
+                </div>
+              </div>
+
+              <div class="indicator-item">
+                <span class="indicator-dot orange"></span>
+                <div>
+                  <strong>6</strong>
+                  <p>Tareas en proceso</p>
+                </div>
+              </div>
+
+              <div class="indicator-item">
+                <span class="indicator-dot blue"></span>
+                <div>
+                  <strong>5</strong>
+                  <p>Líneas de trabajo</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="panel dark-panel">
+            <h3>Exportación futura</h3>
+            <p>
+              Esta sección después podrá generar informes en PDF, Word o Excel
+              tomando los datos reales desde Supabase.
+            </p>
+            <button class="btn primary block">Preparar exportación</button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/reportes.js"></script>
+</body>
+</html>

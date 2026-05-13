@@ -1,0 +1,1 @@
+console.log("PaideIA Planner iniciado correctamente.");
