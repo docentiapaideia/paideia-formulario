@@ -93,7 +93,7 @@ feature("copilot-files","📂 Archivos laborales","Usar contenido de Microsoft 3
 feature("copilot-notebooks","📓 Notebooks","Reunir chats, archivos y referencias."),
 feature("copilot-agents","🤖 Agentes","Automatizar o asistir tareas específicas.")
 ],{left:["Chat","Historial","Notebooks","Agentes o aplicaciones"],center:["Conversación","Borradores","Resúmenes","Análisis de contenido"],top:["Cuenta Microsoft","Modo web o trabajo","Apps de Microsoft 365","Opciones de compartir"]}),
-laboratorio:`<h1 class="module-title">Laboratorio de Prompts</h1><p class="module-text">Escribí un prompt y revisá si contiene objetivo, contexto, formato, detalle y criterios de validación.</p><textarea id="promptInput" placeholder="Escribí tu prompt aquí..."></textarea><button class="more-btn" onclick="analizarPrompt()">Analizar Prompt</button><div class="result" id="resultadoPrompt">Esperando análisis...</div>`
+laboratorio:`<section class="lab-hero"><div><span class="lab-kicker">Laboratorio de Prompts</span><h1 class="module-title">Probá, revisá y mejorá tus instrucciones</h1><p class="module-text">Este espacio permite escribir un prompt y recibir una devolución orientativa sobre si tiene los elementos necesarios para obtener una buena respuesta de una IA: rol, tarea, contexto, destinatario, formato, restricciones y criterios de calidad.</p></div><div class="lab-note"><strong>Importante</strong><p>No necesitás estar conectado a una IA para usar este laboratorio. La devolución es aproximada y se realiza con reglas internas. Después, el prompt puede probarse en ChatGPT, Gemini, Claude o Copilot.</p></div></section><div class="lab-layout"><section class="lab-panel"><h2>1. Escribí tu prompt</h2><p>Podés pegar una consigna simple o una instrucción completa. Luego presioná <strong>Analizar prompt</strong>.</p><textarea id="promptInput" placeholder="Ejemplo: Actuá como docente universitario. Necesito una actividad sobre inteligencia artificial para estudiantes de Economía Empresarial. Organizala en objetivos, desarrollo, ejemplo y consigna final..."></textarea><div class="lab-actions"><button class="more-btn" onclick="analizarPrompt()">Analizar prompt</button><button class="ghost-btn" onclick="cargarEjemploPrompt()">Cargar ejemplo</button><button class="ghost-btn" onclick="limpiarLaboratorio()">Limpiar</button></div></section><section class="lab-panel lab-help"><h2>Elementos de un buen prompt</h2><div class="prompt-checklist"><span>Rol</span><span>Tarea</span><span>Contexto</span><span>Destinatario</span><span>Formato</span><span>Restricciones</span><span>Tono</span><span>Validación</span></div><p class="module-text">Mientras más claro sea el pedido, mejor será la respuesta. No se trata de escribir mucho, sino de darle a la IA las condiciones necesarias para trabajar bien.</p></section></div><div class="result lab-result" id="resultadoPrompt"><h2>2. Resultado del análisis</h2><p>Esperando análisis...</p></div><section class="lab-examples"><h2 class="module-subtitle">Ejemplos rápidos</h2><div class="example bad"><strong>Prompt débil</strong><p>Haceme una clase sobre inteligencia artificial.</p></div><div class="example good"><strong>Prompt mejorado</strong><p>Actuá como docente universitario. Necesito una clase introductoria sobre inteligencia artificial para estudiantes de Licenciatura en Economía Empresarial. Debe durar 90 minutos, incluir explicación teórica, ejemplos aplicados al marketing y una actividad final. Organizá la respuesta con título, objetivos, desarrollo, ejemplos y consigna práctica.</p></div></section>`
 };
 
 function openModal(key){modalBody.innerHTML=modalInfo[key]||"<h2>Información no disponible</h2>";modal.classList.add("show")}
@@ -111,14 +111,59 @@ function loadModule(name){
 document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>loadModule(btn.dataset.module)));
 
 function analizarPrompt(){
- const text=document.getElementById("promptInput").value.trim(),resultBox=document.getElementById("resultadoPrompt");
- let score=0,result="";
- if(text.length>=40){score+=2;result+="✅ Tiene una extensión inicial adecuada.<br>"}else result+="⚠ Es demasiado corto. Conviene agregar más información.<br>";
- if(/(redact|resum|explic|compar|analiz|diseñ|cre|correg|gener|elabor)/i.test(text)){score+=2;result+="✅ Tiene un objetivo o acción clara.<br>"}else result+="⚠ Falta una acción clara.<br>";
- if(/para|destinado|dirigido|contexto|alumnos|docentes|familias|usuarios/i.test(text)){score+=2;result+="✅ Incluye contexto o destinatario.<br>"}else result+="⚠ Falta contexto: para quién o para qué se necesita.<br>";
- if(/tabla|lista|informe|guía|paso a paso|formato|html|pdf|presentación|correo/i.test(text)){score+=2;result+="✅ Indica un formato esperado.<br>"}else result+="⚠ No define formato de salida.<br>";
- if(/verific|fuente|actual|norma|valid|cita|no inventes|revis/i.test(text)){score+=2;result+="✅ Incluye criterio de validación o control.<br>"}else result+="⚠ Podés pedir verificación o indicar que no invente fuentes.<br>";
- let label="Básico"; if(score>=8)label="Muy bueno"; else if(score>=5)label="Intermedio";
- resultBox.innerHTML=`<span class="score">Puntaje: ${score}/10 · ${label}</span><br>${result}`;
+ const input=document.getElementById("promptInput"),resultBox=document.getElementById("resultadoPrompt");
+ if(!input||!resultBox)return;
+ const text=input.value.trim();
+ if(!text){
+  resultBox.innerHTML=`<h2>2. Resultado del análisis</h2><p>Escribí un prompt para poder analizarlo.</p>`;
+  return;
+ }
+ const checks=[
+  {key:"Rol",points:1,ok:/(actuá como|actua como|sos|eres|como docente|como experto|como especialista|rol de|asumí|asumi)/i.test(text),good:"Define un rol para orientar la respuesta.",bad:"Podés indicar un rol: docente, tutor, experto, corrector, asesor, etc."},
+  {key:"Tarea",points:2,ok:/(redact|resum|explic|compar|analiz|diseñ|diseñ|creá|crea|crear|correg|gener|elabor|arm|prepar|clasific|evalu|convert|haceme|hacer)/i.test(text),good:"Tiene una acción o tarea concreta.",bad:"Falta una acción clara: redactar, explicar, comparar, corregir, diseñar, resumir, etc."},
+  {key:"Contexto",points:1,ok:/(contexto|situación|situacion|tema|unidad|materia|institución|institucion|clase|proyecto|trabajo|necesito|para usar|caso)/i.test(text),good:"Aporta contexto de uso.",bad:"Conviene explicar la situación: materia, proyecto, clase, problema o necesidad."},
+  {key:"Destinatario",points:1,ok:/(alumnos|estudiantes|docentes|familias|usuarios|niños|adultos|directivos|equipo|cliente|público|publico|destinado|dirigido|para .* de)/i.test(text),good:"Indica para quién es la respuesta.",bad:"Falta aclarar destinatario o nivel: estudiantes, familias, docentes, clientes, etc."},
+  {key:"Formato",points:1,ok:/(tabla|lista|cuadro|informe|guía|guia|paso a paso|formato|html|pdf|presentación|presentacion|correo|rúbrica|rubrica|actividad|consigna|estructura|apartados)/i.test(text),good:"Pide un formato de salida.",bad:"Podés pedir el formato: tabla, lista, guía, informe, actividad, correo, presentación, etc."},
+  {key:"Restricciones",points:1,ok:/(máximo|maximo|minimo|mínimo|breve|extenso|cantidad|palabras|páginas|paginas|minutos|sin|con|no usar|incluí|inclui|debe|evit|tono|formal|simple|académico|academico)/i.test(text),good:"Incluye condiciones o límites.",bad:"Podés agregar extensión, tono, cantidad de ejemplos, nivel de detalle o cosas que debe evitar."},
+  {key:"Ejemplos",points:1,ok:/(ejemplo|modelo|caso|similar a|como este|tomá como referencia|toma como referencia)/i.test(text),good:"Incluye o solicita ejemplos.",bad:"Sumar ejemplos ayuda a orientar mejor la respuesta esperada."},
+  {key:"Validación",points:1,ok:/(verific|fuente|actual|norma|valid|cita|no inventes|revis|coherencia|criterio|precisión|precision)/i.test(text),good:"Pide revisión, fuentes o criterio de calidad.",bad:"Podés pedir que revise coherencia, que no invente datos o que cite fuentes cuando corresponda."}
+ ];
+ const score=checks.reduce((acc,c)=>acc+(c.ok?c.points:0),0);
+ const max=checks.reduce((acc,c)=>acc+c.points,0);
+ let label="Inicial";
+ let className="score-low";
+ if(score>=8){label="Muy bueno";className="score-high"}else if(score>=5){label="Intermedio";className="score-mid"}
+ const detectados=checks.filter(c=>c.ok).map(c=>`<li>✅ <strong>${c.key}:</strong> ${c.good}</li>`).join("")||"<li>No se detectaron elementos suficientes.</li>";
+ const faltantes=checks.filter(c=>!c.ok).map(c=>`<li>⚠ <strong>${c.key}:</strong> ${c.bad}</li>`).join("")||"<li>El prompt ya contiene los elementos principales.</li>";
+ const promptMejorado=crearPromptMejorado(text,checks);
+ resultBox.innerHTML=`<h2>2. Resultado del análisis</h2><div class="score-card ${className}"><span>${score}/${max}</span><strong>${label}</strong><small>Devolución orientativa</small></div><div class="lab-feedback-grid"><div><h3>Elementos detectados</h3><ul>${detectados}</ul></div><div><h3>Posibilidades de ajuste</h3><ul>${faltantes}</ul></div></div><div class="improved-prompt"><h3>Versión sugerida para escribirlo mejor</h3><p>${promptMejorado}</p></div><p class="lab-disclaimer">Esta devolución no usa IA generativa: analiza reglas básicas del texto. Sirve como primera revisión antes de probar el prompt en una herramienta de IA.</p>`;
 }
+
+function crearPromptMejorado(text,checks){
+ const missing=Object.fromEntries(checks.map(c=>[c.key,!c.ok]));
+ let partes=[];
+ if(missing.Rol)partes.push("Actuá como especialista en el tema.");
+ partes.push(text.replace(/\s+/g," "));
+ if(missing.Destinatario)partes.push("Indicá la respuesta para un destinatario concreto, aclarando nivel, edad, curso o perfil de usuario.");
+ if(missing.Contexto)partes.push("Tené en cuenta el contexto de uso y el objetivo final del material.");
+ if(missing.Formato)partes.push("Organizá la respuesta con título, apartados claros, ejemplos y cierre.");
+ if(missing.Restricciones)partes.push("Usá un tono claro y profesional, con extensión moderada y lenguaje comprensible.");
+ if(missing.Ejemplos)partes.push("Incluí al menos un ejemplo aplicado.");
+ if(missing.Validación)partes.push("No inventes datos; cuando haya información dudosa, indicalo y sugerí verificarla.");
+ return partes.join(" ");
+}
+
+function cargarEjemploPrompt(){
+ const input=document.getElementById("promptInput");
+ if(!input)return;
+ input.value="Actuá como docente universitario. Necesito una actividad práctica sobre inteligencia artificial aplicada al marketing para estudiantes de Licenciatura en Economía Empresarial. La actividad debe durar 60 minutos, incluir objetivo, consigna, pasos de trabajo, criterios de evaluación y un ejemplo de entrega esperada. Usá un tono claro, profesional y orientado a estudiantes.";
+ analizarPrompt();
+}
+
+function limpiarLaboratorio(){
+ const input=document.getElementById("promptInput"),resultBox=document.getElementById("resultadoPrompt");
+ if(input)input.value="";
+ if(resultBox)resultBox.innerHTML=`<h2>2. Resultado del análisis</h2><p>Esperando análisis...</p>`;
+}
+
 loadModule("inicio");
