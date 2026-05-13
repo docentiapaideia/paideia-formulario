@@ -1,1 +1,24 @@
- 
+<h1 class="module-title">Laboratorio de Prompts</h1>
+<p class="module-text">Este laboratorio permite escribir un prompt y recibir una devolución orientativa sobre si contiene los elementos necesarios: rol, tarea, contexto, destinatario, formato, restricciones y criterios de validación.</p>
+
+<section class="lab-hero">
+  <div class="lab-panel">
+    <h2>Escribí tu prompt</h2>
+    <p>No necesitás estar conectado a una IA. El análisis funciona con reglas internas y sirve como primera revisión.</p>
+    <textarea id="promptInput" placeholder="Escribí tu prompt aquí..."></textarea>
+    <div class="lab-actions">
+      <button class="more-btn" onclick="analizarPrompt()">Analizar prompt</button>
+      <button class="ghost-btn" onclick="cargarEjemploPrompt()">Cargar ejemplo</button>
+      <button class="ghost-btn" onclick="limpiarLaboratorio()">Limpiar</button>
+    </div>
+  </div>
+  <div class="lab-note">
+    <strong>Devolución aproximada</strong>
+    <p>El sistema revisa si el prompt tiene elementos básicos para funcionar bien. Para una evaluación más profunda, después puede probarse en ChatGPT, Gemini, Claude o Copilot.</p>
+  </div>
+</section>
+
+<div class="result lab-result" id="resultadoPrompt">
+  <h2>Resultado del análisis</h2>
+  <p>Esperando análisis...</p>
+</div>
