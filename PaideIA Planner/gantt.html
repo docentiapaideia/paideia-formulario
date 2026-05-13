@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Gantt | PaideIA Planner</title>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="img/logo.png" alt="Logo PaideIA" class="brand-logo">
+        <div>
+          <h1>PaideIA</h1>
+          <p>Planner</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <a href="index.html" class="menu-item">
+          <span>🏠</span>
+          Inicio
+        </a>
+
+        <a href="dashboard.html" class="menu-item">
+          <span>📊</span>
+          Dashboard
+        </a>
+
+        <a href="tablero.html" class="menu-item">
+          <span>🗂️</span>
+          Tablero
+        </a>
+
+        <a href="gantt.html" class="menu-item active">
+          <span>📅</span>
+          Gantt
+        </a>
+
+        <a href="reportes.html" class="menu-item">
+          <span>📑</span>
+          Reportes
+        </a>
+
+        <a href="usuarios.html" class="menu-item">
+          <span>👥</span>
+          Usuarios
+        </a>
+
+        <a href="configuracion.html" class="menu-item">
+          <span>⚙️</span>
+          Configuración
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Proyecto PAIDEIA</p>
+        <small>Gestión, seguimiento y reportes</small>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- HEADER -->
+      <header class="topbar">
+        <div>
+          <h2>Diagrama de Gantt</h2>
+          <p>Planificación temporal de tareas, responsables, fechas y avance del proyecto.</p>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">GL</div>
+          <div>
+            <strong>Germán Lamartine</strong>
+            <span>Administrador</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- GANTT TOOLBAR -->
+      <section class="board-toolbar">
+        <div>
+          <h3>Planificación PAIDEIA</h3>
+          <p>Vista mensual de tareas activas, atrasadas y finalizadas.</p>
+        </div>
+
+        <div class="board-actions">
+          <button class="btn-board light">Mes actual</button>
+          <button class="btn-board light">Filtrar</button>
+          <button class="btn-board primary">+ Nueva tarea</button>
+        </div>
+      </section>
+
+      <!-- GANTT SUMMARY -->
+      <section class="dashboard-grid gantt-summary">
+
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div>
+            <p>Tareas planificadas</p>
+            <h3>8</h3>
+            <small>Con fecha de inicio o límite</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">⏳</div>
+          <div>
+            <p>En curso</p>
+            <h3>4</h3>
+            <small>Dentro del período</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">⚠️</div>
+          <div>
+            <p>Atrasadas</p>
+            <h3>3</h3>
+            <small>Con vencimiento superado</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <p>Finalizadas</p>
+            <h3>3</h3>
+            <small>Cerradas en el período</small>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- GANTT PANEL -->
+      <section class="panel gantt-panel">
+
+        <div class="panel-header">
+          <div>
+            <h3>Cronograma de tareas</h3>
+            <p>Visualización simulada. Luego se cargará desde Supabase con la vista planner_vista_gantt.</p>
+          </div>
+
+          <span class="panel-badge">Diciembre 2025</span>
+        </div>
+
+        <div class="gantt-wrapper">
+
+          <!-- HEADER -->
+          <div class="gantt-grid gantt-head">
+            <div class="gantt-task-head">Tarea</div>
+            <div class="gantt-date">01</div>
+            <div class="gantt-date">04</div>
+            <div class="gantt-date">07</div>
+            <div class="gantt-date">10</div>
+            <div class="gantt-date">13</div>
+            <div class="gantt-date">16</div>
+            <div class="gantt-date">19</div>
+            <div class="gantt-date">22</div>
+            <div class="gantt-date">25</div>
+            <div class="gantt-date">28</div>
+          </div>
+
+          <!-- ROW 1 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Telecom Capacitación docente</strong>
+              <span>GL · LM · JT · RD</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-orange" style="grid-column: 2 / 6;">
+              <span>En curso · 50%</span>
+            </div>
+          </div>
+
+          <!-- ROW 2 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Reunión CFE ALFA UFI por FLEP</strong>
+              <span>Lourdes Moran</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-red" style="grid-column: 3 / 5;">
+              <span>Atrasada</span>
+            </div>
+          </div>
+
+          <!-- ROW 3 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Reunión FLEP LIAA y PAIDEIA</strong>
+              <span>GL · LM · Equipo</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-blue" style="grid-column: 6 / 9;">
+              <span>En plazo · 20%</span>
+            </div>
+          </div>
+
+          <!-- ROW 4 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Read Along y AIRA</strong>
+              <span>José María Tejedor</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-blue" style="grid-column: 7 / 8;">
+              <span>No iniciado</span>
+            </div>
+          </div>
+
+          <!-- ROW 5 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Evento Generación Única</strong>
+              <span>Lourdes Moran</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-green" style="grid-column: 2 / 3;">
+              <span>Finalizada</span>
+            </div>
+          </div>
+
+          <!-- ROW 6 -->
+          <div class="gantt-grid gantt-row">
+            <div class="gantt-task-info">
+              <strong>Trabajar plan 2026 con devoluciones MCH</strong>
+              <span>Lourdes · José María</span>
+            </div>
+
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+            <div class="gantt-cell"></div>
+
+            <div class="gantt-bar gantt-green" style="grid-column: 3 / 5;">
+              <span>Finalizada</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- GANTT DETAILS -->
+      <section class="gantt-details">
+
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Lectura rápida</h3>
+              <p>Interpretación general del cronograma.</p>
+            </div>
+          </div>
+
+          <div class="alert-list">
+
+            <div class="alert-item danger">
+              <strong>Tareas atrasadas</strong>
+              <p>Las barras rojas indican tareas vencidas o que requieren intervención inmediata.</p>
+              <small>Prioridad de seguimiento</small>
+            </div>
+
+            <div class="alert-item warning">
+              <strong>Tareas en curso</strong>
+              <p>Las barras naranjas muestran actividades activas, pero todavía no finalizadas.</p>
+              <small>Seguimiento operativo</small>
+            </div>
+
+            <div class="alert-item">
+              <strong>Tareas en plazo</strong>
+              <p>Las barras azules muestran tareas planificadas dentro del período previsto.</p>
+              <small>Planificación</small>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Estados visuales</h3>
+              <p>Referencia de colores para el Gantt.</p>
+            </div>
+          </div>
+
+          <div class="legend-list">
+            <div><span class="legend-color blue"></span> En plazo / No iniciado</div>
+            <div><span class="legend-color orange"></span> En curso</div>
+            <div><span class="legend-color red"></span> Atrasada</div>
+            <div><span class="legend-color green"></span> Finalizada</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/gantt.js?v=10"></script>
+</body>
+</html>

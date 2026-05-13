@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PaideIA Planner</title>
+<link rel="icon" href="img/logo.png">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="img/logo.png" alt="Logo PaideIA" class="brand-logo">
+        <div>
+          <h1>PaideIA</h1>
+          <p>Planner</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <a href="index.html" class="menu-item active">
+          <span>🏠</span>
+          Inicio
+        </a>
+
+        <a href="dashboard.html" class="menu-item">
+          <span>📊</span>
+          Dashboard
+        </a>
+
+        <a href="tablero.html" class="menu-item">
+          <span>🗂️</span>
+          Tablero
+        </a>
+
+        <a href="gantt.html" class="menu-item">
+          <span>📅</span>
+          Gantt
+        </a>
+
+        <a href="reportes.html" class="menu-item">
+          <span>📑</span>
+          Reportes
+        </a>
+
+        <a href="usuarios.html" class="menu-item">
+          <span>👥</span>
+          Usuarios
+        </a>
+
+        <a href="configuracion.html" class="menu-item">
+          <span>⚙️</span>
+          Configuración
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Proyecto PAIDEIA</p>
+        <small>Gestión, seguimiento y reportes</small>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- HEADER -->
+      <header class="topbar">
+        <div>
+          <h2>Bienvenido a PaideIA Planner</h2>
+          <p>Organización de tareas, proyectos, seguimiento, reportes y planificación.</p>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">GL</div>
+          <div>
+            <strong>Germán Lamartine</strong>
+            <span>Administrador</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-content">
+          <span class="badge">Sistema interno de gestión</span>
+          <h3>Planificá, asigná y seguí el avance del equipo desde un solo lugar.</h3>
+          <p>
+            PaideIA Planner integra tareas, responsables, fechas, prioridades,
+            tablero visual, Gantt, dashboard y reportes para documentar el avance real del proyecto.
+          </p>
+
+          <div class="hero-actions">
+            <a href="tablero.html" class="btn primary">Ir al tablero</a>
+            <a href="dashboard.html" class="btn secondary">Ver dashboard</a>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="mini-window">
+            <div class="mini-header">
+              <span></span><span></span><span></span>
+            </div>
+
+            <div class="mini-board">
+              <div class="mini-column">
+                <h4>Nuevo</h4>
+                <div class="mini-card">
+                  <strong>Relevar tareas</strong>
+                  <small>Prioridad media</small>
+                </div>
+                <div class="mini-card">
+                  <strong>Coordinar reunión</strong>
+                  <small>Equipo PAIDEIA</small>
+                </div>
+              </div>
+
+              <div class="mini-column">
+                <h4>En proceso</h4>
+                <div class="mini-card warning">
+                  <strong>Informe semanal</strong>
+                  <small>En curso</small>
+                </div>
+              </div>
+
+              <div class="mini-column">
+                <h4>Finalizado</h4>
+                <div class="mini-card success">
+                  <strong>Evento registrado</strong>
+                  <small>Completado</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CARDS -->
+      <section class="cards-grid">
+
+        <a href="dashboard.html" class="module-card">
+          <div class="card-icon">📊</div>
+          <h3>Dashboard</h3>
+          <p>Resumen general de tareas, atrasos, avances, vencimientos y estado del equipo.</p>
+        </a>
+
+        <a href="tablero.html" class="module-card">
+          <div class="card-icon">🗂️</div>
+          <h3>Tablero Kanban</h3>
+          <p>Vista visual por columnas para mover tareas entre estados y organizar el trabajo diario.</p>
+        </a>
+
+        <a href="gantt.html" class="module-card">
+          <div class="card-icon">📅</div>
+          <h3>Gantt</h3>
+          <p>Planificación temporal de tareas, fechas de inicio, vencimientos y dependencias.</p>
+        </a>
+
+        <a href="reportes.html" class="module-card">
+          <div class="card-icon">📑</div>
+          <h3>Reportes</h3>
+          <p>Informes por proyecto, etiqueta, responsable, estado, avance y tareas atrasadas.</p>
+        </a>
+
+        <a href="usuarios.html" class="module-card">
+          <div class="card-icon">👥</div>
+          <h3>Usuarios</h3>
+          <p>Gestión de miembros del equipo, roles, responsables y participación en tareas.</p>
+        </a>
+
+        <a href="configuracion.html" class="module-card">
+          <div class="card-icon">⚙️</div>
+          <h3>Configuración</h3>
+          <p>Estados, prioridades, etiquetas, proyectos y parámetros propios del sistema.</p>
+        </a>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
