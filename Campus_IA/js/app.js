@@ -102,40 +102,51 @@ modalClose.addEventListener("click",closeModal);
 modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
+function getModuleNameFromButton(btn){
+  if(!btn) return "inicio";
+  return btn.dataset.module || btn.getAttribute("data-module") || btn.getAttribute("data-section") || btn.getAttribute("data-page") || "inicio";
+}
+
+function setActiveNav(name){
+  document.querySelectorAll(".nav-btn, .menu button, .menu a").forEach(btn => {
+    btn.classList.remove("active");
+    const btnModule = getModuleNameFromButton(btn);
+    if(btnModule === name){
+      btn.classList.add("active");
+    }
+  });
+}
+
 function loadModule(name){
-  if (!modules[name]) name = "inicio";
+  if(!name || !modules[name]) name = "inicio";
 
   content.innerHTML = modules[name];
 
-  const titles = {
-    inicio: "Inicio",
-    chatgpt: "ChatGPT",
-    claude: "Claude",
-    gemini: "Gemini",
-    copilot: "Copilot",
-    laboratorio: "Laboratorio"
+  const titles={
+    inicio:"Inicio",
+    chatgpt:"ChatGPT",
+    claude:"Claude",
+    gemini:"Gemini",
+    copilot:"Copilot",
+    laboratorio:"Laboratorio"
   };
 
   pageTitle.textContent = titles[name] || "Campus IA";
-
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  const activeBtn = document.querySelector(`.nav-btn[data-module="${name}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add("active");
-  }
+  setActiveNav(name);
 }
 
-document.querySelectorAll(".nav-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const moduleName = btn.getAttribute("data-module");
-    loadModule(moduleName);
-  });
+// Navegación robusta: funciona aunque los botones se recarguen o tengan href.
+document.addEventListener("click", function(e){
+  const btn = e.target.closest(".nav-btn");
+  if(!btn) return;
+
+  e.preventDefault();
+  const moduleName = getModuleNameFromButton(btn);
+  loadModule(moduleName);
 });
 
-loadModule("inicio");
+// Deja disponible la función para botones con onclick o íconos superiores.
+window.loadModule = loadModule;
 
 function analizarPrompt(){
  const input=document.getElementById("promptInput"),resultBox=document.getElementById("resultadoPrompt");
