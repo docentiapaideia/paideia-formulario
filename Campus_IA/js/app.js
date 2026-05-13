@@ -103,12 +103,39 @@ modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
 function loadModule(name){
- content.innerHTML=modules[name];
- const titles={inicio:"Inicio",chatgpt:"ChatGPT",claude:"Claude",gemini:"Gemini",copilot:"Copilot",laboratorio:"Laboratorio"};
- pageTitle.textContent=titles[name]||"Campus IA";
- document.querySelectorAll(".nav-btn").forEach(btn=>{btn.classList.remove("active");if(btn.dataset.module===name)btn.classList.add("active")});
+  if (!modules[name]) name = "inicio";
+
+  content.innerHTML = modules[name];
+
+  const titles = {
+    inicio: "Inicio",
+    chatgpt: "ChatGPT",
+    claude: "Claude",
+    gemini: "Gemini",
+    copilot: "Copilot",
+    laboratorio: "Laboratorio"
+  };
+
+  pageTitle.textContent = titles[name] || "Campus IA";
+
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  const activeBtn = document.querySelector(`.nav-btn[data-module="${name}"]`);
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
 }
-document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>loadModule(btn.dataset.module)));
+
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const moduleName = btn.getAttribute("data-module");
+    loadModule(moduleName);
+  });
+});
+
+loadModule("inicio");
 
 function analizarPrompt(){
  const input=document.getElementById("promptInput"),resultBox=document.getElementById("resultadoPrompt");
