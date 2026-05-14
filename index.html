@@ -1228,9 +1228,37 @@ header {
   line-height: 1.45;
   margin: 8px 0 14px;
 }
+.material-category-admin {
+  background: linear-gradient(135deg, rgba(13,31,78,.035), rgba(201,162,39,.07));
+  border: 1px solid rgba(13,31,78,.09);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.material-category-admin h4 {
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.material-category-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.material-category-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(201,162,39,.13);
+  color: var(--navy);
+  font-size: .68rem;
+  font-weight: 700;
+}
 @media (max-width: 760px) {
   .material-admin-grid { grid-template-columns: 1fr; }
   .material-admin-grid .full { grid-column: auto; }
+  .material-category-row { grid-template-columns: 1fr; }
 }
 
 .exp-btn-link {
@@ -1928,11 +1956,28 @@ button.password-toggle:hover,
       </div>
 
       <div class="material-admin-box pa-admin-only" id="materialsAdminBox">
-        <h3>Agregar material de apoyo</h3>
+        <h3>Administrar materiales de apoyo</h3>
+        <p class="material-note">Desde esta vista los administradores pueden crear categorías y luego asociar cada material a una de ellas. Los usuarios comunes solo ven el listado organizado.</p>
+
+        <div class="material-category-admin">
+          <div>
+            <h4>Crear categoría</h4>
+            <p class="material-note">Ejemplos: Guías, Informes, Secuencias didácticas, Normativa, Tutoriales.</p>
+          </div>
+          <div class="material-category-row">
+            <input class="pa-input" id="materialCategoryName" type="text" placeholder="Nombre de la categoría">
+            <button class="pa-btn" type="button" onclick="addSupportCategory()">Crear categoría</button>
+          </div>
+        </div>
+
+        <h3 style="margin-top:18px;">Agregar material de apoyo</h3>
         <p class="material-note">Pegá una URL pública del material, por ejemplo un PDF subido al repositorio, Google Drive o recurso externo. Al guardarlo, queda listado en materiales para usuarios y administradores.</p>
         <div class="material-admin-grid">
           <input class="pa-input" id="materialTitle" type="text" placeholder="Título del material">
-          <input class="pa-input" id="materialType" type="text" placeholder="Tipo / categoría. Ej.: Guía, PDF, enlace">
+          <input class="pa-input" id="materialType" type="text" placeholder="Tipo. Ej.: PDF, enlace, documento">
+          <select class="pa-input full" id="materialCategorySelect">
+            <option value="">Sin categoría</option>
+          </select>
           <input class="pa-input full" id="materialUrl" type="url" placeholder="URL pública del material">
           <textarea class="pa-textarea full" id="materialDescription" placeholder="Descripción breve"></textarea>
           <button class="pa-btn" type="button" onclick="addSupportMaterial()">Agregar material</button>
@@ -1940,9 +1985,8 @@ button.password-toggle:hover,
         </div>
       </div>
 
-      <div class="filters" style="margin-bottom:24px">
-        <button class="filter-chip active">Todos</button>
-        <button class="filter-chip">Guías</button>
+      <div class="filters" id="materialCategoryFilters" style="margin-bottom:24px">
+        <button class="filter-chip active" type="button" onclick="setSupportMaterialCategoryFilter('')">Todos</button>
       </div>
 
       <div class="mat-list" id="materialsList">
@@ -3482,9 +3526,16 @@ function setRepoLevelFilter(level) {
 }
 
 const DEFAULT_SUPPORT_MATERIALS = [
-  { title: "Inteligencia Artificial en la escuela secundaria", description: "Propuestas didácticas para una integración crítica y creativa en el aula", url: "documento_ia-aula_secundaria_-_28-digital_1.pdf", type: "PDF" },
-  { title: "Guía para la Integración de las Inteligencias Artificiales en Educación", description: "Documento orientador para docentes y directivos sobre el uso de IA en educación", url: "documento_guia_de_integracion_vf_digital.pdf", type: "PDF" }
+  { title: "Inteligencia Artificial en la escuela secundaria", description: "Propuestas didácticas para una integración crítica y creativa en el aula", url: "documento_ia-aula_secundaria_-_28-digital_1.pdf", type: "PDF", category_name: "Guías" },
+  { title: "Guía para la Integración de las Inteligencias Artificiales en Educación", description: "Documento orientador para docentes y directivos sobre el uso de IA en educación", url: "documento_guia_de_integracion_vf_digital.pdf", type: "PDF", category_name: "Guías" }
 ];
+
+let supportMaterialCategories = [];
+let supportMaterialCategoryFilter = "";
+
+function jsAttr(value) {
+  return String(value ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, " ").replace(/\r/g, " ");
+}
 
 function materialIcon(type, url) {
   const t = normalizeText(type || url || "");
@@ -3493,15 +3544,112 @@ function materialIcon(type, url) {
   return "🔗";
 }
 
+function getMaterialCategoryName(mat) {
+  if (mat.category_name) return mat.category_name;
+  if (mat.material_categories?.name) return mat.material_categories.name;
+  if (mat.category_id) {
+    const found = supportMaterialCategories.find(cat => String(cat.id) === String(mat.category_id));
+    if (found) return found.name;
+  }
+  return "Sin categoría";
+}
+
+function renderMaterialCategoryOptions() {
+  const select = document.getElementById("materialCategorySelect");
+  if (!select) return;
+  const currentValue = select.value;
+  select.innerHTML = `<option value="">Sin categoría</option>` + supportMaterialCategories
+    .map(cat => `<option value="${expEscape(cat.id)}">${expEscape(cat.name)}</option>`)
+    .join("");
+  select.value = currentValue;
+}
+
+function renderMaterialCategoryFilters(items = []) {
+  const filters = document.getElementById("materialCategoryFilters");
+  if (!filters) return;
+
+  const names = new Set();
+  supportMaterialCategories.forEach(cat => names.add(cat.name));
+  items.forEach(mat => names.add(getMaterialCategoryName(mat)));
+
+  const orderedNames = Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b, "es"));
+  filters.innerHTML = `
+    <button class="filter-chip ${supportMaterialCategoryFilter === "" ? "active" : ""}" type="button" onclick="setSupportMaterialCategoryFilter('')">Todos</button>
+    ${orderedNames.map(name => `
+      <button class="filter-chip ${supportMaterialCategoryFilter === name ? "active" : ""}" type="button" onclick="setSupportMaterialCategoryFilter('${jsAttr(name)}')">${expEscape(name)}</button>
+    `).join("")}
+  `;
+}
+
+function setSupportMaterialCategoryFilter(categoryName) {
+  supportMaterialCategoryFilter = categoryName || "";
+  loadSupportMaterials();
+}
+
+async function loadSupportCategories() {
+  if (!supabaseClient) {
+    supportMaterialCategories = [];
+    renderMaterialCategoryOptions();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("material_categories")
+    .select("id, name")
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn("No se pudieron leer las categorías de materiales:", error.message);
+    supportMaterialCategories = [];
+  } else {
+    supportMaterialCategories = Array.isArray(data) ? data : [];
+  }
+
+  renderMaterialCategoryOptions();
+}
+
+async function addSupportCategory() {
+  if (currentRole !== "admin") return alert("Solo un administrador puede crear categorías.");
+  const input = document.getElementById("materialCategoryName");
+  const name = input?.value.trim();
+  if (!name) return alert("Escribí el nombre de la categoría.");
+
+  const { error } = await supabaseClient
+    .from("material_categories")
+    .insert({ name, created_by: currentUser?.id || null });
+
+  if (error) {
+    alert("No se pudo crear la categoría: " + error.message + "\n\nRevisá que exista la tabla material_categories en Supabase.");
+    return;
+  }
+
+  input.value = "";
+  alert("Categoría creada correctamente.");
+  await loadSupportMaterials();
+}
+
 function renderSupportMaterials(items) {
   const list = document.getElementById("materialsList");
   if (!list) return;
-  const all = Array.isArray(items) && items.length ? items : DEFAULT_SUPPORT_MATERIALS;
+  let all = Array.isArray(items) && items.length ? items : DEFAULT_SUPPORT_MATERIALS;
+
+  if (supportMaterialCategoryFilter) {
+    all = all.filter(mat => getMaterialCategoryName(mat) === supportMaterialCategoryFilter);
+  }
+
+  renderMaterialCategoryFilters(Array.isArray(items) ? items : DEFAULT_SUPPORT_MATERIALS);
+
+  if (!all.length) {
+    list.innerHTML = `<div class="pa-empty">No hay materiales cargados en esta categoría.</div>`;
+    return;
+  }
+
   list.innerHTML = all.map(mat => {
     const title = mat.title || mat.titulo || "Material sin título";
     const desc = mat.description || mat.descripcion || "Material de apoyo PAIDEIA";
     const url = mat.url || mat.enlace || mat.file_url || "#";
     const type = mat.type || mat.tipo || "Material";
+    const categoryName = getMaterialCategoryName(mat);
     const isPdf = normalizeText(url).includes(".pdf") || normalizeText(type).includes("pdf");
     return `
       <div class="mat-item ${isPdf ? "mat-preview-card" : ""}" data-pdf="${expEscape(url)}" data-title="${expEscape(title)}">
@@ -3509,9 +3657,10 @@ function renderSupportMaterials(items) {
         <div class="mat-info">
           <h4>${expEscape(title)}</h4>
           <p>${expEscape(desc)} · ${expEscape(type)}</p>
+          <span class="material-category-badge">${expEscape(categoryName)}</span>
         </div>
         <div class="mat-actions">
-          ${isPdf ? `<button class="mat-preview-btn" type="button" onclick="openMaterialPreview('${expEscape(url)}','${expEscape(title)}')">Vista previa</button>` : ""}
+          ${isPdf ? `<button class="mat-preview-btn" type="button" onclick="openMaterialPreview('${jsAttr(url)}','${jsAttr(title)}')">Vista previa</button>` : ""}
           <a href="${expEscape(url)}" target="_blank" rel="noopener" class="mat-dl">Abrir</a>
         </div>
       </div>
@@ -3521,6 +3670,8 @@ function renderSupportMaterials(items) {
 
 async function loadSupportMaterials() {
   let custom = [];
+  await loadSupportCategories();
+
   if (supabaseClient) {
     const { data, error } = await supabaseClient
       .from("materials")
@@ -3538,18 +3689,20 @@ async function addSupportMaterial() {
   const description = document.getElementById("materialDescription")?.value.trim();
   const url = document.getElementById("materialUrl")?.value.trim();
   const type = document.getElementById("materialType")?.value.trim() || "Material";
+  const category_id = document.getElementById("materialCategorySelect")?.value || null;
   if (!title || !url) return alert("Completá al menos título y URL pública del material.");
 
-  const payload = { title, description, url, type, created_by: currentUser?.id || null };
+  const payload = { title, description, url, type, category_id, created_by: currentUser?.id || null };
   const { error } = await supabaseClient.from("materials").insert(payload);
   if (error) {
-    alert("No se pudo guardar el material: " + error.message + "\n\nSi es la primera vez, creá la tabla materials en Supabase.");
+    alert("No se pudo guardar el material: " + error.message + "\n\nRevisá que la tabla materials tenga la columna category_id.");
     return;
   }
   document.getElementById("materialTitle").value = "";
   document.getElementById("materialDescription").value = "";
   document.getElementById("materialUrl").value = "";
   document.getElementById("materialType").value = "";
+  document.getElementById("materialCategorySelect").value = "";
   alert("Material agregado correctamente.");
   await loadSupportMaterials();
 }
