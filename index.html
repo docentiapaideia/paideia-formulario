@@ -1416,6 +1416,55 @@ button.password-toggle:hover,
   .menu-open-btn { padding: 8px 11px; }
 }
 
+
+/* ── LOGOS PAIDEIA EN AMBOS LADOS DEL HEADER ───────────────────── */
+.top-paideia-header {
+  justify-content: space-between;
+}
+.header-left-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.header-paideia-logo {
+  height: 58px;
+  width: auto;
+  max-width: 168px;
+  object-fit: contain;
+  background: rgba(255,255,255,.96);
+  border-radius: 12px;
+  padding: 5px 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  flex-shrink: 0;
+}
+.top-paideia-header .header-right {
+  gap: 16px;
+}
+@media (max-width: 760px) {
+  .header-paideia-logo {
+    height: 44px;
+    max-width: 122px;
+    padding: 4px 8px;
+    border-radius: 10px;
+  }
+  .header-left-area {
+    gap: 10px;
+  }
+  .top-paideia-header .header-right {
+    gap: 10px;
+  }
+}
+@media (max-width: 540px) {
+  .header-left-area .header-paideia-logo {
+    display: none;
+  }
+  .header-paideia-logo {
+    height: 40px;
+    max-width: 110px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1437,14 +1486,16 @@ button.password-toggle:hover,
 <div id="appContent" style="display:none;flex-direction:column;min-height:100vh;">
 
 <!-- HEADER -->
-<header>
-  <button class="menu-open-btn" type="button" onclick="openNav()" aria-label="Abrir menú"><span class="menu-open-icon">☰</span><span>Menú</span></button>
-  <!--  <div class="header-logo" style="background:none;border:none;padding:2px;"><img src="logo.png" alt="PaideIA" style="width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none';"></div>
-<div class="header-brand">
-    <h1>PaideIA</h1>
-    <p>Programa Argentino de Innovación Educativa con IA</p>
-  </div>-->
+<header class="top-paideia-header">
+  <div class="header-left-area">
+    <button class="menu-open-btn" type="button" onclick="openNav()" aria-label="Abrir menú">
+      <span class="menu-open-icon">☰</span><span>Menú</span>
+    </button>
+    <img class="header-paideia-logo" src="logo.png" alt="PaideIA" onerror="this.style.display='none';">
+  </div>
+
   <div class="header-right">
+    <img class="header-paideia-logo" src="logo.png" alt="PaideIA" onerror="this.style.display='none';">
     <button id="btnLogout" onclick="logout()" style="display:none;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;cursor:pointer;font-family:inherit;transition:background .18s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">Cerrar sesión</button>
   </div>
 </header>
