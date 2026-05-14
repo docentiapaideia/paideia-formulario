@@ -1417,23 +1417,23 @@ button.password-toggle:hover,
 }
 
 
-/* ── LOGOS PAIDEIA A LOS COSTADOS DEL TÍTULO DE INICIO ─────────── */
+/* ── LOGOS PAIDEIA ALINEADOS AL CUADRO DE LAS 12 CLAVES ───────── */
 .inicio-hero-con-logos {
   display: grid;
-  grid-template-columns: 160px minmax(260px, 1fr) 160px;
+  grid-template-columns: 145px minmax(360px, 1fr) 145px;
   align-items: center;
-  justify-items: center;
-  gap: 28px;
-  max-width: 1050px;
+  gap: 18px;
+  max-width: 900px; /* mismo ancho que la infografía */
   margin: 0 auto 40px;
 }
 
 .inicio-hero-con-logos .inicio-hero {
   margin-bottom: 0;
+  text-align: center;
 }
 
 .logo-hero-paideia {
-  width: 132px;
+  width: 118px;
   height: auto;
   object-fit: contain;
   background: rgba(255,255,255,.96);
@@ -1443,25 +1443,40 @@ button.password-toggle:hover,
   border: 1.5px solid rgba(201,162,39,.22);
 }
 
+.logo-hero-izquierda {
+  justify-self: start; /* queda alineado hacia el borde izquierdo del cuadro */
+}
+
+.logo-hero-derecha {
+  justify-self: end; /* queda alineado hacia el borde derecho del cuadro */
+}
+
 @media (max-width: 900px) {
+  .inicio-hero-con-logos {
+    max-width: 92vw;
+    grid-template-columns: 105px minmax(220px, 1fr) 105px;
+    gap: 12px;
+  }
+
+  .logo-hero-paideia {
+    width: 92px;
+    padding: 8px 10px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 640px) {
   .inicio-hero-con-logos {
     grid-template-columns: 1fr;
     gap: 14px;
   }
 
   .logo-hero-paideia {
-    width: 105px;
+    width: 88px;
   }
 
   .logo-hero-paideia.logo-hero-derecha {
     display: none;
-  }
-}
-
-@media (max-width: 560px) {
-  .logo-hero-paideia {
-    width: 88px;
-    padding: 8px 10px;
   }
 }
 
