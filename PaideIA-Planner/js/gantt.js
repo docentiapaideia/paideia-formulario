@@ -1,6 +1,7 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v10");
+console.log("Gantt PaideIA Planner conectado a Supabase v11");
 
 let tareasGantt = [];
+let tareasGanttFiltradas = [];
 
 document.addEventListener("DOMContentLoaded", cargarGantt);
 
@@ -17,12 +18,79 @@ async function cargarGantt() {
     return;
   }
 
-  tareasGantt = data || [];
-
+  tareasGantt = (data || []).map(normalizarTareaGantt);
   console.log("Tareas Gantt reales:", tareasGantt);
 
-  actualizarResumenGantt(tareasGantt);
-  renderizarGantt(tareasGantt);
+  poblarFiltrosGantt(tareasGantt);
+  aplicarFiltrosGantt();
+}
+
+function normalizarTareaGantt(t) {
+  return {
+    ...t,
+    titulo: t.titulo || t.nombre || t.tarea || "Sin título",
+    responsables: t.responsables || t.responsable || t.asignados || "Sin responsable",
+    prioridad: t.prioridad || t.nombre_prioridad || "Sin prioridad",
+    etiqueta: t.etiqueta || t.etiquetas || t.proyecto || t.nombre_etiqueta || t.tablero || "Sin etiqueta",
+    estado_gantt: t.estado_gantt || t.estado || t.progreso || t.columna || "Sin fecha",
+    fecha_inicio: t.fecha_inicio || t.inicio || t.start_date || "",
+    fecha_limite: t.fecha_limite || t.fecha_fin || t.vencimiento || t.due_date || "",
+    porcentaje_avance: Number(t.porcentaje_avance ?? t.avance ?? t.progress ?? 0) || 0
+  };
+}
+
+function poblarFiltrosGantt(tareas) {
+  poblarSelectGantt("ganttFiltroResponsable", obtenerResponsablesGantt(tareas), "Todos");
+  poblarSelectGantt("ganttFiltroPrioridad", obtenerUnicosGantt(tareas.map(t => t.prioridad)), "Todas");
+  poblarSelectGantt("ganttFiltroEtiqueta", obtenerUnicosGantt(tareas.map(t => t.etiqueta)), "Todas");
+}
+
+function poblarSelectGantt(id, opciones, label) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const valor = select.value;
+  select.innerHTML = `<option value="">${label}</option>` + opciones.map(op => `<option value="${escaparHTML(op)}">${escaparHTML(op)}</option>`).join("");
+  if ([...select.options].some(o => o.value === valor)) select.value = valor;
+}
+
+function obtenerUnicosGantt(items) {
+  return [...new Set(items.filter(Boolean).map(String))].sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function obtenerResponsablesGantt(tareas) {
+  const set = new Set();
+  tareas.forEach(t => separarValoresGantt(t.responsables).forEach(r => set.add(r)));
+  return [...set].sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function aplicarFiltrosGantt() {
+  const responsable = document.getElementById("ganttFiltroResponsable")?.value || "";
+  const prioridad = document.getElementById("ganttFiltroPrioridad")?.value || "";
+  const etiqueta = document.getElementById("ganttFiltroEtiqueta")?.value || "";
+  const estado = normalizarTextoGantt(document.getElementById("ganttFiltroEstado")?.value || "");
+  const busqueda = normalizarTextoGantt(document.getElementById("ganttFiltroBusqueda")?.value || "");
+
+  tareasGanttFiltradas = tareasGantt.filter(t => {
+    const cumpleResponsable = !responsable || separarValoresGantt(t.responsables).includes(responsable);
+    const cumplePrioridad = !prioridad || t.prioridad === prioridad;
+    const cumpleEtiqueta = !etiqueta || t.etiqueta === etiqueta;
+    const estadoTexto = normalizarTextoGantt(`${t.estado_gantt} ${t.porcentaje_avance >= 100 ? "finalizada" : ""}`);
+    const cumpleEstado = !estado || estadoTexto.includes(estado) || (estado === "curso" && estadoTexto.includes("proceso"));
+    const texto = normalizarTextoGantt([t.titulo, t.responsables, t.prioridad, t.etiqueta, t.estado_gantt].join(" "));
+    const cumpleBusqueda = !busqueda || texto.includes(busqueda);
+    return cumpleResponsable && cumplePrioridad && cumpleEtiqueta && cumpleEstado && cumpleBusqueda;
+  });
+
+  actualizarResumenGantt(tareasGanttFiltradas);
+  renderizarGantt(tareasGanttFiltradas);
+}
+
+function resetearFiltrosGantt() {
+  ["ganttFiltroResponsable", "ganttFiltroPrioridad", "ganttFiltroEtiqueta", "ganttFiltroEstado", "ganttFiltroBusqueda"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  aplicarFiltrosGantt();
 }
 
 function actualizarResumenGantt(tareas) {
@@ -30,17 +98,17 @@ function actualizarResumenGantt(tareas) {
 
   const enCurso = tareas.filter(t => {
     const estado = (t.estado_gantt || "").toLowerCase();
-    return estado.includes("plazo") || estado.includes("curso");
+    return estado.includes("plazo") || estado.includes("curso") || estado.includes("proceso");
   }).length;
 
   const atrasadas = tareas.filter(t => {
     const estado = (t.estado_gantt || "").toLowerCase();
-    return estado.includes("atrasada");
+    return estado.includes("atrasada") || estado.includes("vencida");
   }).length;
 
   const finalizadas = tareas.filter(t => {
     const estado = (t.estado_gantt || "").toLowerCase();
-    return estado.includes("finalizada") || Number(t.porcentaje_avance) >= 100;
+    return estado.includes("finalizada") || estado.includes("completada") || Number(t.porcentaje_avance) >= 100;
   }).length;
 
   const cards = document.querySelectorAll(".gantt-summary .stat-card h3");
@@ -66,7 +134,7 @@ function renderizarGantt(tareas) {
       <div class="gantt-grid gantt-row">
         <div class="gantt-task-info">
           <strong>No hay tareas planificadas</strong>
-          <span>Cargá tareas con fecha de inicio o fecha límite desde el tablero.</span>
+          <span>No hay resultados para los filtros seleccionados.</span>
         </div>
 
         ${crearCeldasVacias()}
@@ -103,6 +171,7 @@ function crearFilaGantt(tarea) {
   const responsables = escaparHTML(tarea.responsables || "Sin responsable");
   const avance = Number(tarea.porcentaje_avance) || 0;
   const estado = tarea.estado_gantt || "Sin fecha";
+  const etiqueta = tarea.etiqueta && tarea.etiqueta !== "Sin etiqueta" ? ` · ${tarea.etiqueta}` : "";
 
   const claseBarra = obtenerClaseBarra(tarea);
   const posicion = calcularPosicionBarra(tarea);
@@ -111,7 +180,7 @@ function crearFilaGantt(tarea) {
     <div class="gantt-grid gantt-row">
       <div class="gantt-task-info">
         <strong>${titulo}</strong>
-        <span>${responsables}</span>
+        <span>${responsables}${escaparHTML(etiqueta)}</span>
       </div>
 
       ${crearCeldasVacias()}
@@ -171,7 +240,7 @@ function convertirFechaASlot(fechaTexto) {
     return 1;
   }
 
-  const fecha = new Date(fechaTexto + "T00:00:00");
+  const fecha = new Date(String(fechaTexto).slice(0, 10) + "T00:00:00");
 
   if (isNaN(fecha.getTime())) {
     return 1;
@@ -196,19 +265,35 @@ function obtenerClaseBarra(tarea) {
   const estado = (tarea.estado_gantt || "").toLowerCase();
   const avance = Number(tarea.porcentaje_avance) || 0;
 
-  if (estado.includes("finalizada") || avance >= 100) {
+  if (estado.includes("finalizada") || estado.includes("completada") || avance >= 100) {
     return "gantt-green";
   }
 
-  if (estado.includes("atrasada")) {
+  if (estado.includes("atrasada") || estado.includes("vencida")) {
     return "gantt-red";
   }
 
-  if (estado.includes("curso") || avance > 0) {
+  if (estado.includes("curso") || estado.includes("proceso") || avance > 0) {
     return "gantt-orange";
   }
 
   return "gantt-blue";
+}
+
+function descargarGanttPDF() {
+  const element = document.querySelector(".gantt-panel");
+  if (!element) return;
+  if (window.html2pdf) {
+    html2pdf().set({
+      margin: 8,
+      filename: "gantt_paideia.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+    }).from(element).save();
+  } else {
+    window.print();
+  }
 }
 
 function mostrarErrorGantt() {
@@ -242,6 +327,17 @@ function mostrarErrorGantt() {
       ${crearCeldasVacias()}
     </div>
   `;
+}
+
+function separarValoresGantt(texto) {
+  return String(texto || "")
+    .split(/;|,|·|\n/)
+    .map(x => x.trim())
+    .filter(Boolean);
+}
+
+function normalizarTextoGantt(value) {
+  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function escaparHTML(texto) {
