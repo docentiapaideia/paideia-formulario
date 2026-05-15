@@ -350,6 +350,22 @@ function limpiarFiltros() {
 }
 
 /* =========================================================
+   CONTROL DE SCROLL DE MODALES
+========================================================= */
+
+function bloquearScrollFondo() {
+  document.body.classList.add("modal-open");
+}
+
+function desbloquearScrollFondoSiCorresponde() {
+  const hayModalActivo = document.querySelector(".modal-overlay.active");
+
+  if (!hayModalActivo) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+/* =========================================================
    MODAL EDITAR
 ========================================================= */
 
@@ -374,10 +390,12 @@ async function abrirModalEditarTarea(tarea) {
   await cargarSelectEtiquetas(document.getElementById("editEtiqueta"), tarea.id);
 
   modal.classList.add("active");
+  bloquearScrollFondo();
 }
 
 function cerrarModalEditarTarea() {
   document.getElementById("modalEditarTarea")?.classList.remove("active");
+  desbloquearScrollFondoSiCorresponde();
 }
 
 async function guardarEdicionTarea(event) {
@@ -448,10 +466,12 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo") {
   cargarSelectEtiquetasNueva(document.getElementById("newEtiqueta"));
 
   document.getElementById("modalNuevaTarea")?.classList.add("active");
+  bloquearScrollFondo();
 }
 
 function cerrarModalNuevaTarea() {
   document.getElementById("modalNuevaTarea")?.classList.remove("active");
+  desbloquearScrollFondoSiCorresponde();
 }
 
 function limpiarFormularioNuevaTarea() {
