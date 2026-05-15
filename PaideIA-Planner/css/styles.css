@@ -2216,3 +2216,48 @@ a {
     width: 100%;
   }
 }
+
+/* FIX SCROLL MODALES TABLERO
+   Evita que se mueva la pantalla de atrás y permite scrollear el formulario. */
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal-overlay {
+  overflow-y: auto;
+  align-items: flex-start;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-card {
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  margin: auto 0;
+  overscroll-behavior: contain;
+}
+
+.modal-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(11, 37, 69, 0.22);
+  border-radius: 999px;
+}
+
+@media (max-width: 700px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 24px);
+  }
+}
