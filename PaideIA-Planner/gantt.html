@@ -109,6 +109,58 @@
         </div>
       </section>
 
+      <!-- GANTT FILTERS -->
+      <section class="panel gantt-filter-panel" id="ganttFiltersPanel">
+        <div class="panel-header">
+          <div>
+            <h3>Filtros del Gantt</h3>
+            <p>Aplicá los mismos criterios de reportes para revisar el cronograma.</p>
+          </div>
+          <button class="btn-board light" type="button" onclick="resetearFiltrosGantt()">Limpiar filtros</button>
+        </div>
+
+        <div class="gantt-filter-grid">
+          <div class="gantt-filter-box">
+            <label>Responsable</label>
+            <select id="ganttFiltroResponsable" onchange="aplicarFiltrosGantt()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <div class="gantt-filter-box">
+            <label>Prioridad</label>
+            <select id="ganttFiltroPrioridad" onchange="aplicarFiltrosGantt()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+
+          <div class="gantt-filter-box">
+            <label>Proyecto / etiqueta</label>
+            <select id="ganttFiltroEtiqueta" onchange="aplicarFiltrosGantt()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+
+          <div class="gantt-filter-box">
+            <label>Estado</label>
+            <select id="ganttFiltroEstado" onchange="aplicarFiltrosGantt()">
+              <option value="">Todos</option>
+              <option value="finalizada">Finalizadas</option>
+              <option value="curso">En curso</option>
+              <option value="atrasada">Atrasadas</option>
+              <option value="plazo">En plazo / no iniciado</option>
+            </select>
+          </div>
+
+          <div class="gantt-filter-box">
+            <label>Búsqueda</label>
+            <input id="ganttFiltroBusqueda" type="search" placeholder="Buscar tarea, responsable o etiqueta" oninput="aplicarFiltrosGantt()">
+          </div>
+        </div>
+
+        <p class="gantt-export-note">El botón <strong>Descargar Gantt</strong> exporta la vista filtrada actualmente.</p>
+      </section>
+
       <!-- GANTT SUMMARY -->
       <section class="dashboard-grid gantt-summary">
 
@@ -379,6 +431,6 @@
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/app.js"></script>
-<script src="js/gantt.js?v=11"></script>
+<script src="js/gantt.js?v=12"></script>
 </body>
 </html>
