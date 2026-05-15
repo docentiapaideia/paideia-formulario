@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v11");
+console.log("Gantt PaideIA Planner conectado a Supabase v12");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -6,6 +6,12 @@ let tareasGanttFiltradas = [];
 document.addEventListener("DOMContentLoaded", cargarGantt);
 
 async function cargarGantt() {
+  if (typeof supabaseClient === "undefined" || !supabaseClient) {
+    console.error("No se encontró supabaseClient. Revisá que js/supabase.js esté cargado antes de gantt.js.");
+    mostrarErrorGantt();
+    return;
+  }
+
   const { data, error } = await supabaseClient
     .from("planner_vista_gantt")
     .select("*")

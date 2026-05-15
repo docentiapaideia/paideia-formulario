@@ -1,4 +1,4 @@
-console.log("Reportes PaideIA Planner conectado a Supabase v2");
+console.log("Reportes PaideIA Planner conectado a Supabase v3");
 
 let tareasReporte = [];
 let tareasReporteFiltradas = [];
@@ -30,7 +30,7 @@ async function cargarDatosReporte() {
   const preview = document.getElementById("reportPreview");
   if (preview) preview.innerHTML = '<div class="report-empty">Cargando datos reales desde Supabase...</div>';
 
-  if (!window.supabaseClient) {
+  if (typeof supabaseClient === "undefined" || !supabaseClient) {
     if (preview) preview.innerHTML = '<div class="report-empty">No se encontró supabaseClient. Revisá que js/supabase.js esté cargado antes de reportes.js.</div>';
     return;
   }
