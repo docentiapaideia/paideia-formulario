@@ -2261,3 +2261,217 @@ body.modal-open {
     max-height: calc(100vh - 24px);
   }
 }
+
+
+/* =========================================================
+   TAREAS SEMANALES CON CHECKLIST
+========================================================= */
+
+.weekly-panel {
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-radius: 26px;
+  box-shadow: var(--sombra);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.weekly-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.weekly-kicker {
+  display: inline-block;
+  background: var(--azul-claro);
+  color: var(--azul);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.weekly-panel-header h3 {
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.weekly-panel-header p {
+  color: var(--gris-texto);
+  line-height: 1.45;
+}
+
+.weekly-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.weekly-light {
+  background: var(--gris-fondo) !important;
+  color: var(--azul) !important;
+  border: 1px solid var(--gris-borde) !important;
+}
+
+.weekly-tasks-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.weekly-task-card {
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-radius: 24px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.25s;
+  box-shadow: 0 10px 28px rgba(11, 37, 69, 0.07);
+}
+
+.weekly-task-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--celeste);
+}
+
+.weekly-card-accent {
+  width: 44px;
+  height: 12px;
+  background: var(--azul-claro);
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.weekly-main-row {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.weekly-task-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #8b98a7;
+  background: var(--blanco);
+  margin-top: 2px;
+}
+
+.weekly-task-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.weekly-task-title-row h4 {
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--azul-oscuro);
+}
+
+.weekly-task-date {
+  color: var(--gris-texto);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.weekly-subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.weekly-subtask {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--azul-oscuro);
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.weekly-subtask input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--azul);
+  cursor: pointer;
+}
+
+.weekly-subtask input:checked + span {
+  text-decoration: line-through;
+  color: var(--gris-texto);
+}
+
+.weekly-footer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.weekly-count {
+  color: var(--gris-texto);
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.weekly-progress {
+  height: 9px;
+  background: #e8eef5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.weekly-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--azul), var(--celeste));
+  border-radius: 999px;
+}
+
+.weekly-empty {
+  grid-column: 1 / -1;
+  background: var(--gris-fondo);
+  border: 1px dashed var(--gris-borde);
+  color: var(--gris-texto);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.form-help {
+  display: block;
+  color: var(--gris-texto);
+  font-size: 12px;
+  margin-top: 7px;
+  line-height: 1.35;
+}
+
+@media (max-width: 1000px) {
+  .weekly-tasks-container {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-panel-header {
+    flex-direction: column;
+  }
+
+  .weekly-actions {
+    justify-content: flex-start;
+  }
+}
