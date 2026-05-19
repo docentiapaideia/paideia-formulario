@@ -1,10 +1,11 @@
-console.log("TABLERO REAL DESDE SUPABASE - VERSION 30");
+console.log("TABLERO REAL DESDE SUPABASE - VERSION 32 - CHECKLIST SEMANAL");
 
 let columnasSistema = [];
 let miembrosSistema = [];
 let prioridadesSistema = [];
 let etiquetasSistema = [];
 let tareasTablero = [];
+let checklistPorTarea = {};
 
 /* =========================================================
    INICIO
@@ -113,6 +114,8 @@ async function cargarTablero() {
 
   tareasTablero = data || [];
   console.log("Tareas reales cargadas desde Supabase:", tareasTablero);
+
+  await cargarChecklistTareas(tareasTablero.map(tarea => tarea.id));
 
   poblarFiltrosDesdeTareas(tareasTablero);
   aplicarFiltros();
@@ -338,6 +341,7 @@ function aplicarFiltros() {
   });
 
   renderizarTablero(filtradas);
+  renderizarPanelSemanal(filtradas);
 }
 
 function limpiarFiltros() {
@@ -380,6 +384,7 @@ async function abrirModalEditarTarea(tarea) {
   setValor("editTareaId", tarea.id);
   setValor("editTitulo", tarea.titulo || "");
   setValor("editDescripcion", tarea.descripcion || "");
+  setValor("editChecklist", obtenerTextoChecklist(tarea.id));
   setValor("editAvance", normalizarAvance(tarea.porcentaje_avance ?? 0));
   setValor("editFechaInicio", tarea.fecha_inicio || "");
   setValor("editFechaLimite", tarea.fecha_limite || "");
@@ -437,6 +442,7 @@ async function guardarEdicionTarea(event) {
 
   await actualizarResponsableTarea(id, getValor("editResponsable"));
   await actualizarEtiquetaTarea(id, getValor("editEtiqueta"));
+  await guardarChecklistDesdeTextarea(id, getValor("editChecklist"));
 
   cerrarModalEditarTarea();
   await cargarTablero();
@@ -456,6 +462,7 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo") {
 
   setValor("newTitulo", "");
   setValor("newDescripcion", "");
+  setValor("newChecklist", "");
   setValor("newAvance", 0);
   setValor("newFechaInicio", "");
   setValor("newFechaLimite", "");
@@ -477,6 +484,7 @@ function cerrarModalNuevaTarea() {
 function limpiarFormularioNuevaTarea() {
   setValor("newTitulo", "");
   setValor("newDescripcion", "");
+  setValor("newChecklist", "");
   setValor("newAvance", 0);
   setValor("newFechaInicio", "");
   setValor("newFechaLimite", "");
@@ -527,6 +535,7 @@ async function guardarNuevaTarea(event) {
 
   await actualizarResponsableTarea(tareaId, getValor("newResponsable"));
   await actualizarEtiquetaTarea(tareaId, getValor("newEtiqueta"));
+  await guardarChecklistDesdeTextarea(tareaId, getValor("newChecklist"));
 
   cerrarModalNuevaTarea();
   limpiarFormularioNuevaTarea();
@@ -709,6 +718,236 @@ async function actualizarEtiquetaTarea(tareaId, etiquetaId) {
   }
 }
 
+
+
+/* =========================================================
+   CHECKLIST Y VISTA SEMANAL
+========================================================= */
+
+async function cargarChecklistTareas(tareaIds) {
+  checklistPorTarea = {};
+
+  const ids = (tareaIds || []).filter(Boolean);
+  if (ids.length === 0) return;
+
+  const { data, error } = await supabaseClient
+    .from("planner_checklist")
+    .select("id, tarea_id, texto, completado, orden, creado_en")
+    .in("tarea_id", ids)
+    .order("orden", { ascending: true })
+    .order("creado_en", { ascending: true });
+
+  if (error) {
+    console.error("Error al cargar checklist:", error);
+    checklistPorTarea = {};
+    return;
+  }
+
+  (data || []).forEach(item => {
+    if (!checklistPorTarea[item.tarea_id]) {
+      checklistPorTarea[item.tarea_id] = [];
+    }
+
+    checklistPorTarea[item.tarea_id].push(item);
+  });
+}
+
+function renderizarPanelSemanal(tareas) {
+  const contenedor = document.getElementById("weeklyTasksContainer");
+  const titulo = document.getElementById("weeklyTitle");
+
+  if (!contenedor) return;
+
+  contenedor.innerHTML = "";
+
+  const tareasConChecklist = (tareas || []).filter(tarea => {
+    const items = checklistPorTarea[tarea.id] || [];
+    return items.length > 0;
+  });
+
+  if (tareasConChecklist.length === 0) {
+    if (titulo) titulo.textContent = "Tareas por semana";
+    contenedor.innerHTML = `
+      <div class="weekly-empty">
+        Todavía no hay subtareas cargadas. Abrí una tarea, agregá el checklist y se va a mostrar acá.
+      </div>
+    `;
+    return;
+  }
+
+  const semana = obtenerSemanaPrincipal(tareasConChecklist);
+  if (titulo) titulo.textContent = `Semana del ${formatearFechaCorta(semana.inicio)} al ${formatearFechaCorta(semana.fin)}`;
+
+  tareasConChecklist
+    .sort((a, b) => obtenerFechaReferencia(a) - obtenerFechaReferencia(b))
+    .forEach(tarea => {
+      contenedor.appendChild(crearTarjetaSemanal(tarea));
+    });
+}
+
+function crearTarjetaSemanal(tarea) {
+  const items = checklistPorTarea[tarea.id] || [];
+  const total = items.length;
+  const completadas = items.filter(item => item.completado).length;
+  const avance = total > 0 ? Math.round((completadas / total) * 100) : 0;
+
+  const card = document.createElement("article");
+  card.className = "weekly-task-card";
+  card.addEventListener("click", () => abrirModalEditarTarea(tarea));
+
+  const lista = items.map(item => `
+    <label class="weekly-subtask" data-check-id="${escaparHTML(item.id)}">
+      <input type="checkbox" ${item.completado ? "checked" : ""} data-check-id="${escaparHTML(item.id)}">
+      <span>${escaparHTML(item.texto)}</span>
+    </label>
+  `).join("");
+
+  card.innerHTML = `
+    <div class="weekly-card-accent"></div>
+    <div class="weekly-main-row">
+      <button type="button" class="weekly-task-circle" aria-label="Marcar tarea"></button>
+      <div class="weekly-task-content">
+        <div class="weekly-task-title-row">
+          <h4>${escaparHTML(tarea.titulo || "Sin título")}</h4>
+          <span class="weekly-task-date">${escaparHTML(tarea.fecha_limite || "Sin fecha")}</span>
+        </div>
+        <div class="weekly-subtasks">${lista}</div>
+        <div class="weekly-footer">
+          <span class="weekly-count">☑ ${completadas} / ${total}</span>
+          <div class="weekly-progress"><span style="width:${avance}%"></span></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  card.querySelectorAll("input[type='checkbox']").forEach(input => {
+    input.addEventListener("click", event => event.stopPropagation());
+    input.addEventListener("change", async event => {
+      event.stopPropagation();
+      await alternarChecklist(input.dataset.checkId, input.checked);
+    });
+  });
+
+  return card;
+}
+
+async function alternarChecklist(checkId, completado) {
+  if (!checkId) return;
+
+  const { error } = await supabaseClient
+    .from("planner_checklist")
+    .update({ completado })
+    .eq("id", checkId);
+
+  if (error) {
+    console.error("Error al actualizar subtarea:", error);
+    alert("No se pudo actualizar la subtarea. Revisá permisos/RLS en planner_checklist.");
+    return;
+  }
+
+  Object.keys(checklistPorTarea).forEach(tareaId => {
+    checklistPorTarea[tareaId] = checklistPorTarea[tareaId].map(item => {
+      if (item.id === checkId) {
+        return { ...item, completado };
+      }
+      return item;
+    });
+  });
+
+  aplicarFiltros();
+}
+
+function obtenerTextoChecklist(tareaId) {
+  const items = checklistPorTarea[tareaId] || [];
+  return items.map(item => item.texto).join("\n");
+}
+
+function obtenerLineasChecklist(texto) {
+  return String(texto || "")
+    .split("\n")
+    .map(linea => linea.trim())
+    .filter(linea => linea !== "");
+}
+
+async function guardarChecklistDesdeTextarea(tareaId, texto) {
+  const lineas = obtenerLineasChecklist(texto);
+  const existentes = checklistPorTarea[tareaId] || [];
+
+  const completadoPorTexto = new Map();
+  existentes.forEach(item => {
+    completadoPorTexto.set(normalizarTexto(item.texto), !!item.completado);
+  });
+
+  const { error: errorDelete } = await supabaseClient
+    .from("planner_checklist")
+    .delete()
+    .eq("tarea_id", tareaId);
+
+  if (errorDelete) {
+    console.error("Error al limpiar checklist:", errorDelete);
+    alert("La tarea se guardó, pero no se pudo actualizar el checklist.");
+    return;
+  }
+
+  if (lineas.length === 0) {
+    checklistPorTarea[tareaId] = [];
+    return;
+  }
+
+  const registros = lineas.map((linea, index) => ({
+    tarea_id: tareaId,
+    texto: linea,
+    completado: completadoPorTexto.get(normalizarTexto(linea)) || false,
+    orden: index + 1
+  }));
+
+  const { error: errorInsert } = await supabaseClient
+    .from("planner_checklist")
+    .insert(registros);
+
+  if (errorInsert) {
+    console.error("Error al insertar checklist:", errorInsert);
+    alert("La tarea se guardó, pero no se pudieron crear las subtareas.");
+  }
+}
+
+function obtenerSemanaPrincipal(tareas) {
+  const fechas = (tareas || [])
+    .map(obtenerFechaReferencia)
+    .filter(fecha => fecha instanceof Date && !isNaN(fecha));
+
+  const base = fechas.length > 0 ? fechas[0] : new Date();
+  return obtenerSemanaDeFecha(base);
+}
+
+function obtenerFechaReferencia(tarea) {
+  const valor = tarea.fecha_limite || tarea.fecha_inicio || tarea.creado_en;
+  if (!valor) return new Date();
+
+  const fecha = new Date(valor + (String(valor).length === 10 ? "T00:00:00" : ""));
+  return isNaN(fecha) ? new Date() : fecha;
+}
+
+function obtenerSemanaDeFecha(fecha) {
+  const f = new Date(fecha);
+  const dia = f.getDay();
+  const diferenciaLunes = dia === 0 ? -6 : 1 - dia;
+
+  const inicio = new Date(f);
+  inicio.setDate(f.getDate() + diferenciaLunes);
+
+  const fin = new Date(inicio);
+  fin.setDate(inicio.getDate() + 4);
+
+  return { inicio, fin };
+}
+
+function formatearFechaCorta(fecha) {
+  const d = String(fecha.getDate()).padStart(2, "0");
+  const m = String(fecha.getMonth() + 1).padStart(2, "0");
+  return `${d}/${m}`;
+}
+
 /* =========================================================
    EVENTOS
 ========================================================= */
@@ -728,6 +967,12 @@ function registrarEventos() {
   document.getElementById("btnNuevaTarea")?.addEventListener("click", function() {
     abrirModalNuevaTarea("Nuevo");
   });
+
+  document.getElementById("btnAgregarTareaSemana")?.addEventListener("click", function() {
+    abrirModalNuevaTarea("Nuevo");
+  });
+
+  document.getElementById("btnRecargarSemana")?.addEventListener("click", cargarTablero);
 
   document.querySelectorAll(".btnColNuevaTarea").forEach(btn => {
     btn.addEventListener("click", function() {
