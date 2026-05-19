@@ -128,6 +128,28 @@
         </div>
       </section>
 
+
+
+      <!-- TAREAS SEMANALES CON CHECKLIST -->
+      <section class="weekly-panel">
+        <div class="weekly-panel-header">
+          <div>
+            <span class="weekly-kicker">Seguimiento semanal</span>
+            <h3 id="weeklyTitle">Tareas por semana</h3>
+            <p>Vista de tareas con subtareas, avance y control de completado.</p>
+          </div>
+
+          <div class="weekly-actions">
+            <button class="btn-board light weekly-light" type="button" id="btnRecargarSemana">Recargar semana</button>
+            <button class="btn-board primary" type="button" id="btnAgregarTareaSemana">+ Agregar tarea</button>
+          </div>
+        </div>
+
+        <div id="weeklyTasksContainer" class="weekly-tasks-container">
+          <div class="weekly-empty">Cargando tareas semanales...</div>
+        </div>
+      </section>
+
       <!-- KANBAN BOARD: las tarjetas reales las carga js/tablero.js desde Supabase -->
       <section class="kanban-board">
 
@@ -199,6 +221,15 @@
         <div class="form-group">
           <label>Descripción</label>
           <textarea id="newDescripcion" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Subtareas / checklist</label>
+          <textarea id="newChecklist" rows="5" placeholder="Una subtarea por línea. Ejemplo:
+Confirmar fecha límite
+Sumar a Unicef
+Armar presupuesto"></textarea>
+          <small class="form-help">Se guardan en planner_checklist y se muestran en la vista semanal.</small>
         </div>
 
         <div class="form-row">
@@ -293,6 +324,12 @@
           <textarea id="editDescripcion" rows="4"></textarea>
         </div>
 
+        <div class="form-group">
+          <label>Subtareas / checklist</label>
+          <textarea id="editChecklist" rows="5" placeholder="Una subtarea por línea"></textarea>
+          <small class="form-help">Al guardar se actualiza el checklist de esta tarea.</small>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Avance %</label>
@@ -361,6 +398,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/tablero.js?v=31"></script>
+  <script src="js/tablero.js?v=32"></script>
 </body>
 </html>
