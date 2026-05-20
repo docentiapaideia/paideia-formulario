@@ -2497,3 +2497,49 @@ body.modal-open {
 .task-meta.task-meta-vertical span {
   display: block;
 }
+
+
+/* RESPONSABLES Y COLABORADORES */
+.colaboradores-checklist {
+  width: 100%;
+  max-height: 190px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--gris-borde);
+  border-radius: 14px;
+  background: var(--gris-fondo);
+}
+
+.colaborador-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  color: var(--azul-oscuro);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.colaborador-option:hover {
+  border-color: var(--celeste);
+  transform: translateX(2px);
+}
+
+.colaborador-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--azul);
+}
+
+.colaborador-empty {
+  color: var(--gris-texto);
+  font-size: 14px;
+  padding: 8px;
+}
