@@ -643,16 +643,30 @@ function cargarSelectResponsablesNueva(select) {
   });
 }
 
-function cargarSelectColaboradoresNueva(select) {
-  if (!select) return;
+function cargarSelectColaboradoresNueva(contenedor) {
+  if (!contenedor) return;
 
-  select.innerHTML = "";
+  contenedor.innerHTML = "";
+
+  if (!miembrosSistema || miembrosSistema.length === 0) {
+    contenedor.innerHTML = `<div class="colaborador-empty">No hay miembros activos cargados.</div>`;
+    return;
+  }
 
   miembrosSistema.forEach(m => {
-    const option = document.createElement("option");
-    option.value = m.id;
-    option.textContent = m.nombre;
-    select.appendChild(option);
+    const label = document.createElement("label");
+    label.className = "colaborador-option";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = m.id;
+
+    const span = document.createElement("span");
+    span.textContent = m.nombre;
+
+    label.appendChild(input);
+    label.appendChild(span);
+    contenedor.appendChild(label);
   });
 }
 
@@ -1084,29 +1098,53 @@ function separarValores(texto) {
 }
 
 function obtenerValoresSelectMultiple(id) {
-  const select = document.getElementById(id);
-  if (!select) return [];
+  const contenedor = document.getElementById(id);
+  if (!contenedor) return [];
 
-  return Array.from(select.selectedOptions || [])
-    .map(option => option.value)
+  // Compatible con la versión anterior si todavía existe un <select multiple>
+  if (contenedor.tagName === "SELECT") {
+    return Array.from(contenedor.selectedOptions || [])
+      .map(option => option.value)
+      .filter(Boolean);
+  }
+
+  return Array.from(contenedor.querySelectorAll('input[type="checkbox"]:checked'))
+    .map(input => input.value)
     .filter(Boolean);
 }
 
-function setValoresSelectMultiple(select, valores) {
-  if (!select) return;
+function setValoresSelectMultiple(contenedor, valores) {
+  if (!contenedor) return;
 
   const valoresSet = new Set(valores || []);
-  Array.from(select.options || []).forEach(option => {
-    option.selected = valoresSet.has(option.value);
+
+  // Compatible con la versión anterior si todavía existe un <select multiple>
+  if (contenedor.tagName === "SELECT") {
+    Array.from(contenedor.options || []).forEach(option => {
+      option.selected = valoresSet.has(option.value);
+    });
+    return;
+  }
+
+  Array.from(contenedor.querySelectorAll('input[type="checkbox"]')).forEach(input => {
+    input.checked = valoresSet.has(input.value);
   });
 }
 
 function limpiarSelectMultiple(id) {
-  const select = document.getElementById(id);
-  if (!select) return;
+  const contenedor = document.getElementById(id);
+  if (!contenedor) return;
 
-  Array.from(select.options || []).forEach(option => {
-    option.selected = false;
+  // Compatible con la versión anterior si todavía existe un <select multiple>
+  if (contenedor.tagName === "SELECT") {
+    Array.from(contenedor.options || []).forEach(option => {
+      option.selected = false;
+    });
+    return;
+  }
+
+  Array.from(contenedor.querySelectorAll('input[type="checkbox"]')).forEach(input => {
+    input.checked = false;
   });
 }
 
