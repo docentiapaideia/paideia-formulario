@@ -1,4 +1,4 @@
-console.log("TABLERO REAL DESDE SUPABASE - VERSION 32 - CHECKLIST SEMANAL");
+console.log("TABLERO REAL DESDE SUPABASE - VERSION 33 - RESPONSABLE Y COLABORADORES");
 
 let columnasSistema = [];
 let miembrosSistema = [];
@@ -159,7 +159,9 @@ function agregarTareaAColumna(tarea) {
 
   const prioridad = tarea.prioridad || "Media";
   const etiqueta = tarea.etiquetas || "Sin etiqueta";
-  const responsables = tarea.responsables || "Sin responsable";
+  const asignaciones = obtenerAsignacionesVisuales(tarea);
+  const responsablePrincipal = asignaciones.responsable || "Sin responsable";
+  const colaboradores = asignaciones.colaboradores || "";
   const fecha = tarea.fecha_limite || "Sin fecha";
   const avance = normalizarAvance(tarea.porcentaje_avance ?? 0);
 
@@ -180,8 +182,9 @@ function agregarTareaAColumna(tarea) {
 
     <p>${escaparHTML(tarea.descripcion || "Sin descripción.")}</p>
 
-    <div class="task-meta">
-      <span>👤 ${escaparHTML(limitarTexto(responsables, 28))}</span>
+    <div class="task-meta task-meta-vertical">
+      <span>👤 Responsable: ${escaparHTML(limitarTexto(responsablePrincipal, 34))}</span>
+      ${colaboradores ? `<span>🤝 Colaboradores: ${escaparHTML(limitarTexto(colaboradores, 38))}</span>` : ""}
       <span>📅 ${escaparHTML(fecha)}</span>
     </div>
 
@@ -390,7 +393,11 @@ async function abrirModalEditarTarea(tarea) {
   setValor("editFechaLimite", tarea.fecha_limite || "");
 
   cargarSelectColumnas(document.getElementById("editColumna"), tarea.columna_id, tarea.columna);
-  await cargarSelectResponsables(document.getElementById("editResponsable"), tarea.id);
+  await cargarSelectAsignacionesTarea(
+    document.getElementById("editResponsable"),
+    document.getElementById("editColaboradores"),
+    tarea.id
+  );
   cargarSelectPrioridades(document.getElementById("editPrioridad"), tarea.prioridad_id, tarea.prioridad);
   await cargarSelectEtiquetas(document.getElementById("editEtiqueta"), tarea.id);
 
@@ -440,7 +447,11 @@ async function guardarEdicionTarea(event) {
     return;
   }
 
-  await actualizarResponsableTarea(id, getValor("editResponsable"));
+  await actualizarAsignacionesTarea(
+    id,
+    getValor("editResponsable"),
+    obtenerValoresSelectMultiple("editColaboradores")
+  );
   await actualizarEtiquetaTarea(id, getValor("editEtiqueta"));
   await guardarChecklistDesdeTextarea(id, getValor("editChecklist"));
 
@@ -466,9 +477,11 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo") {
   setValor("newAvance", 0);
   setValor("newFechaInicio", "");
   setValor("newFechaLimite", "");
+  limpiarSelectMultiple("newColaboradores");
 
   cargarSelectColumnas(document.getElementById("newColumna"), null, columnaNombre || "Nuevo");
   cargarSelectResponsablesNueva(document.getElementById("newResponsable"));
+  cargarSelectColaboradoresNueva(document.getElementById("newColaboradores"));
   cargarSelectPrioridades(document.getElementById("newPrioridad"), null, "Media");
   cargarSelectEtiquetasNueva(document.getElementById("newEtiqueta"));
 
@@ -488,6 +501,7 @@ function limpiarFormularioNuevaTarea() {
   setValor("newAvance", 0);
   setValor("newFechaInicio", "");
   setValor("newFechaLimite", "");
+  limpiarSelectMultiple("newColaboradores");
 }
 
 async function guardarNuevaTarea(event) {
@@ -533,7 +547,11 @@ async function guardarNuevaTarea(event) {
 
   const tareaId = data.id;
 
-  await actualizarResponsableTarea(tareaId, getValor("newResponsable"));
+  await actualizarAsignacionesTarea(
+    tareaId,
+    getValor("newResponsable"),
+    obtenerValoresSelectMultiple("newColaboradores")
+  );
   await actualizarEtiquetaTarea(tareaId, getValor("newEtiqueta"));
   await guardarChecklistDesdeTextarea(tareaId, getValor("newChecklist"));
 
@@ -567,24 +585,44 @@ function cargarSelectColumnas(select, columnaIdActual, columnaNombreActual) {
   });
 }
 
-async function cargarSelectResponsables(select, tareaId) {
-  if (!select) return;
+async function cargarSelectAsignacionesTarea(selectResponsable, selectColaboradores, tareaId) {
+  cargarSelectResponsablesNueva(selectResponsable);
+  cargarSelectColaboradoresNueva(selectColaboradores);
 
-  cargarSelectResponsablesNueva(select);
+  const asignaciones = await obtenerAsignacionesTarea(tareaId);
 
-  const { data, error } = await supabaseClient
-    .from("planner_tarea_responsables")
-    .select("miembro_id")
-    .eq("tarea_id", tareaId);
-
-  if (error) {
-    console.error("Error al cargar responsable actual:", error);
+  if (!asignaciones || asignaciones.length === 0) {
     return;
   }
 
-  if (data && data.length > 0) {
-    select.value = data[0].miembro_id;
+  const responsable =
+    asignaciones.find(a => normalizarTexto(a.rol_asignacion || "") === "responsable") ||
+    asignaciones[0];
+
+  if (selectResponsable && responsable?.miembro_id) {
+    selectResponsable.value = responsable.miembro_id;
   }
+
+  const colaboradoresIds = asignaciones
+    .filter(a => normalizarTexto(a.rol_asignacion || "") === "colaborador")
+    .map(a => a.miembro_id)
+    .filter(id => id && id !== responsable?.miembro_id);
+
+  setValoresSelectMultiple(selectColaboradores, colaboradoresIds);
+}
+
+async function obtenerAsignacionesTarea(tareaId) {
+  const { data, error } = await supabaseClient
+    .from("planner_tarea_responsables")
+    .select("miembro_id, rol_asignacion")
+    .eq("tarea_id", tareaId);
+
+  if (error) {
+    console.error("Error al cargar asignaciones de la tarea:", error);
+    return [];
+  }
+
+  return data || [];
 }
 
 function cargarSelectResponsablesNueva(select) {
@@ -596,6 +634,19 @@ function cargarSelectResponsablesNueva(select) {
   optionVacio.value = "";
   optionVacio.textContent = "Sin responsable";
   select.appendChild(optionVacio);
+
+  miembrosSistema.forEach(m => {
+    const option = document.createElement("option");
+    option.value = m.id;
+    option.textContent = m.nombre;
+    select.appendChild(option);
+  });
+}
+
+function cargarSelectColaboradoresNueva(select) {
+  if (!select) return;
+
+  select.innerHTML = "";
 
   miembrosSistema.forEach(m => {
     const option = document.createElement("option");
@@ -668,28 +719,47 @@ function cargarSelectEtiquetasNueva(select) {
    RELACIONES
 ========================================================= */
 
-async function actualizarResponsableTarea(tareaId, responsableId) {
+async function actualizarAsignacionesTarea(tareaId, responsableId, colaboradoresIds = []) {
+  const colaboradoresLimpios = Array.from(new Set((colaboradoresIds || []).filter(Boolean)))
+    .filter(id => id !== responsableId);
+
   const { error: errorDelete } = await supabaseClient
     .from("planner_tarea_responsables")
     .delete()
     .eq("tarea_id", tareaId);
 
   if (errorDelete) {
-    console.error("Error al limpiar responsables:", errorDelete);
+    console.error("Error al limpiar asignaciones:", errorDelete);
     return;
   }
 
-  if (!responsableId) return;
+  const registros = [];
+
+  if (responsableId) {
+    registros.push({
+      tarea_id: tareaId,
+      miembro_id: responsableId,
+      rol_asignacion: "responsable"
+    });
+  }
+
+  colaboradoresLimpios.forEach(miembroId => {
+    registros.push({
+      tarea_id: tareaId,
+      miembro_id: miembroId,
+      rol_asignacion: "colaborador"
+    });
+  });
+
+  if (registros.length === 0) return;
 
   const { error: errorInsert } = await supabaseClient
     .from("planner_tarea_responsables")
-    .insert({
-      tarea_id: tareaId,
-      miembro_id: responsableId
-    });
+    .insert(registros);
 
   if (errorInsert) {
-    console.error("Error al asignar responsable:", errorInsert);
+    console.error("Error al guardar asignaciones:", errorInsert);
+    alert("La tarea se guardó, pero no se pudieron guardar responsable/colaboradores. Revisá el SQL de roles.");
   }
 }
 
@@ -1011,6 +1081,52 @@ function separarValores(texto) {
     .split(";")
     .map(v => v.trim())
     .filter(v => v !== "");
+}
+
+function obtenerValoresSelectMultiple(id) {
+  const select = document.getElementById(id);
+  if (!select) return [];
+
+  return Array.from(select.selectedOptions || [])
+    .map(option => option.value)
+    .filter(Boolean);
+}
+
+function setValoresSelectMultiple(select, valores) {
+  if (!select) return;
+
+  const valoresSet = new Set(valores || []);
+  Array.from(select.options || []).forEach(option => {
+    option.selected = valoresSet.has(option.value);
+  });
+}
+
+function limpiarSelectMultiple(id) {
+  const select = document.getElementById(id);
+  if (!select) return;
+
+  Array.from(select.options || []).forEach(option => {
+    option.selected = false;
+  });
+}
+
+function obtenerAsignacionesVisuales(tarea) {
+  const responsableDirecto = tarea.responsable_principal || tarea.responsable || "";
+  const colaboradoresDirectos = tarea.colaboradores || "";
+
+  if (responsableDirecto || colaboradoresDirectos) {
+    return {
+      responsable: responsableDirecto,
+      colaboradores: colaboradoresDirectos
+    };
+  }
+
+  const personas = separarValores(tarea.responsables || "");
+
+  return {
+    responsable: personas[0] || "",
+    colaboradores: personas.slice(1).join("; ")
+  };
 }
 
 function getValor(id) {
