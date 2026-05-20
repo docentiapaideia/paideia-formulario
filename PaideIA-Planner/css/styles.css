@@ -2475,3 +2475,25 @@ body.modal-open {
     justify-content: flex-start;
   }
 }
+
+
+/* RESPONSABLE PRINCIPAL Y COLABORADORES */
+.select-multiple {
+  min-height: 118px;
+  padding: 10px 12px;
+}
+
+.select-multiple option {
+  padding: 7px 8px;
+  border-radius: 8px;
+}
+
+.task-meta.task-meta-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.task-meta.task-meta-vertical span {
+  display: block;
+}
