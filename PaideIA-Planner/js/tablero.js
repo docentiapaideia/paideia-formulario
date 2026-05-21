@@ -1,4 +1,4 @@
-console.log("TABLERO REAL DESDE SUPABASE - VERSION 33 - RESPONSABLE Y COLABORADORES");
+console.log("TABLERO REAL DESDE SUPABASE - VERSION 34 - TAREAS MADRE, OCULTAMIENTO Y ELIMINACION LOGICA");
 
 let columnasSistema = [];
 let miembrosSistema = [];
@@ -35,7 +35,7 @@ async function cargarCatalogosSistema() {
 async function cargarColumnasSistema() {
   const { data, error } = await supabaseClient
     .from("planner_columnas")
-    .select("id, nombre, orden, tablero_id")
+    .select("id, nombre, orden, tablero_id, es_final")
     .order("orden", { ascending: true });
 
   if (error) {
@@ -164,15 +164,27 @@ function agregarTareaAColumna(tarea) {
   const colaboradores = asignaciones.colaboradores || "";
   const fecha = tarea.fecha_limite || "Sin fecha";
   const avance = normalizarAvance(tarea.porcentaje_avance ?? 0);
+  const esMadre = esTareaMadre(tarea);
+  const esHija = !!tarea.tarea_madre_id;
+  const madreTitulo = tarea.tarea_madre_titulo || obtenerTituloMadre(tarea.tarea_madre_id);
+  const resumenHijas = esMadre ? obtenerResumenHijas(tarea.id) : null;
 
   const card = document.createElement("div");
   card.className = "task-card";
+
+  if (esMadre) card.classList.add("mother-task");
+  if (esHija) card.classList.add("child-task");
 
   if (tarea.es_final || avance >= 100) {
     card.classList.add("done");
   }
 
   card.innerHTML = `
+    <div class="task-type-row">
+      ${esMadre ? `<span class="task-type-badge mother">🧩 TAREA MADRE</span>` : ""}
+      ${esHija ? `<span class="task-type-badge child">↳ Hija de: ${escaparHTML(limitarTexto(madreTitulo, 36))}</span>` : ""}
+    </div>
+
     <div class="task-top">
       <span class="tag ${obtenerClaseEtiqueta(etiqueta)}">${escaparHTML(limitarTexto(etiqueta, 24))}</span>
       <span class="priority ${obtenerClasePrioridad(prioridad)}">${escaparHTML(prioridad)}</span>
@@ -186,6 +198,7 @@ function agregarTareaAColumna(tarea) {
       <span>👤 Responsable: ${escaparHTML(limitarTexto(responsablePrincipal, 34))}</span>
       ${colaboradores ? `<span>🤝 Colaboradores: ${escaparHTML(limitarTexto(colaboradores, 38))}</span>` : ""}
       <span>📅 ${escaparHTML(fecha)}</span>
+      ${resumenHijas ? `<span>🧩 Hijas: ${resumenHijas.finalizadas} de ${resumenHijas.total} finalizadas</span>` : ""}
     </div>
 
     <div class="task-progress">
@@ -385,6 +398,7 @@ async function abrirModalEditarTarea(tarea) {
   }
 
   setValor("editTareaId", tarea.id);
+  setValor("editEsTareaMadre", esTareaMadre(tarea) ? "true" : "false");
   setValor("editTitulo", tarea.titulo || "");
   setValor("editDescripcion", tarea.descripcion || "");
   setValor("editChecklist", obtenerTextoChecklist(tarea.id));
@@ -393,6 +407,8 @@ async function abrirModalEditarTarea(tarea) {
   setValor("editFechaLimite", tarea.fecha_limite || "");
 
   cargarSelectColumnas(document.getElementById("editColumna"), tarea.columna_id, tarea.columna);
+  cargarSelectTareasMadre(document.getElementById("editTareaMadre"), tarea.tarea_madre_id, tarea.id);
+  configurarGrupoTareaMadre("grupoEditTareaMadre", !esTareaMadre(tarea));
   await cargarSelectAsignacionesTarea(
     document.getElementById("editResponsable"),
     document.getElementById("editColaboradores"),
@@ -426,14 +442,23 @@ async function guardarEdicionTarea(event) {
     return;
   }
 
+  const columnaIdSeleccionada = getValor("editColumna");
+  const columnaSeleccionada = columnasSistema.find(c => c.id === columnaIdSeleccionada);
+  const tareaOriginal = tareasTablero.find(t => t.id === id) || {};
+  const columnaEsFinal = !!columnaSeleccionada?.es_final;
+  const editEsMadre = getValor("editEsTareaMadre") === "true";
+
   const datosActualizar = {
     titulo: titulo,
     descripcion: getValor("editDescripcion"),
     porcentaje_avance: normalizarAvance(getValor("editAvance")),
-    columna_id: getValor("editColumna"),
+    columna_id: columnaIdSeleccionada,
     prioridad_id: getValor("editPrioridad") || null,
     fecha_inicio: getValor("editFechaInicio") || null,
-    fecha_limite: getValor("editFechaLimite") || null
+    fecha_limite: getValor("editFechaLimite") || null,
+    es_tarea_madre: editEsMadre,
+    tarea_madre_id: editEsMadre ? null : (getValor("editTareaMadre") || null),
+    finalizada_en: columnaEsFinal ? (tareaOriginal.finalizada_en || new Date().toISOString()) : null
   };
 
   const { error } = await supabaseClient
@@ -468,9 +493,10 @@ function limpiarFechasModal() {
    MODAL NUEVA TAREA
 ========================================================= */
 
-async function abrirModalNuevaTarea(columnaNombre = "Nuevo") {
+async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false) {
   await cargarCatalogosSistema();
 
+  setValor("newEsTareaMadre", esMadre ? "true" : "false");
   setValor("newTitulo", "");
   setValor("newDescripcion", "");
   setValor("newChecklist", "");
@@ -480,6 +506,9 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo") {
   limpiarSelectMultiple("newColaboradores");
 
   cargarSelectColumnas(document.getElementById("newColumna"), null, columnaNombre || "Nuevo");
+  cargarSelectTareasMadre(document.getElementById("newTareaMadre"), null, null);
+  configurarGrupoTareaMadre("grupoNewTareaMadre", !esMadre);
+  configurarTituloModalNueva(esMadre);
   cargarSelectResponsablesNueva(document.getElementById("newResponsable"));
   cargarSelectColaboradoresNueva(document.getElementById("newColaboradores"));
   cargarSelectPrioridades(document.getElementById("newPrioridad"), null, "Media");
@@ -495,6 +524,7 @@ function cerrarModalNuevaTarea() {
 }
 
 function limpiarFormularioNuevaTarea() {
+  setValor("newEsTareaMadre", esMadre ? "true" : "false");
   setValor("newTitulo", "");
   setValor("newDescripcion", "");
   setValor("newChecklist", "");
@@ -502,6 +532,7 @@ function limpiarFormularioNuevaTarea() {
   setValor("newFechaInicio", "");
   setValor("newFechaLimite", "");
   limpiarSelectMultiple("newColaboradores");
+  setValor("newTareaMadre", "");
 }
 
 async function guardarNuevaTarea(event) {
@@ -516,6 +547,7 @@ async function guardarNuevaTarea(event) {
   }
 
   const columnaSeleccionada = columnasSistema.find(c => c.id === columnaId);
+  const nuevaEsMadre = getValor("newEsTareaMadre") === "true";
 
   if (!columnaSeleccionada) {
     alert("Debe seleccionar una columna válida.");
@@ -530,7 +562,11 @@ async function guardarNuevaTarea(event) {
     prioridad_id: getValor("newPrioridad") || obtenerPrioridadMediaId(),
     fecha_inicio: getValor("newFechaInicio") || null,
     fecha_limite: getValor("newFechaLimite") || null,
-    porcentaje_avance: normalizarAvance(getValor("newAvance"))
+    porcentaje_avance: normalizarAvance(getValor("newAvance")),
+    es_tarea_madre: nuevaEsMadre,
+    tarea_madre_id: nuevaEsMadre ? null : (getValor("newTareaMadre") || null),
+    finalizada_en: columnaSeleccionada.es_final ? new Date().toISOString() : null,
+    eliminada: false
   };
 
   const { data, error } = await supabaseClient
@@ -557,6 +593,107 @@ async function guardarNuevaTarea(event) {
 
   cerrarModalNuevaTarea();
   limpiarFormularioNuevaTarea();
+  await cargarTablero();
+}
+
+
+function configurarTituloModalNueva(esMadre) {
+  const titulo = document.getElementById("modalNuevaTitulo");
+  const subtitulo = document.getElementById("modalNuevaSubtitulo");
+
+  if (titulo) titulo.textContent = esMadre ? "Nueva tarea madre" : "Nueva tarea";
+  if (subtitulo) {
+    subtitulo.textContent = esMadre
+      ? "Cargar una tarea grande que agrupe otras tareas internas."
+      : "Cargar una tarea nueva en el tablero PAIDEIA.";
+  }
+}
+
+function configurarGrupoTareaMadre(idGrupo, mostrar) {
+  const grupo = document.getElementById(idGrupo);
+  if (!grupo) return;
+  grupo.style.display = mostrar ? "block" : "none";
+}
+
+function esTareaMadre(tarea) {
+  return tarea?.es_tarea_madre === true || tarea?.es_tarea_madre === "true";
+}
+
+function obtenerTituloMadre(tareaMadreId) {
+  if (!tareaMadreId) return "";
+  const madre = tareasTablero.find(t => t.id === tareaMadreId);
+  return madre?.titulo || "";
+}
+
+function obtenerResumenHijas(tareaMadreId) {
+  const hijas = tareasTablero.filter(t => t.tarea_madre_id === tareaMadreId);
+  if (hijas.length === 0) return { total: 0, finalizadas: 0 };
+
+  const finalizadas = hijas.filter(t => t.es_final || normalizarAvance(t.porcentaje_avance ?? 0) >= 100).length;
+  return { total: hijas.length, finalizadas };
+}
+
+function cargarSelectTareasMadre(select, tareaMadreIdActual = null, tareaActualId = null) {
+  if (!select) return;
+
+  select.innerHTML = "";
+
+  const optionVacio = document.createElement("option");
+  optionVacio.value = "";
+  optionVacio.textContent = "No pertenece a una tarea madre";
+  select.appendChild(optionVacio);
+
+  tareasTablero
+    .filter(t => esTareaMadre(t) && t.id !== tareaActualId)
+    .sort((a, b) => String(a.titulo || "").localeCompare(String(b.titulo || "")))
+    .forEach(t => {
+      const option = document.createElement("option");
+      option.value = t.id;
+      option.textContent = t.titulo || "Tarea madre sin título";
+      if (t.id === tareaMadreIdActual) option.selected = true;
+      select.appendChild(option);
+    });
+}
+
+async function eliminarTareaLogica() {
+  const id = getValor("editTareaId");
+  const tarea = tareasTablero.find(t => t.id === id);
+
+  if (!id) {
+    alert("No se encontró la tarea para eliminar.");
+    return;
+  }
+
+  const confirmacion = confirm("La tarea se va a sacar del tablero, pero no se borrará de la base. ¿Continuar?");
+  if (!confirmacion) return;
+
+  const motivo = prompt(
+    "Motivo de eliminación:\n- Error de carga\n- Derivada a otro sector\n- Duplicada\n- Cancelada\n- Otro",
+    "Error de carga"
+  );
+
+  if (motivo === null) return;
+
+  const { error } = await supabaseClient
+    .from("planner_tareas")
+    .update({
+      eliminada: true,
+      eliminada_en: new Date().toISOString(),
+      motivo_eliminacion: motivo.trim() || "Sin motivo especificado"
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error al eliminar tarea:", error);
+    alert("No se pudo eliminar la tarea. Revisá la consola.");
+    return;
+  }
+
+  if (tarea && esTareaMadre(tarea)) {
+    alert("Tarea madre sacada del tablero. Sus tareas hijas quedan ocultas junto con ella, pero permanecen en la base.");
+  }
+
+  cerrarModalEditarTarea();
   await cargarTablero();
 }
 
@@ -1041,6 +1178,7 @@ function registrarEventos() {
   document.getElementById("btnCerrarModal")?.addEventListener("click", cerrarModalEditarTarea);
   document.getElementById("btnCancelarModal")?.addEventListener("click", cerrarModalEditarTarea);
   document.getElementById("btnLimpiarFechas")?.addEventListener("click", limpiarFechasModal);
+  document.getElementById("btnEliminarTarea")?.addEventListener("click", eliminarTareaLogica);
 
   document.getElementById("modalEditarTarea")?.addEventListener("click", function(event) {
     if (event.target.id === "modalEditarTarea") {
@@ -1049,7 +1187,11 @@ function registrarEventos() {
   });
 
   document.getElementById("btnNuevaTarea")?.addEventListener("click", function() {
-    abrirModalNuevaTarea("Nuevo");
+    abrirModalNuevaTarea("Nuevo", false);
+  });
+
+  document.getElementById("btnNuevaTareaMadre")?.addEventListener("click", function() {
+    abrirModalNuevaTarea("Nuevo", true);
   });
 
   document.getElementById("btnAgregarTareaSemana")?.addEventListener("click", function() {
@@ -1060,7 +1202,7 @@ function registrarEventos() {
 
   document.querySelectorAll(".btnColNuevaTarea").forEach(btn => {
     btn.addEventListener("click", function() {
-      abrirModalNuevaTarea(btn.dataset.columna || "Nuevo");
+      abrirModalNuevaTarea(btn.dataset.columna || "Nuevo", false);
     });
   });
 
