@@ -12,12 +12,14 @@
     .report-form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
     .report-form-grid .full { grid-column:1 / -1; }
     .filter-box input, .filter-box select { width:100%; padding:10px 12px; border:1px solid #d6ddeb; border-radius:12px; background:#fff; color:#1f2a44; }
-    .report-letter { background:#fff; color:#111827; padding:34px; border-radius:18px; border:1px solid #e5e7eb; box-shadow:0 8px 28px rgba(15,23,42,.06); }
-    .report-membrete { border-bottom:2px solid #1f3a6d; padding-bottom:14px; margin-bottom:22px; display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
-    .report-membrete .m-left { font-weight:700; color:#1f3a6d; }
-    .report-membrete .m-right { text-align:right; color:#4b5563; font-size:.86rem; }
-    .report-letter h3 { color:#0f2f63; margin-bottom:14px; font-size:1.35rem; }
-    .report-letter h4 { color:#0f2f63; margin:20px 0 8px; }
+    .report-letter { background:#fff; color:#111827; padding:34px; border-radius:18px; border:1px solid #e5e7eb; box-shadow:0 8px 28px rgba(15,23,42,.06); font-family:"Times New Roman", Times, serif; font-size:11pt; }
+    .report-membrete { padding-bottom:18px; margin-bottom:24px; text-align:center; border-bottom:1px solid #d1d5db; }
+    .report-membrete .m-left,
+    .report-membrete .m-right { text-align:center; color:#111827; font-size:11pt; font-weight:400; }
+    .report-membrete .m-left strong,
+    .report-membrete .m-right strong { display:block; font-weight:700; text-transform:uppercase; margin-top:8px; }
+    .report-letter h3 { color:#111827; margin-bottom:14px; font-size:14pt; text-align:center; text-transform:uppercase; }
+    .report-letter h4 { color:#111827; margin:20px 0 8px; font-size:12pt; }
     .report-letter p, .report-letter li { line-height:1.55; }
     .report-letter ul { margin-left:20px; }
     .report-print-footer { border-top:1px solid #e5e7eb; margin-top:28px; padding-top:12px; color:#4b5563; font-size:.86rem; text-align:right; }
@@ -130,6 +132,14 @@
         <div class="report-main">
           <div class="panel report-document">
             <div id="reportPreview" class="report-letter">
+              <div class="report-membrete">
+                <div class="m-left">
+                  “2026 - Año de la Grandeza Argentina”<br>
+                  Secretaría de Educación
+                  <strong>PROGRAMA ARGENTINO DE INNOVACIÓN DE LA EDUCACIÓN CON INTELIGENCIA ARTIFICIAL</strong>
+                  <strong>INFORME</strong>
+                </div>
+              </div>
               <div class="report-empty">Cargando datos reales desde Supabase...</div>
             </div>
           </div>
@@ -168,10 +178,6 @@
             </div>
           </div>
 
-          <div class="panel dark-panel">
-            <h3>Membrete</h3>
-            <p>Se usa el encabezado institucional del modelo: “2026 - Año de la Grandeza Argentina” y Secretaría de Educación. Cuando tengas la imagen definitiva del membrete, la reemplazamos en el bloque superior.</p>
-          </div>
         </div>
       </section>
 
