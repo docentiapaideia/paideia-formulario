@@ -2605,3 +2605,96 @@ body.modal-open {
   background: var(--rojo);
   color: var(--blanco);
 }
+
+
+/* HIJAS DENTRO DEL MODAL DE TAREA MADRE */
+.mother-children-panel {
+  border: 1px solid rgba(126, 87, 194, 0.22);
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.mother-children-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.mother-children-header label {
+  margin-bottom: 3px;
+}
+
+.mother-children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mother-children-empty {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--gris-fondo);
+  border: 1px dashed var(--gris-borde);
+  color: var(--gris-texto);
+  line-height: 1.45;
+}
+
+.mother-child-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  box-shadow: 0 8px 20px rgba(11, 37, 69, 0.06);
+}
+
+.mother-child-main strong {
+  display: block;
+  color: var(--azul-oscuro);
+  margin-bottom: 5px;
+}
+
+.mother-child-main p {
+  color: var(--gris-texto);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.mother-child-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--gris-texto);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.mother-child-progress {
+  margin-bottom: 4px;
+}
+
+.mother-child-main small {
+  color: var(--gris-texto);
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .mother-children-header,
+  .mother-child-item {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .mother-children-header .btn-modal,
+  .mother-child-item .btn-modal {
+    width: 100%;
+  }
+}
