@@ -1,4 +1,4 @@
-console.log("TABLERO REAL DESDE SUPABASE - VERSION 34 - TAREAS MADRE, OCULTAMIENTO Y ELIMINACION LOGICA");
+console.log("TABLERO REAL DESDE SUPABASE - VERSION 35 - TAREAS MADRE CON HIJAS EN MODAL");
 
 let columnasSistema = [];
 let miembrosSistema = [];
@@ -416,6 +416,7 @@ async function abrirModalEditarTarea(tarea) {
   );
   cargarSelectPrioridades(document.getElementById("editPrioridad"), tarea.prioridad_id, tarea.prioridad);
   await cargarSelectEtiquetas(document.getElementById("editEtiqueta"), tarea.id);
+  renderizarHijasEnModal(tarea);
 
   modal.classList.add("active");
   bloquearScrollFondo();
@@ -493,7 +494,7 @@ function limpiarFechasModal() {
    MODAL NUEVA TAREA
 ========================================================= */
 
-async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false) {
+async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false, tareaMadrePreseleccionadaId = null) {
   await cargarCatalogosSistema();
 
   setValor("newEsTareaMadre", esMadre ? "true" : "false");
@@ -506,7 +507,7 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false) {
   limpiarSelectMultiple("newColaboradores");
 
   cargarSelectColumnas(document.getElementById("newColumna"), null, columnaNombre || "Nuevo");
-  cargarSelectTareasMadre(document.getElementById("newTareaMadre"), null, null);
+  cargarSelectTareasMadre(document.getElementById("newTareaMadre"), tareaMadrePreseleccionadaId, null);
   configurarGrupoTareaMadre("grupoNewTareaMadre", !esMadre);
   configurarTituloModalNueva(esMadre);
   cargarSelectResponsablesNueva(document.getElementById("newResponsable"));
@@ -524,7 +525,8 @@ function cerrarModalNuevaTarea() {
 }
 
 function limpiarFormularioNuevaTarea() {
-  setValor("newEsTareaMadre", esMadre ? "true" : "false");
+  // No recibe esMadre: simplemente vuelve el modal al estado normal para la próxima carga.
+  setValor("newEsTareaMadre", "false");
   setValor("newTitulo", "");
   setValor("newDescripcion", "");
   setValor("newChecklist", "");
@@ -533,6 +535,8 @@ function limpiarFormularioNuevaTarea() {
   setValor("newFechaLimite", "");
   limpiarSelectMultiple("newColaboradores");
   setValor("newTareaMadre", "");
+  configurarGrupoTareaMadre("grupoNewTareaMadre", true);
+  configurarTituloModalNueva(false);
 }
 
 async function guardarNuevaTarea(event) {
@@ -577,7 +581,7 @@ async function guardarNuevaTarea(event) {
 
   if (error) {
     console.error("Error al crear tarea:", error);
-    alert("No se pudo crear la tarea. Revisá la consola.");
+    alert("No se pudo crear la tarea: " + (error.message || "Revisá la consola."));
     return;
   }
 
@@ -695,6 +699,91 @@ async function eliminarTareaLogica() {
 
   cerrarModalEditarTarea();
   await cargarTablero();
+}
+
+
+function renderizarHijasEnModal(tarea) {
+  const grupo = document.getElementById("grupoTareasHijas");
+  const contenedor = document.getElementById("editTareasHijasContainer");
+
+  if (!grupo || !contenedor) return;
+
+  if (!esTareaMadre(tarea)) {
+    grupo.style.display = "none";
+    contenedor.innerHTML = "";
+    return;
+  }
+
+  grupo.style.display = "block";
+
+  const hijas = tareasTablero
+    .filter(hija => hija.tarea_madre_id === tarea.id)
+    .sort((a, b) => {
+      const fechaA = a.fecha_limite || "9999-12-31";
+      const fechaB = b.fecha_limite || "9999-12-31";
+      return String(fechaA).localeCompare(String(fechaB));
+    });
+
+  if (hijas.length === 0) {
+    contenedor.innerHTML = `
+      <div class="mother-children-empty">
+        Esta tarea madre todavía no tiene hijas asociadas. Usá el botón <strong>+ Agregar tarea hija</strong> para cargar la primera.
+      </div>
+    `;
+    return;
+  }
+
+  contenedor.innerHTML = hijas.map(hija => {
+    const avance = normalizarAvance(hija.porcentaje_avance ?? 0);
+    const estado = hija.columna || "Sin estado";
+    const fecha = hija.fecha_limite || "Sin fecha límite";
+    const responsable = obtenerAsignacionesVisuales(hija).responsable || "Sin responsable";
+    const claseAvance = obtenerClaseAvance(hija, avance);
+
+    return `
+      <div class="mother-child-item" data-hija-id="${escaparHTML(hija.id)}">
+        <div class="mother-child-main">
+          <strong>${escaparHTML(hija.titulo || "Sin título")}</strong>
+          <p>${escaparHTML(limitarTexto(hija.descripcion || "Sin descripción.", 120))}</p>
+          <div class="mother-child-meta">
+            <span>📌 ${escaparHTML(estado)}</span>
+            <span>👤 ${escaparHTML(limitarTexto(responsable, 28))}</span>
+            <span>📅 ${escaparHTML(fecha)}</span>
+          </div>
+          <div class="progress-line small mother-child-progress">
+            <div class="progress-fill ${claseAvance}" style="width: ${avance}%;"></div>
+          </div>
+          <small>${avance}% de avance</small>
+        </div>
+        <button type="button" class="btn-modal secondary btnAbrirHija" data-hija-id="${escaparHTML(hija.id)}">
+          Abrir
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  contenedor.querySelectorAll(".btnAbrirHija").forEach(btn => {
+    btn.addEventListener("click", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const hijaId = btn.dataset.hijaId;
+      const hija = tareasTablero.find(t => t.id === hijaId);
+      if (hija) abrirModalEditarTarea(hija);
+    });
+  });
+}
+
+async function agregarHijaDesdeMadre() {
+  const tareaMadreId = getValor("editTareaId");
+  const tareaMadre = tareasTablero.find(t => t.id === tareaMadreId);
+
+  if (!tareaMadreId || !tareaMadre || !esTareaMadre(tareaMadre)) {
+    alert("Primero abrí una tarea madre válida.");
+    return;
+  }
+
+  cerrarModalEditarTarea();
+  await abrirModalNuevaTarea(tareaMadre.columna || "Nuevo", false, tareaMadreId);
 }
 
 /* =========================================================
@@ -1179,6 +1268,7 @@ function registrarEventos() {
   document.getElementById("btnCancelarModal")?.addEventListener("click", cerrarModalEditarTarea);
   document.getElementById("btnLimpiarFechas")?.addEventListener("click", limpiarFechasModal);
   document.getElementById("btnEliminarTarea")?.addEventListener("click", eliminarTareaLogica);
+  document.getElementById("btnAgregarHijaDesdeMadre")?.addEventListener("click", agregarHijaDesdeMadre);
 
   document.getElementById("modalEditarTarea")?.addEventListener("click", function(event) {
     if (event.target.id === "modalEditarTarea") {
