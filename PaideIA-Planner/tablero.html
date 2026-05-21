@@ -405,6 +405,22 @@ Armar presupuesto"></textarea>
           </div>
         </div>
 
+        <div class="form-group mother-children-panel" id="grupoTareasHijas" style="display:none;">
+          <div class="mother-children-header">
+            <div>
+              <label>Tareas hijas asociadas</label>
+              <small class="form-help">Se muestran las tareas internas que dependen de esta tarea madre.</small>
+            </div>
+            <button type="button" class="btn-modal secondary" id="btnAgregarHijaDesdeMadre">
+              + Agregar tarea hija
+            </button>
+          </div>
+
+          <div id="editTareasHijasContainer" class="mother-children-list">
+            <div class="mother-children-empty">Esta tarea madre todavía no tiene hijas asociadas.</div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Acciones</label>
@@ -438,6 +454,6 @@ Armar presupuesto"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/tablero.js?v=34"></script>
+  <script src="js/tablero.js?v=35"></script>
 </body>
 </html>
