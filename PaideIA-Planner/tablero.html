@@ -72,8 +72,8 @@
       <!-- HEADER -->
       <header class="topbar">
         <div>
-          <h2>Tablero Kanban</h2>
-          <p>Organización visual de tareas por estado, responsable, prioridad y vencimiento.</p>
+          <h2>Tablero PaideIA</h2>
+          <p>Gestión visual de tareas, responsables, colaboradores y seguimiento institucional.</p>
         </div>
 
         <div class="user-card">
@@ -95,6 +95,7 @@
         <div class="board-actions">
           <button class="btn-board light" type="button" id="btnLimpiarFiltros">Limpiar filtros</button>
           <button class="btn-board light" type="button" id="btnRecargar">Recargar</button>
+          <button class="btn-board light" type="button" id="btnNuevaTareaMadre">+ Tarea madre</button>
           <button class="btn-board primary" type="button" id="btnNuevaTarea">+ Nueva tarea</button>
         </div>
       </section>
@@ -204,14 +205,16 @@
 
       <div class="modal-header">
         <div>
-          <h3>Nueva tarea</h3>
-          <p>Cargar una tarea nueva en el tablero PAIDEIA.</p>
+          <h3 id="modalNuevaTitulo">Nueva tarea</h3>
+          <p id="modalNuevaSubtitulo">Cargar una tarea nueva en el tablero PAIDEIA.</p>
         </div>
 
         <button class="modal-close" type="button" id="btnCerrarModalNueva">×</button>
       </div>
 
       <form id="formNuevaTarea" class="modal-form">
+
+        <input type="hidden" id="newEsTareaMadre" value="false">
 
         <div class="form-group">
           <label>Título</label>
@@ -221,6 +224,12 @@
         <div class="form-group">
           <label>Descripción</label>
           <textarea id="newDescripcion" rows="4"></textarea>
+        </div>
+
+        <div class="form-group" id="grupoNewTareaMadre">
+          <label>Pertenece a tarea madre</label>
+          <select id="newTareaMadre"></select>
+          <small class="form-help">Usalo solo si esta tarea forma parte de una tarea grande, como Congreso PaideIA.</small>
         </div>
 
         <div class="form-group">
@@ -322,6 +331,7 @@ Armar presupuesto"></textarea>
       <form id="formEditarTarea" class="modal-form">
 
         <input type="hidden" id="editTareaId">
+        <input type="hidden" id="editEsTareaMadre">
 
         <div class="form-group">
           <label>Título</label>
@@ -331,6 +341,12 @@ Armar presupuesto"></textarea>
         <div class="form-group">
           <label>Descripción</label>
           <textarea id="editDescripcion" rows="4"></textarea>
+        </div>
+
+        <div class="form-group" id="grupoEditTareaMadre">
+          <label>Pertenece a tarea madre</label>
+          <select id="editTareaMadre"></select>
+          <small class="form-help">Si esta tarea es hija, seleccioná la tarea madre correspondiente.</small>
         </div>
 
         <div class="form-group">
@@ -391,10 +407,16 @@ Armar presupuesto"></textarea>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Acción</label>
-            <button type="button" class="btn-modal secondary" id="btnLimpiarFechas">
-              Limpiar fechas
-            </button>
+            <label>Acciones</label>
+            <div class="modal-action-row">
+              <button type="button" class="btn-modal secondary" id="btnLimpiarFechas">
+                Limpiar fechas
+              </button>
+              <button type="button" class="btn-modal danger" id="btnEliminarTarea">
+                Eliminar / sacar del tablero
+              </button>
+            </div>
+            <small class="form-help">La eliminación es lógica: desaparece del tablero, pero queda guardada en la base.</small>
           </div>
         </div>
 
@@ -416,6 +438,6 @@ Armar presupuesto"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/tablero.js?v=33"></script>
+  <script src="js/tablero.js?v=34"></script>
 </body>
 </html>
