@@ -2543,3 +2543,65 @@ body.modal-open {
   font-size: 14px;
   padding: 8px;
 }
+
+
+/* TAREAS MADRE, HIJAS Y ACCIONES */
+.task-type-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.task-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.task-type-badge.mother {
+  background: #eee6ff;
+  color: var(--violeta);
+}
+
+.task-type-badge.child {
+  background: var(--azul-claro);
+  color: var(--azul);
+}
+
+.task-card.mother-task {
+  border: 2px solid rgba(126, 87, 194, 0.38);
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
+}
+
+.task-card.child-task {
+  border-left: 6px solid var(--azul-medio);
+  margin-left: 8px;
+}
+
+.task-meta-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.modal-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-modal.danger {
+  background: #ffe1dd;
+  color: var(--rojo);
+  border: 1px solid rgba(231, 76, 60, 0.28);
+}
+
+.btn-modal.danger:hover {
+  background: var(--rojo);
+  color: var(--blanco);
+}
