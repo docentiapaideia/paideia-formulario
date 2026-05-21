@@ -1,428 +1,354 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal PAIDEIA</title>
-<link rel="icon" type="image/png" href="logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --azul-profundo:#061b33;
-  --azul:#0b3156;
-  --celeste:#47bdd1;
-  --celeste-suave:rgba(94,196,214,.42);
-  --dorado:#d7b04a;
-  --blanco:#ffffff;
-  --texto-suave:rgba(255,255,255,.78);
-  --sombra:0 22px 70px rgba(0,0,0,.28);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%;}
-body{
-  font-family:'Source Sans 3',Arial,sans-serif;
-  color:var(--blanco);
-  background:#061b33;
-}
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:
-    linear-gradient(90deg,rgba(4,18,34,.08),rgba(4,18,34,.02)),
-    url('portal-paideia-2026.png') center center/cover no-repeat;
-  z-index:-2;
-}
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:linear-gradient(90deg,rgba(2,10,22,.24),rgba(2,10,22,.04));
-  z-index:-1;
-  pointer-events:none;
-}
-.auth-login-page{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-}
-.auth-login-card{
-  width:100%;
-  max-width:420px;
-  background:rgba(5,25,48,.76);
-  border:1px solid rgba(143,221,235,.24);
-  box-shadow:var(--sombra);
-  border-radius:4px;
-  padding:30px 28px;
-  backdrop-filter:blur(10px);
-}
-.auth-login-card img{
-  width:76px;
-  height:76px;
-  object-fit:contain;
-  display:block;
-  margin:0 auto 16px;
-  opacity:.94;
-}
-.auth-login-card h1{
-  text-align:center;
-  font-size:1.75rem;
-  line-height:1.1;
-  font-weight:800;
-  margin-bottom:8px;
-  letter-spacing:.02em;
-}
-.auth-login-card p{
-  text-align:center;
-  color:var(--texto-suave);
-  margin-bottom:22px;
-  line-height:1.45;
-}
-.auth-login-card input{
-  width:100%;
-  height:44px;
-  border:1px solid rgba(143,221,235,.24);
-  background:rgba(255,255,255,.08);
-  color:var(--blanco);
-  border-radius:2px;
-  padding:0 13px;
-  font:inherit;
-  outline:none;
-  margin-bottom:12px;
-}
-.auth-login-card input::placeholder{color:rgba(255,255,255,.55)}
-.auth-login-card input:focus{border-color:rgba(215,176,74,.72);background:rgba(255,255,255,.12)}
-.password-field{position:relative;width:100%}
-.password-field input{padding-right:48px}
-.password-toggle{
-  position:absolute;
-  right:7px;
-  top:5px;
-  width:34px;
-  height:34px;
-  border:1px solid rgba(143,221,235,.22);
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  border-radius:2px;
-  cursor:pointer;
-}
-.login-btn{
-  width:100%;
-  height:46px;
-  border:1px solid rgba(215,176,74,.7);
-  background:rgba(215,176,74,.18);
-  color:#fff;
-  border-radius:2px;
-  font:inherit;
-  font-weight:800;
-  letter-spacing:.03em;
-  cursor:pointer;
-  transition:.2s ease;
-}
-.login-btn:hover{background:rgba(215,176,74,.32)}
-.login-btn:disabled{opacity:.7;cursor:wait}
-.auth-login-error{
-  display:none;
-  margin-top:12px;
-  color:#ffd2d2;
-  font-size:.92rem;
-  text-align:center;
-}
-.portal-shell{
-  min-height:100vh;
-  display:none;
-  position:relative;
-}
-.logout-btn{
-  position:fixed;
-  right:24px;
-  top:22px;
-  z-index:10;
-  border:1px solid rgba(255,255,255,.24);
-  background:rgba(4,23,44,.42);
-  color:#fff;
-  padding:8px 15px;
-  border-radius:2px;
-  font:inherit;
-  font-size:.84rem;
-  font-weight:800;
-  cursor:pointer;
-  backdrop-filter:blur(5px);
-}
-.logout-btn:hover{border-color:rgba(215,176,74,.72);background:rgba(4,23,44,.66)}
-.portal-access{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  padding:120px 24px 150px clamp(38px,7vw,120px);
-}
-.access-panel{
-  width:min(520px,92vw);
-  margin-left:0;
-  transform:translateY(8px);
-}
-.access-title{
-  text-align:left;
-  margin-bottom:22px;
-}
-.access-title .kicker{
-  display:inline-block;
-  font-size:.74rem;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  color:rgba(143,221,235,.9);
-  margin-bottom:7px;
-}
-.access-title h1{
-  font-size:1.42rem;
-  font-weight:800;
-  line-height:1.1;
-  letter-spacing:.03em;
-}
-.access-title p{
-  color:rgba(255,255,255,.66);
-  font-size:.93rem;
-  margin-top:5px;
-}
-.portal-options{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-.portal-tile{
-  display:block;
-  text-decoration:none;
-  color:#fff;
-  border:1px solid rgba(143,221,235,.24);
-  background:rgba(4,24,45,.18);
-  padding:7px;
-  border-radius:2px;
-  transition:border-color .2s ease, background .2s ease;
-}
-.portal-tile-inner{
-  min-height:56px;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(6,32,57,.56);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  padding:0 18px;
-  border-radius:1px;
-  transition:background .2s ease,border-color .2s ease;
-}
-.portal-tile:hover{
-  border-color:rgba(215,176,74,.7);
-  background:rgba(4,24,45,.28);
-}
-.portal-tile:hover .portal-tile-inner{
-  background:rgba(11,58,92,.72);
-  border-color:rgba(215,176,74,.52);
-}
-.portal-tile strong{
-  font-size:1rem;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-}
-.portal-tile span{
-  font-size:.82rem;
-  color:rgba(255,255,255,.58);
-  white-space:nowrap;
-}
-.portal-tile .arrow{
-  color:var(--dorado);
-  font-size:1rem;
-  opacity:.85;
-}
-@media (max-width:1000px){
-  body::before{background-position:center center;}
-  .portal-access{padding-left:24px;justify-content:flex-start;}
-  .access-panel{margin-left:0;transform:none;background:rgba(5,25,48,.28);padding:18px;border:1px solid rgba(143,221,235,.14);backdrop-filter:blur(4px)}
-}
-@media (max-width:560px){
-  .portal-access{padding:96px 18px 120px;align-items:center;justify-content:flex-start;}
-  .access-title h1{font-size:1.25rem}
-  .portal-tile-inner{min-height:58px;padding:0 13px;}
-  .portal-tile strong{font-size:.9rem;letter-spacing:.05em;}
-  .portal-tile span{display:none;}
-  .logout-btn{right:14px;top:14px}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal PAIDEIA</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#071c39;
+      --navy2:#0d2d59;
+      --cyan:#68c8e8;
+      --cyan-soft:rgba(104,200,232,.42);
+      --gold:#d4b24a;
+      --white:#fff;
+      --muted:rgba(255,255,255,.70);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%;font-family:"Source Sans 3",Arial,sans-serif;background:#06192f;color:#fff}
+    body{
+      background-image:
+        linear-gradient(90deg, rgba(3,17,35,.25), rgba(3,17,35,.08)),
+        url("portal-paideia-2026.png");
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      overflow:hidden;
+    }
+    .screen{min-height:100vh;width:100%;position:relative}
+    .login{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      padding-left:clamp(26px,7vw,110px);
+      padding-right:24px;
+      background:rgba(4,18,38,.42);
+      backdrop-filter:blur(2px);
+    }
+    .login-card{
+      width:min(390px,92vw);
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(5,24,49,.70);
+      box-shadow:0 24px 70px rgba(0,0,0,.35);
+      padding:28px;
+    }
+    .login-card h1{font-size:1.45rem;font-weight:800;letter-spacing:.04em;margin-bottom:6px}
+    .login-card p{color:var(--muted);font-size:.92rem;line-height:1.45;margin-bottom:18px}
+    .login-card input{
+      width:100%;height:44px;margin-bottom:12px;padding:0 13px;
+      border:1px solid rgba(255,255,255,.24);
+      background:rgba(255,255,255,.09);color:#fff;outline:none;
+      font-family:inherit;font-size:.92rem;
+    }
+    .login-card input::placeholder{color:rgba(255,255,255,.55)}
+    .password-field{position:relative}
+    .password-field input{padding-right:48px}
+    .password-toggle{
+      position:absolute;right:7px;top:6px;width:34px;height:32px;border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);color:#fff;cursor:pointer;
+    }
+    .login-card button.main{
+      width:100%;height:45px;border:1px solid rgba(212,178,74,.55);
+      background:rgba(212,178,74,.16);color:#fff;font-weight:800;letter-spacing:.05em;cursor:pointer;
+      transition:.2s;font-family:inherit;
+    }
+    .login-card button.main:hover{background:rgba(212,178,74,.28)}
+    .login-card button.main:disabled{opacity:.65;cursor:wait}
+    .error{display:none;color:#ffb4b4;font-size:.88rem;margin-top:12px;line-height:1.35}
+    .portal{display:none;min-height:100vh;align-items:center;justify-content:flex-start;padding-left:clamp(26px,7vw,110px);padding-right:24px}
+    .access-panel{
+      width:min(430px,92vw);
+      margin-top:20px;
+    }
+    .portal-kicker{
+      display:inline-block;
+      color:var(--cyan);
+      font-size:.75rem;
+      font-weight:800;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    }
+    .portal-title{
+      font-size:clamp(1.8rem,3.1vw,3rem);
+      line-height:1.02;
+      letter-spacing:.03em;
+      margin-bottom:10px;
+      text-shadow:0 3px 18px rgba(0,0,0,.35);
+    }
+    .portal-subtitle{
+      color:var(--muted);
+      font-size:1rem;
+      line-height:1.45;
+      margin-bottom:24px;
+      max-width:420px;
+    }
+    .access-list{display:flex;flex-direction:column;gap:14px}
+    .access-shell{
+      display:block;
+      text-decoration:none;
+      color:#fff;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(2,17,36,.25);
+      padding:7px;
+      transition:.18s;
+    }
+    .access-inner{
+      border:1px solid rgba(104,200,232,.40);
+      background:rgba(7,28,57,.42);
+      min-height:50px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:0 18px;
+      transition:.18s;
+    }
+    .access-shell:hover .access-inner{
+      background:rgba(104,200,232,.16);
+      border-color:rgba(212,178,74,.55);
+    }
+    .access-title{
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.94rem;
+    }
+    .access-note{
+      display:block;
+      color:rgba(255,255,255,.55);
+      font-size:.72rem;
+      font-weight:600;
+      letter-spacing:.03em;
+      margin-top:1px;
+    }
+    .arrow{color:var(--gold);font-weight:900}
+    .admin-access{display:none}
+    .admin-access.visible{display:block}
+    .admin-hint{
+      display:none;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(7,28,57,.34);
+      color:rgba(255,255,255,.72);
+      padding:12px 14px;
+      font-size:.84rem;
+      line-height:1.35;
+      margin-top:14px;
+    }
+    .admin-hint.visible{display:block}
+    .top-actions{
+      position:fixed;right:24px;top:22px;display:none;gap:10px;z-index:3
+    }
+    .top-actions.visible{display:flex}
+    .logout{
+      border:1px solid rgba(255,255,255,.20);background:rgba(7,28,57,.48);color:#fff;
+      padding:9px 14px;font-weight:800;cursor:pointer;font-family:inherit;
+    }
+    @media (max-width:760px){
+      body{overflow:auto;background-position:center}
+      .portal,.login{align-items:flex-start;padding-top:120px}
+      .top-actions{top:14px;right:14px}
+    }
+  </style>
 </head>
 <body>
-
-<div id="loginScreen" class="auth-login-page">
-  <div class="auth-login-card">
-    <img src="logo.png" alt="PaideIA" onerror="this.style.display='none';">
-    <h1>Ingreso PAIDEIA</h1>
-    <p>Accedé con tu usuario autorizado para ingresar al portal.</p>
-    <input id="loginEmail" type="email" placeholder="Email" autocomplete="username">
-    <div class="password-field">
-      <input id="loginPassword" type="password" placeholder="Contraseña" autocomplete="current-password">
-      <button class="password-toggle" type="button" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Mostrar contraseña">👁️</button>
-    </div>
-    <button id="loginButton" class="login-btn" type="button" onclick="login()">Ingresar</button>
-    <div id="authLoginError" class="auth-login-error"></div>
-  </div>
-</div>
-
-<div id="portalContent" class="portal-shell">
-  <button class="logout-btn" type="button" onclick="logout()">Cerrar sesión</button>
-
-  <main class="portal-access">
-    <section class="access-panel">
-      <div class="access-title">
-        <span class="kicker">Portal de acceso</span>
-        <h1>PAIDEIA</h1>
-        <p>Herramientas, recursos y gestión institucional.</p>
-      </div>
-
-      <div class="portal-options">
-        <a class="portal-tile" href="buenas-practicas.html">
-          <div class="portal-tile-inner">
-            <strong>Buenas prácticas</strong>
-            <span>Repositorio</span>
-            <em class="arrow">›</em>
-          </div>
-        </a>
-
-        <a class="portal-tile" href="Campus_IA/index.html">
-          <div class="portal-tile-inner">
-            <strong>Campus IA</strong>
-            <span>Formación</span>
-            <em class="arrow">›</em>
-          </div>
-        </a>
-
-        <a class="portal-tile" href="PaideIA-Planner/index.html">
-          <div class="portal-tile-inner">
-            <strong>PaideIA Planner</strong>
-            <span>Gestión</span>
-            <em class="arrow">›</em>
-          </div>
-        </a>
+  <div class="screen">
+    <section id="loginScreen" class="login">
+      <div class="login-card">
+        <h1>Ingreso PAIDEIA</h1>
+        <p>Accedé con tu usuario autorizado para ingresar al portal.</p>
+        <input id="loginEmail" type="email" placeholder="Email" autocomplete="username">
+        <div class="password-field">
+          <input id="loginPassword" type="password" placeholder="Contraseña" autocomplete="current-password">
+          <button class="password-toggle" type="button" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Mostrar contraseña">👁️</button>
+        </div>
+        <button id="loginButton" class="main" type="button" onclick="login()">Ingresar</button>
+        <div id="authLoginError" class="error"></div>
       </div>
     </section>
-  </main>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL = "https://mhwcnlkrwylloyxpmmqu.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU";
-let supabaseClient = null;
+    <div id="topActions" class="top-actions">
+      <button class="logout" type="button" onclick="logout()">Cerrar sesión</button>
+    </div>
 
-function initSupabase(){
-  if(!window.supabase){
-    showLogin("No se pudo cargar Supabase. Revisá tu conexión o recargá la página.");
-    return false;
-  }
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return true;
-}
+    <main id="portalScreen" class="portal">
+      <section class="access-panel">
+        <span class="portal-kicker">Portal institucional</span>
+        <h1 class="portal-title">PAIDEIA</h1>
+        <p class="portal-subtitle">Acceso a recursos, formación y gestión del Programa Argentino de Innovación de la Educación con Inteligencia Artificial.</p>
 
-function getNextUrl(){
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get("next");
-  if(!next) return "";
-  if(next.startsWith("http://") || next.startsWith("https://") || next.startsWith("//")) return "";
-  return next;
-}
+        <div class="access-list">
+          <a class="access-shell" href="buenas-practicas.html">
+            <div class="access-inner">
+              <div>
+                <span class="access-title">Buenas prácticas</span>
+                <span class="access-note">Repositorio y experiencias</span>
+              </div>
+              <span class="arrow">›</span>
+            </div>
+          </a>
 
-function showLogin(message=""){
-  document.getElementById("portalContent").style.display = "none";
-  document.getElementById("loginScreen").style.display = "flex";
-  const err = document.getElementById("authLoginError");
-  if(err){
-    err.style.display = message ? "block" : "none";
-    err.textContent = message;
-  }
-}
+          <a class="access-shell admin-access" href="Campus_IA/index.html" data-admin-only>
+            <div class="access-inner">
+              <div>
+                <span class="access-title">Campus IA</span>
+                <span class="access-note">Formación interna</span>
+              </div>
+              <span class="arrow">›</span>
+            </div>
+          </a>
 
-function showPortal(){
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("portalContent").style.display = "block";
-}
+          <a class="access-shell admin-access" href="PaideIA-Planner/index.html" data-admin-only>
+            <div class="access-inner">
+              <div>
+                <span class="access-title">PaideIA Planner</span>
+                <span class="access-note">Gestión y seguimiento</span>
+              </div>
+              <span class="arrow">›</span>
+            </div>
+          </a>
+        </div>
 
-async function initAuth(){
-  if(!initSupabase()) return;
-  try{
-    const { data } = await supabaseClient.auth.getSession();
-    if(data && data.session){
-      const next = getNextUrl();
-      if(next){
-        window.location.href = next;
-        return;
+        <div id="adminHint" class="admin-hint">
+          Las herramientas Campus IA y PaideIA Planner están disponibles solo para usuarios administradores.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://mhwcnlkrwylloyxpmmqu.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU";
+    let supabaseClient = null;
+    let currentRole = "user";
+
+    function initSupabase(){
+      if (!window.supabase) {
+        showLogin("No se pudo cargar Supabase. Recargá la página.");
+        return false;
       }
-      showPortal();
-    }else{
+      if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      return true;
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      if (btn) btn.textContent = showing ? "👁️" : "🙈";
+    }
+
+    function showLogin(message = ""){
+      document.getElementById("loginScreen").style.display = "flex";
+      document.getElementById("portalScreen").style.display = "none";
+      document.getElementById("topActions").classList.remove("visible");
+      const err = document.getElementById("authLoginError");
+      err.style.display = message ? "block" : "none";
+      err.textContent = message;
+    }
+
+    function showPortal(){
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("portalScreen").style.display = "flex";
+      document.getElementById("topActions").classList.add("visible");
+      applyRoleVisibility();
+    }
+
+    function applyRoleVisibility(){
+      const isAdmin = currentRole === "admin";
+      document.querySelectorAll("[data-admin-only]").forEach(el => {
+        el.classList.toggle("visible", isAdmin);
+      });
+      document.getElementById("adminHint").classList.toggle("visible", !isAdmin);
+    }
+
+    async function loadCurrentRole(){
+      currentRole = "user";
+      const { data: userData } = await supabaseClient.auth.getUser();
+      const user = userData?.user;
+      if (!user) return "user";
+
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("No se pudo leer el rol del perfil:", error.message);
+        return "user";
+      }
+
+      currentRole = data?.role || "user";
+      return currentRole;
+    }
+
+    async function initAuth(){
+      if (!initSupabase()) return;
+      try {
+        await supabaseClient.auth.signOut();
+      } catch(e) {}
       showLogin();
     }
-  }catch(err){
-    console.error("Error initAuth:", err);
-    showLogin("Ocurrió un error al iniciar. Recargá la página.");
-  }
-}
 
-async function login(){
-  if(!supabaseClient && !initSupabase()) return;
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
-  const button = document.getElementById("loginButton");
+    async function login(){
+      if (!supabaseClient && !initSupabase()) return;
 
-  if(!email || !password){
-    showLogin("Completá email y contraseña.");
-    return;
-  }
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const button = document.getElementById("loginButton");
 
-  button.disabled = true;
-  button.textContent = "Ingresando...";
+      if (!email || !password) {
+        showLogin("Completá email y contraseña.");
+        return;
+      }
 
-  try{
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if(error){
-      showLogin(error.message || "Credenciales incorrectas.");
-      return;
+      button.disabled = true;
+      button.textContent = "Ingresando...";
+
+      try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showLogin(error.message || "Credenciales incorrectas.");
+          return;
+        }
+
+        await loadCurrentRole();
+        showPortal();
+      } catch(err) {
+        console.error(err);
+        showLogin("No se pudo iniciar sesión. Intentá nuevamente.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Ingresar";
+      }
     }
-    const next = getNextUrl();
-    if(next){
-      window.location.href = next;
-      return;
+
+    async function logout(){
+      if (!supabaseClient && !initSupabase()) return;
+      await supabaseClient.auth.signOut();
+      currentRole = "user";
+      showLogin();
     }
-    showPortal();
-  }catch(err){
-    console.error("Error login:", err);
-    showLogin("No se pudo iniciar sesión. Intentá nuevamente.");
-  }finally{
-    button.disabled = false;
-    button.textContent = "Ingresar";
-  }
-}
 
-async function logout(){
-  if(!supabaseClient && !initSupabase()) return;
-  await supabaseClient.auth.signOut();
-  showLogin();
-}
-
-function togglePasswordVisibility(inputId, button){
-  const input = document.getElementById(inputId);
-  if(!input) return;
-  const showing = input.type === "text";
-  input.type = showing ? "password" : "text";
-  button.textContent = showing ? "👁️" : "🙈";
-}
-
-document.getElementById("loginPassword").addEventListener("keydown", function(e){
-  if(e.key === "Enter") login();
-});
-
-document.addEventListener("DOMContentLoaded", initAuth);
-</script>
+    document.addEventListener("DOMContentLoaded", initAuth);
+  </script>
 </body>
 </html>
