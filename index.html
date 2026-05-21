@@ -156,16 +156,16 @@ body::after{
   min-height:100vh;
   display:flex;
   align-items:center;
-  justify-content:center;
-  padding:120px 24px 150px;
+  justify-content:flex-start;
+  padding:120px 24px 150px clamp(38px,7vw,120px);
 }
 .access-panel{
   width:min(520px,92vw);
-  margin-left:clamp(-320px,-25vw,-90px);
+  margin-left:0;
   transform:translateY(8px);
 }
 .access-title{
-  text-align:center;
+  text-align:left;
   margin-bottom:22px;
 }
 .access-title .kicker{
@@ -241,10 +241,11 @@ body::after{
 }
 @media (max-width:1000px){
   body::before{background-position:center center;}
+  .portal-access{padding-left:24px;justify-content:flex-start;}
   .access-panel{margin-left:0;transform:none;background:rgba(5,25,48,.28);padding:18px;border:1px solid rgba(143,221,235,.14);backdrop-filter:blur(4px)}
 }
 @media (max-width:560px){
-  .portal-access{padding:96px 18px 120px;align-items:center;}
+  .portal-access{padding:96px 18px 120px;align-items:center;justify-content:flex-start;}
   .access-title h1{font-size:1.25rem}
   .portal-tile-inner{min-height:58px;padding:0 13px;}
   .portal-tile strong{font-size:.9rem;letter-spacing:.05em;}
