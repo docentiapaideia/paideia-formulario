@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus IA - PaideIA</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .portal-back-campus{
+      display:block;
+      width:100%;
+      text-decoration:none;
+      color:inherit;
+      border:1px solid rgba(255,255,255,.18);
+      padding:10px 12px;
+      border-radius:12px;
+      margin-bottom:14px;
+      font-weight:700;
+      background:rgba(255,255,255,.08);
+      transition:.2s;
+    }
+    .portal-back-campus:hover{background:rgba(255,255,255,.15)}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://mhwcnlkrwylloyxpmmqu.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU";
+  const portalUrl = "../index.html";
+
+  document.documentElement.style.visibility = "hidden";
+
+  async function checkAdmin(){
+    if (!window.supabase) {
+      window.location.href = portalUrl;
+      return;
+    }
+
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: sessionData } = await client.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    if (!user) {
+      window.location.href = portalUrl;
+      return;
+    }
+
+    const { data, error } = await client
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error || data?.role !== "admin") {
+      alert("Esta sección está disponible solo para administradores.");
+      window.location.href = portalUrl;
+      return;
+    }
+
+    document.documentElement.style.visibility = "";
+  }
+
+  checkAdmin();
+})();
+</script>
+</head>
+<body>
+
+  <aside class="sidebar">
+
+    <div>
+
+      <div class="brand">
+        <img src="assets/logo.png" alt="Logo PaideIA">
+
+        <div>
+          <h1>Campus IA</h1>
+          <p>Guía práctica de uso de Inteligencia Artificial</p>
+        </div>
+      </div>
+
+      <a class="portal-back-campus" href="../index.html">← Volver al portal</a>
+
+      <nav class="menu">
+
+        <button class="nav-btn active" data-module="inicio">
+          🏠 Inicio
+        </button>
+
+        <button class="nav-btn" data-module="chatgpt">
+          🤖 ChatGPT
+        </button>
+
+        <button class="nav-btn" data-module="claude">
+          🟣 Claude
+        </button>
+
+        <button class="nav-btn" data-module="gemini">
+          🔵 Gemini
+        </button>
+
+        <button class="nav-btn" data-module="copilot">
+          🟦 Copilot
+        </button>
+
+        <button class="nav-btn" data-module="laboratorio">
+          🧪 Laboratorio
+        </button>
+
+      </nav>
+
+    </div>
+
+    <div class="sidebar-footer">
+      <strong>PaideIA</strong>
+      <span>
+        Uso responsable, crítico y educativo de IA.
+      </span>
+    </div>
+
+  </aside>
+
+  <main class="main">
+
+    <header class="topbar">
+
+      <div>
+        <span class="tag">
+          PaideIA · Formación Digital
+        </span>
+      </div>
+
+      <div class="ai-icons">
+
+        <div class="ai-logo">
+          <img src="assets/chatgpt.png" alt="ChatGPT">
+        </div>
+
+        <div class="ai-logo">
+          <img src="assets/claude.png" alt="Claude">
+        </div>
+
+        <div class="ai-logo">
+          <img src="assets/gemini.png" alt="Gemini">
+        </div>
+
+        <div class="ai-logo">
+          <img src="assets/copilot.png" alt="Copilot">
+        </div>
+
+      </div>
+
+    </header>
+
+    <section id="content" class="content-card">
+    </section>
+
+  </main>
+
+  <div class="modal" id="infoModal">
+
+    <div class="modal-box">
+
+      <button class="modal-close" id="modalClose">
+        ×
+      </button>
+
+      <div id="modalBody"></div>
+
+    </div>
+
+  </div>
+
+ <script src="js/app.js?v=2"></script>
+
+</body>
+</html>
