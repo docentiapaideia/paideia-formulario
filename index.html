@@ -13,6 +13,9 @@
       --cyan: #68c8e8;
       --gold: #d4b24a;
       --muted: rgba(255,255,255,.72);
+      --panel: rgba(2,17,36,.34);
+      --panel-strong: rgba(7,28,57,.58);
+      --border: rgba(104,200,232,.38);
     }
 
     * {
@@ -31,8 +34,14 @@
     }
 
     body {
+      /*
+        IMPORTANTE:
+        Esta imagen ya trae el encabezado visual:
+        PORTAL INSTITUCIONAL / PAIDEIA / Congreso.
+        Por eso más abajo ocultamos esos textos HTML para que no se dupliquen.
+      */
       background-image:
-        linear-gradient(90deg, rgba(3,17,35,.08), rgba(3,17,35,.02)),
+        linear-gradient(90deg, rgba(3,17,35,.06), rgba(3,17,35,.01)),
         url("portal-paideia-2026.png");
       background-size: cover;
       background-position: center top;
@@ -45,6 +54,8 @@
       width: 100%;
       position: relative;
     }
+
+    /* LOGIN */
 
     .login {
       min-height: 100vh;
@@ -59,7 +70,7 @@
     .login-card {
       width: min(410px, 92vw);
       border: 1px solid rgba(255,255,255,.18);
-      background: rgba(5,24,49,.78);
+      background: rgba(5,24,49,.82);
       box-shadow: 0 24px 70px rgba(0,0,0,.38);
       padding: 30px 28px;
       text-align: left;
@@ -146,27 +157,35 @@
       line-height: 1.35;
     }
 
+    /* PORTAL */
+
     .portal {
       display: none;
       min-height: 100vh;
       align-items: flex-start;
       justify-content: flex-start;
-      padding-left: clamp(26px, 7vw, 110px);
+      padding-left: clamp(28px, 6vw, 90px);
       padding-right: 24px;
-      padding-top: clamp(285px, 36vh, 380px);
+
+      /*
+        Acá se deja el espacio para que respiren:
+        - PAIDEIA
+        - Congreso Internacional
+        - banner superior de la imagen
+        La botonera arranca debajo del encabezado.
+      */
+      padding-top: clamp(315px, 43vh, 440px);
     }
 
     .access-panel {
-      width: min(430px, 92vw);
+      width: min(460px, 92vw);
       margin-top: 0;
     }
 
     /*
-      La imagen portal-paideia-2026.png ya trae:
-      - PORTAL INSTITUCIONAL
-      - PAIDEIA
-      - Congreso Internacional PAIDEIA
-      Por eso estos textos se ocultan para que no se superpongan.
+      Estos textos ya están dentro de la imagen de fondo.
+      Los dejamos en el HTML por si más adelante usás un fondo limpio,
+      pero ahora se ocultan para evitar superposición.
     */
     .portal-kicker,
     .portal-title,
@@ -184,40 +203,47 @@
       display: block;
       text-decoration: none;
       color: #ffffff;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(2,17,36,.25);
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(2,17,36,.22);
       padding: 7px;
       transition: .18s;
+      box-shadow: 0 18px 35px rgba(0,0,0,.12);
+      backdrop-filter: blur(1px);
     }
 
     .access-inner {
-      border: 1px solid rgba(104,200,232,.40);
-      background: rgba(7,28,57,.42);
-      min-height: 50px;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      min-height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      padding: 0 18px;
+      padding: 0 20px;
       transition: .18s;
+    }
+
+    .access-shell:hover {
+      transform: translateX(4px);
+      border-color: rgba(212,178,74,.45);
     }
 
     .access-shell:hover .access-inner {
       background: rgba(104,200,232,.16);
-      border-color: rgba(212,178,74,.55);
+      border-color: rgba(212,178,74,.62);
     }
 
     .access-title {
       font-weight: 800;
       letter-spacing: .08em;
       text-transform: uppercase;
-      font-size: .94rem;
+      font-size: .98rem;
     }
 
     .access-note {
       display: block;
-      color: rgba(255,255,255,.55);
-      font-size: .72rem;
+      color: rgba(255,255,255,.62);
+      font-size: .74rem;
       font-weight: 600;
       letter-spacing: .03em;
       margin-top: 1px;
@@ -226,6 +252,8 @@
     .arrow {
       color: var(--gold);
       font-weight: 900;
+      font-size: 1.25rem;
+      line-height: 1;
     }
 
     .admin-access {
@@ -239,12 +267,13 @@
     .admin-hint {
       display: none;
       border: 1px solid rgba(255,255,255,.14);
-      background: rgba(7,28,57,.34);
-      color: rgba(255,255,255,.72);
+      background: rgba(7,28,57,.42);
+      color: rgba(255,255,255,.76);
       padding: 12px 14px;
       font-size: .84rem;
       line-height: 1.35;
       margin-top: 14px;
+      backdrop-filter: blur(1px);
     }
 
     .admin-hint.visible {
@@ -266,12 +295,29 @@
 
     .logout {
       border: 1px solid rgba(255,255,255,.20);
-      background: rgba(7,28,57,.48);
+      background: rgba(7,28,57,.58);
       color: #ffffff;
       padding: 9px 14px;
       font-weight: 800;
       cursor: pointer;
       font-family: inherit;
+      backdrop-filter: blur(1px);
+    }
+
+    .logout:hover {
+      background: rgba(104,200,232,.14);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1000px) {
+      body {
+        background-position: center top;
+      }
+
+      .portal {
+        padding-top: 360px;
+      }
     }
 
     @media (max-width: 760px) {
@@ -283,7 +329,9 @@
 
       .portal {
         align-items: flex-start;
-        padding-top: 310px;
+        padding-top: 330px;
+        padding-left: 20px;
+        padding-right: 20px;
       }
 
       .login {
@@ -293,6 +341,29 @@
       .top-actions {
         top: 14px;
         right: 14px;
+      }
+
+      .access-panel {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .portal {
+        padding-top: 300px;
+      }
+
+      .access-inner {
+        min-height: 54px;
+        padding: 0 16px;
+      }
+
+      .access-title {
+        font-size: .9rem;
+      }
+
+      .access-note {
+        font-size: .7rem;
       }
     }
   </style>
