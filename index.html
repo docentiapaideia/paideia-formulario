@@ -3,177 +3,328 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Portal PAIDEIA</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    :root{
-      --navy:#071c39;
-      --navy2:#0d2d59;
-      --cyan:#68c8e8;
-      --cyan-soft:rgba(104,200,232,.42);
-      --gold:#d4b24a;
-      --white:#fff;
-      --muted:rgba(255,255,255,.70);
+    :root {
+      --cyan: #68c8e8;
+      --gold: #d4b24a;
+      --muted: rgba(255,255,255,.72);
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%;font-family:"Source Sans 3",Arial,sans-serif;background:#06192f;color:#fff}
-    body{
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      font-family: "Source Sans 3", Arial, sans-serif;
+      background: #06192f;
+      color: #ffffff;
+    }
+
+    body {
       background-image:
-        linear-gradient(90deg, rgba(3,17,35,.25), rgba(3,17,35,.08)),
+        linear-gradient(90deg, rgba(3,17,35,.10), rgba(3,17,35,.02)),
         url("portal-paideia-2026.png");
-      background-size: min(96vw, 1780px) auto;
-      background-position:center;
-      background-repeat:no-repeat;
-      overflow:hidden;
+      background-size: 94vw auto;
+      background-position: center center;
+      background-repeat: no-repeat;
+      overflow: hidden;
     }
-    .screen{min-height:100vh;width:100%;position:relative}
-    .login{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      background:rgba(4,18,38,.42);
-      backdrop-filter:blur(2px);
+
+    .screen {
+      min-height: 100vh;
+      width: 100%;
+      position: relative;
     }
-    .login-card{
-      width:min(390px,92vw);
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(5,24,49,.70);
-      box-shadow:0 24px 70px rgba(0,0,0,.35);
-      padding:28px;
+
+    .login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(4,18,38,.42);
+      backdrop-filter: blur(2px);
     }
-    .login-card h1{font-size:1.45rem;font-weight:800;letter-spacing:.04em;margin-bottom:6px}
-    .login-card p{color:var(--muted);font-size:.92rem;line-height:1.45;margin-bottom:18px}
-    .login-card input{
-      width:100%;height:44px;margin-bottom:12px;padding:0 13px;
-      border:1px solid rgba(255,255,255,.24);
-      background:rgba(255,255,255,.09);color:#fff;outline:none;
-      font-family:inherit;font-size:.92rem;
+
+    .login-card {
+      width: min(410px, 92vw);
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(5,24,49,.78);
+      box-shadow: 0 24px 70px rgba(0,0,0,.38);
+      padding: 30px 28px;
+      text-align: left;
     }
-    .login-card input::placeholder{color:rgba(255,255,255,.55)}
-    .password-field{position:relative}
-    .password-field input{padding-right:48px}
-    .password-toggle{
-      position:absolute;right:7px;top:6px;width:34px;height:32px;border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.08);color:#fff;cursor:pointer;
+
+    .login-card h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      margin-bottom: 6px;
     }
-    .login-card button.main{
-      width:100%;height:45px;border:1px solid rgba(212,178,74,.55);
-      background:rgba(212,178,74,.16);color:#fff;font-weight:800;letter-spacing:.05em;cursor:pointer;
-      transition:.2s;font-family:inherit;
+
+    .login-card p {
+      color: var(--muted);
+      font-size: .94rem;
+      line-height: 1.45;
+      margin-bottom: 18px;
     }
-    .login-card button.main:hover{background:rgba(212,178,74,.28)}
-    .login-card button.main:disabled{opacity:.65;cursor:wait}
-    .error{display:none;color:#ffb4b4;font-size:.88rem;margin-top:12px;line-height:1.35}
-    .portal{display:none;min-height:100vh;align-items:center;justify-content:flex-start;padding-left:clamp(26px,7vw,110px);padding-right:24px}
-    .access-panel{
-      width:min(430px,92vw);
-      margin-top:20px;
+
+    .login-card input {
+      width: 100%;
+      height: 44px;
+      margin-bottom: 12px;
+      padding: 0 13px;
+      border: 1px solid rgba(255,255,255,.24);
+      background: rgba(255,255,255,.09);
+      color: #ffffff;
+      outline: none;
+      font-family: inherit;
+      font-size: .92rem;
     }
-    .portal-kicker{
-      display:inline-block;
-      color:var(--cyan);
-      font-size:.75rem;
-      font-weight:800;
-      letter-spacing:.15em;
-      text-transform:uppercase;
-      margin-bottom:12px;
+
+    .login-card input::placeholder {
+      color: rgba(255,255,255,.55);
     }
-    .portal-title{
-      font-size:clamp(1.8rem,3.1vw,3rem);
-      line-height:1.02;
-      letter-spacing:.03em;
-      margin-bottom:10px;
-      text-shadow:0 3px 18px rgba(0,0,0,.35);
+
+    .password-field {
+      position: relative;
     }
-    .portal-subtitle{
-      color:var(--muted);
-      font-size:1rem;
-      line-height:1.45;
-      margin-bottom:24px;
-      max-width:420px;
+
+    .password-field input {
+      padding-right: 48px;
     }
-    .access-list{display:flex;flex-direction:column;gap:14px}
-    .access-shell{
-      display:block;
-      text-decoration:none;
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(2,17,36,.25);
-      padding:7px;
-      transition:.18s;
+
+    .password-toggle {
+      position: absolute;
+      right: 7px;
+      top: 6px;
+      width: 34px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #ffffff;
+      cursor: pointer;
     }
-    .access-inner{
-      border:1px solid rgba(104,200,232,.40);
-      background:rgba(7,28,57,.42);
-      min-height:50px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      padding:0 18px;
-      transition:.18s;
+
+    .login-card button.main {
+      width: 100%;
+      height: 45px;
+      border: 1px solid rgba(212,178,74,.55);
+      background: rgba(212,178,74,.16);
+      color: #ffffff;
+      font-weight: 800;
+      letter-spacing: .05em;
+      cursor: pointer;
+      transition: .2s;
+      font-family: inherit;
     }
-    .access-shell:hover .access-inner{
-      background:rgba(104,200,232,.16);
-      border-color:rgba(212,178,74,.55);
+
+    .login-card button.main:hover {
+      background: rgba(212,178,74,.28);
     }
-    .access-title{
-      font-weight:800;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      font-size:.94rem;
+
+    .login-card button.main:disabled {
+      opacity: .65;
+      cursor: wait;
     }
-    .access-note{
-      display:block;
-      color:rgba(255,255,255,.55);
-      font-size:.72rem;
-      font-weight:600;
-      letter-spacing:.03em;
-      margin-top:1px;
+
+    .error {
+      display: none;
+      color: #ffb4b4;
+      font-size: .88rem;
+      margin-top: 12px;
+      line-height: 1.35;
     }
-    .arrow{color:var(--gold);font-weight:900}
-    .admin-access{display:none}
-    .admin-access.visible{display:block}
-    .admin-hint{
-      display:none;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(7,28,57,.34);
-      color:rgba(255,255,255,.72);
-      padding:12px 14px;
-      font-size:.84rem;
-      line-height:1.35;
-      margin-top:14px;
+
+    .portal {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: clamp(26px, 7vw, 110px);
+      padding-right: 24px;
     }
-    .admin-hint.visible{display:block}
-    .top-actions{
-      position:fixed;right:24px;top:22px;display:none;gap:10px;z-index:3
+
+    .access-panel {
+      width: min(430px, 92vw);
+      margin-top: 18px;
     }
-    .top-actions.visible{display:flex}
-    .logout{
-      border:1px solid rgba(255,255,255,.20);background:rgba(7,28,57,.48);color:#fff;
-      padding:9px 14px;font-weight:800;cursor:pointer;font-family:inherit;
+
+    .portal-kicker {
+      display: inline-block;
+      color: var(--cyan);
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
     }
-    @media (max-width:760px){
-      body{overflow:auto;background-position:center}
-      .portal,.login{align-items:flex-start;padding-top:120px}
-      .top-actions{top:14px;right:14px}
+
+    .portal-title {
+      font-size: clamp(1.8rem, 3.1vw, 3rem);
+      line-height: 1.02;
+      letter-spacing: .03em;
+      margin-bottom: 10px;
+      text-shadow: 0 3px 18px rgba(0,0,0,.35);
+    }
+
+    .portal-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.45;
+      margin-bottom: 24px;
+      max-width: 420px;
+    }
+
+    .access-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .access-shell {
+      display: block;
+      text-decoration: none;
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(2,17,36,.25);
+      padding: 7px;
+      transition: .18s;
+    }
+
+    .access-inner {
+      border: 1px solid rgba(104,200,232,.40);
+      background: rgba(7,28,57,.42);
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 0 18px;
+      transition: .18s;
+    }
+
+    .access-shell:hover .access-inner {
+      background: rgba(104,200,232,.16);
+      border-color: rgba(212,178,74,.55);
+    }
+
+    .access-title {
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: .94rem;
+    }
+
+    .access-note {
+      display: block;
+      color: rgba(255,255,255,.55);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      margin-top: 1px;
+    }
+
+    .arrow {
+      color: var(--gold);
+      font-weight: 900;
+    }
+
+    .admin-access {
+      display: none;
+    }
+
+    .admin-access.visible {
+      display: block;
+    }
+
+    .admin-hint {
+      display: none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(7,28,57,.34);
+      color: rgba(255,255,255,.72);
+      padding: 12px 14px;
+      font-size: .84rem;
+      line-height: 1.35;
+      margin-top: 14px;
+    }
+
+    .admin-hint.visible {
+      display: block;
+    }
+
+    .top-actions {
+      position: fixed;
+      right: 24px;
+      top: 22px;
+      display: none;
+      gap: 10px;
+      z-index: 3;
+    }
+
+    .top-actions.visible {
+      display: flex;
+    }
+
+    .logout {
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(7,28,57,.48);
+      color: #ffffff;
+      padding: 9px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow: auto;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .portal {
+        align-items: flex-start;
+        padding-top: 112px;
+      }
+
+      .login {
+        align-items: center;
+      }
+
+      .top-actions {
+        top: 14px;
+        right: 14px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="screen">
+
     <section id="loginScreen" class="login">
       <div class="login-card">
         <h1>Ingreso PAIDEIA</h1>
         <p>Accedé con tu usuario autorizado para ingresar al portal.</p>
+
         <input id="loginEmail" type="email" placeholder="Email" autocomplete="username">
+
         <div class="password-field">
           <input id="loginPassword" type="password" placeholder="Contraseña" autocomplete="current-password">
           <button class="password-toggle" type="button" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Mostrar contraseña">👁️</button>
         </div>
+
         <button id="loginButton" class="main" type="button" onclick="login()">Ingresar</button>
         <div id="authLoginError" class="error"></div>
       </div>
@@ -186,8 +337,12 @@
     <main id="portalScreen" class="portal">
       <section class="access-panel">
         <span class="portal-kicker">Portal institucional</span>
+
         <h1 class="portal-title">PAIDEIA</h1>
-        <p class="portal-subtitle">Acceso a recursos, formación y gestión del Programa Argentino de Innovación de la Educación con Inteligencia Artificial.</p>
+
+        <p class="portal-subtitle">
+          Acceso a recursos, formación y gestión del Programa Argentino de Innovación de la Educación con Inteligencia Artificial.
+        </p>
 
         <div class="access-list">
           <a class="access-shell" href="buenas-practicas.html">
@@ -229,60 +384,79 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     const SUPABASE_URL = "https://mhwcnlkrwylloyxpmmqu.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU";
+
     let supabaseClient = null;
     let currentRole = "user";
 
-    function initSupabase(){
+    function initSupabase() {
       if (!window.supabase) {
         showLogin("No se pudo cargar Supabase. Recargá la página.");
         return false;
       }
+
       if (!supabaseClient) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
+
       return true;
     }
 
     function togglePasswordVisibility(inputId, btn) {
       const input = document.getElementById(inputId);
       if (!input) return;
+
       const showing = input.type === "text";
       input.type = showing ? "password" : "text";
-      if (btn) btn.textContent = showing ? "👁️" : "🙈";
+
+      if (btn) {
+        btn.textContent = showing ? "👁️" : "🙈";
+      }
     }
 
-    function showLogin(message = ""){
+    function showLogin(message = "") {
       document.getElementById("loginScreen").style.display = "flex";
       document.getElementById("portalScreen").style.display = "none";
       document.getElementById("topActions").classList.remove("visible");
+
       const err = document.getElementById("authLoginError");
       err.style.display = message ? "block" : "none";
       err.textContent = message;
     }
 
-    function showPortal(){
+    function showPortal() {
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("portalScreen").style.display = "flex";
       document.getElementById("topActions").classList.add("visible");
+
       applyRoleVisibility();
     }
 
-    function applyRoleVisibility(){
+    function applyRoleVisibility() {
       const isAdmin = currentRole === "admin";
+
       document.querySelectorAll("[data-admin-only]").forEach(el => {
         el.classList.toggle("visible", isAdmin);
       });
-      document.getElementById("adminHint").classList.toggle("visible", !isAdmin);
+
+      const hint = document.getElementById("adminHint");
+      if (hint) {
+        hint.classList.toggle("visible", !isAdmin);
+      }
     }
 
-    async function loadCurrentRole(){
+    async function loadCurrentRole() {
       currentRole = "user";
+
       const { data: userData } = await supabaseClient.auth.getUser();
       const user = userData?.user;
-      if (!user) return "user";
+
+      if (!user) {
+        return "user";
+      }
 
       const { data, error } = await supabaseClient
         .from("profiles")
@@ -299,7 +473,7 @@
       return currentRole;
     }
 
-    async function initAuth(){
+    async function initAuth() {
       if (!initSupabase()) return;
 
       try {
@@ -311,13 +485,13 @@
         } else {
           showLogin();
         }
-      } catch(e) {
+      } catch (e) {
         console.error(e);
         showLogin();
       }
     }
 
-    async function login(){
+    async function login() {
       if (!supabaseClient && !initSupabase()) return;
 
       const email = document.getElementById("loginEmail").value.trim();
@@ -333,7 +507,11 @@
       button.textContent = "Ingresando...";
 
       try {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const { error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+
         if (error) {
           showLogin(error.message || "Credenciales incorrectas.");
           return;
@@ -341,7 +519,7 @@
 
         await loadCurrentRole();
         showPortal();
-      } catch(err) {
+      } catch (err) {
         console.error(err);
         showLogin("No se pudo iniciar sesión. Intentá nuevamente.");
       } finally {
@@ -350,8 +528,9 @@
       }
     }
 
-    async function logout(){
+    async function logout() {
       if (!supabaseClient && !initSupabase()) return;
+
       await supabaseClient.auth.signOut();
       currentRole = "user";
       showLogin();
