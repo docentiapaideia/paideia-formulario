@@ -42,9 +42,14 @@
       */
       background-image:
         linear-gradient(90deg, rgba(3,17,35,.06), rgba(3,17,35,.01)),
-        url("portal-paideia-2026.png");
-      background-size: cover;
-      background-position: center top;
+        url("portal-paideia-2026-limpio.png");
+      /*
+        Antes estaba en cover: eso agranda la imagen para llenar toda la pantalla
+        y termina cortando el logo inferior. Al usar 88vw se ve más completa
+        y PAIDEIA queda visualmente más chico.
+      */
+      background-size: 88vw auto;
+      background-position: left top;
       background-repeat: no-repeat;
       overflow: hidden;
     }
@@ -174,7 +179,7 @@
         - banner superior de la imagen
         La botonera arranca debajo del encabezado.
       */
-      padding-top: clamp(315px, 43vh, 440px);
+      padding-top: clamp(330px, 42vh, 410px);
     }
 
     .access-panel {
@@ -316,20 +321,20 @@
       }
 
       .portal {
-        padding-top: 360px;
+        padding-top: 390px;
       }
     }
 
     @media (max-width: 760px) {
       body {
         overflow: auto;
-        background-size: auto 100vh;
-        background-position: center top;
+        background-size: 130vw auto;
+        background-position: left top;
       }
 
       .portal {
         align-items: flex-start;
-        padding-top: 330px;
+        padding-top: 340px;
         padding-left: 20px;
         padding-right: 20px;
       }
@@ -350,7 +355,7 @@
 
     @media (max-width: 480px) {
       .portal {
-        padding-top: 300px;
+        padding-top: 320px;
       }
 
       .access-inner {
