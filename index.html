@@ -22,7 +22,7 @@
       background-image:
         linear-gradient(90deg, rgba(3,17,35,.25), rgba(3,17,35,.08)),
         url("portal-paideia-2026.png");
-      background-size:cover;
+      background-size: min(96vw, 1780px) auto;
       background-position:center;
       background-repeat:no-repeat;
       overflow:hidden;
@@ -32,9 +32,8 @@
       min-height:100vh;
       display:flex;
       align-items:center;
-      justify-content:flex-start;
-      padding-left:clamp(26px,7vw,110px);
-      padding-right:24px;
+      justify-content:center;
+      padding:24px;
       background:rgba(4,18,38,.42);
       backdrop-filter:blur(2px);
     }
@@ -302,10 +301,20 @@
 
     async function initAuth(){
       if (!initSupabase()) return;
+
       try {
-        await supabaseClient.auth.signOut();
-      } catch(e) {}
-      showLogin();
+        const { data } = await supabaseClient.auth.getSession();
+
+        if (data?.session) {
+          await loadCurrentRole();
+          showPortal();
+        } else {
+          showLogin();
+        }
+      } catch(e) {
+        console.error(e);
+        showLogin();
+      }
     }
 
     async function login(){
