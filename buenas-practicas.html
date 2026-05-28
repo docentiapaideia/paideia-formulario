@@ -1652,6 +1652,34 @@ button.password-toggle:hover,
   font-size: .95rem;
   line-height: 1.65;
 }
+
+.app-link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+}
+.app-logo-img {
+  width: 78px;
+  height: 54px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+  display: block;
+}
+.app-placeholder-btn.real-app-card {
+  min-height: 132px;
+  padding: 14px 10px 13px;
+}
+.app-placeholder-btn.real-app-card .app-placeholder-name {
+  font-size: .78rem;
+}
+.app-placeholder-btn.real-app-card .app-placeholder-sub {
+  font-weight: 600;
+  color: var(--navy-mid);
+}
+
 @media (max-width: 1050px) {
   .apps-grid { grid-template-columns: repeat(4, minmax(118px, 1fr)); }
 }
@@ -2045,82 +2073,55 @@ button.password-toggle:hover,
       </div>
 
       <div class="apps-intro">
-        <strong>Próximamente:</strong> en esta sección se publicarán las aplicaciones, plataformas o empresas que hayan sido revisadas y que cumplan con los criterios definidos por PAIDEIA. Por ahora dejamos preparado el espacio visual para incorporar los logos y sus fichas descriptivas.
+        <strong>Informes disponibles:</strong> en esta sección se publican las aplicaciones, plataformas o empresas revisadas bajo criterios PAIDEIA. Al hacer clic en cada tarjeta se abre el informe tecnopedagógico correspondiente, alojado en la carpeta <strong>aplicaciones</strong> del repositorio.
       </div>
 
-      <div class="apps-grid" aria-label="Aplicaciones IA próximas">
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 1')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 1</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 2')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 2</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 3')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 3</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 4')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 4</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 5')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 5</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 6')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 6</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 7')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 7</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 8')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 8</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 9')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 9</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 10')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 10</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 11')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 11</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
-        <button class="app-placeholder-btn" type="button" onclick="openAppPopup('Aplicación IA 12')">
-          <span class="app-placeholder-logo">IA</span>
-          <span class="app-placeholder-name">Aplicación IA 12</span>
-          <span class="app-placeholder-sub">Ficha pendiente</span>
-          <span class="app-coming-stamp">Próximamente</span>
-        </button>
+      <div class="apps-grid" aria-label="Aplicaciones IA revisadas">
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/ainara.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de AInara">
+          <img class="app-logo-img" src="aplicaciones/logos/ainara.svg" alt="Logo AInara">
+          <span class="app-placeholder-name">AInara</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/cloudlabs.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de CloudLabs">
+          <img class="app-logo-img" src="aplicaciones/logos/cloudlabs.svg" alt="Logo CloudLabs">
+          <span class="app-placeholder-name">CloudLabs</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/eduten.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de Eduten">
+          <img class="app-logo-img" src="aplicaciones/logos/eduten.svg" alt="Logo Eduten">
+          <span class="app-placeholder-name">Eduten</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/endlessos.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de EndlessOS">
+          <img class="app-logo-img" src="aplicaciones/logos/endlessos.svg" alt="Logo EndlessOS">
+          <span class="app-placeholder-name">EndlessOS</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/futurizaje.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de Futurizaje">
+          <img class="app-logo-img" src="aplicaciones/logos/futurizaje.svg" alt="Logo Futurizaje">
+          <span class="app-placeholder-name">Futurizaje</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/glifing.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de Glifing">
+          <img class="app-logo-img" src="aplicaciones/logos/glifing.svg" alt="Logo Glifing">
+          <span class="app-placeholder-name">Glifing</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/growth-road.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de Growth Road">
+          <img class="app-logo-img" src="aplicaciones/logos/growth-road.svg" alt="Logo Growth Road">
+          <span class="app-placeholder-name">Growth Road</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/rvd-ai.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de RVD.AI">
+          <img class="app-logo-img" src="aplicaciones/logos/rvd-ai.svg" alt="Logo RVD.AI">
+          <span class="app-placeholder-name">RVD.AI</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
+        <a class="app-placeholder-btn real-app-card app-link-card" href="aplicaciones/wonderly.pdf" target="_blank" rel="noopener" aria-label="Abrir informe PAIDEIA de Wonderly">
+          <img class="app-logo-img" src="aplicaciones/logos/wonderly.svg" alt="Logo Wonderly">
+          <span class="app-placeholder-name">Wonderly</span>
+          <span class="app-placeholder-sub">Ver informe</span>
+        </a>
       </div>
     </div>
 
