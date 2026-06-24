@@ -29,10 +29,6 @@ body{
 .login-card button.main:disabled{opacity:.65;cursor:wait}
 .error{display:none;color:#ffb4b4;font-size:.88rem;margin-top:12px;line-height:1.35}
 .portal{display:none;min-height:100vh;align-items:flex-start;justify-content:flex-start;padding-left:clamp(28px,6vw,96px);padding-right:24px;padding-top:clamp(360px,47vh,455px)}
-.hero-copy{position:fixed;left:clamp(32px,6vw,92px);top:clamp(28px,6vh,58px);z-index:2;max-width:min(760px,82vw);padding:12px 18px 14px 18px;background:linear-gradient(90deg,rgba(6,25,47,.72),rgba(6,25,47,.34),rgba(6,25,47,0));backdrop-filter:blur(2px);border-left:3px solid rgba(212,178,74,.70)}
-.hero-copy h1{font-size:clamp(2.05rem,4.2vw,4rem);line-height:.95;font-weight:800;letter-spacing:.035em;margin:0 0 4px 0;text-transform:uppercase}
-.hero-copy .event{font-size:clamp(.92rem,1.45vw,1.16rem);font-weight:700;letter-spacing:.02em;color:rgba(255,255,255,.92);margin-bottom:2px}
-.hero-copy .program{font-size:clamp(.78rem,1.12vw,.96rem);font-weight:600;color:rgba(255,255,255,.76);line-height:1.25}
 .access-panel{width:min(460px,92vw);margin-top:0}
 .portal-kicker,.portal-title,.portal-subtitle{display:none}
 .access-list{display:flex;flex-direction:column;gap:14px}
@@ -52,8 +48,8 @@ body{
 .logout{border:1px solid rgba(255,255,255,.20);background:rgba(7,28,57,.58);color:#fff;padding:9px 14px;font-weight:800;cursor:pointer;font-family:inherit;backdrop-filter:blur(1px)}
 .logout:hover{background:rgba(104,200,232,.14)}
 @media(max-width:1000px){.portal{padding-top:410px}}
-@media(max-width:760px){body{overflow:auto;background-size:cover;background-position:center top}.portal{align-items:flex-start;padding-top:340px;padding-left:20px;padding-right:20px}.hero-copy{left:20px;right:20px;top:66px;max-width:none;padding:10px 14px}.top-actions{top:14px;right:14px}.access-panel{width:100%}}
-@media(max-width:480px){.portal{padding-top:320px}.hero-copy h1{font-size:2rem}.hero-copy .event{font-size:.84rem}.hero-copy .program{font-size:.72rem}.access-inner{min-height:54px;padding:0 16px}.access-title{font-size:.9rem}.access-note{font-size:.7rem}}
+@media(max-width:760px){body{overflow:auto;background-size:cover;background-position:center top}.portal{align-items:flex-start;padding-top:340px;padding-left:20px;padding-right:20px}.top-actions{top:14px;right:14px}.access-panel{width:100%}}
+@media(max-width:480px){.portal{padding-top:320px}.access-inner{min-height:54px;padding:0 16px}.access-title{font-size:.9rem}.access-note{font-size:.7rem}}
 </style>
 </head>
 <body>
@@ -73,11 +69,6 @@ body{
 </section>
 <div id="topActions" class="top-actions"><button class="logout" type="button" onclick="logout()">Cerrar sesión</button></div>
 <main id="portalScreen" class="portal">
-  <section class="hero-copy" aria-label="Encabezado PAIDEIA">
-    <h1>PAIDEIA</h1>
-    <div class="event">Congreso Internacional PAIDEIA | 13 de octubre de 2026</div>
-    <div class="program">Programa Argentino de Innovación de la Educación con Inteligencia Artificial</div>
-  </section>
   <section class="access-panel">
     <div class="access-list">
       <a class="access-shell" href="buenas-practicas.html"><div class="access-inner"><div><span class="access-title">Red de Referentes Jurisdiccionales de IA</span><span class="access-note">Espacio de trabajo</span></div><span class="arrow">›</span></div></a>
