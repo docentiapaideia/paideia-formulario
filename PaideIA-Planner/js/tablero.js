@@ -594,7 +594,35 @@ async function guardarNuevaTarea(event) {
   );
   await actualizarEtiquetaTarea(tareaId, getValor("newEtiqueta"));
   await guardarChecklistDesdeTextarea(tareaId, getValor("newChecklist"));
+  // Notificar en Discord sin impedir la creación de la tarea
+  try {
+    const fechaLimiteTexto = nuevaTarea.fecha_limite
+      ? `\n📅 Fecha límite: ${nuevaTarea.fecha_limite}`
+      : "";
 
+    const tipoTareaTexto = nuevaEsMadre
+      ? "Tarea núcleo"
+      : "Tarea derivada";
+
+    const { error: errorDiscord } = await supabaseClient.functions.invoke(
+      "discord-planner",
+      {
+        body: {
+          titulo: "📋 Nueva tarea creada",
+          mensaje:
+            `**${titulo}**\n` +
+            `Tipo: ${tipoTareaTexto}` +
+            fechaLimiteTexto
+        }
+      }
+    );
+
+    if (errorDiscord) {
+      console.warn("La tarea se creó, pero no se notificó en Discord:", errorDiscord);
+    }
+  } catch (errorDiscord) {
+    console.warn("La tarea se creó, pero falló la notificación a Discord:", errorDiscord);
+  }
   cerrarModalNuevaTarea();
   limpiarFormularioNuevaTarea();
   await cargarTablero();
