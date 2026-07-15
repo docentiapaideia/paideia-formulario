@@ -520,6 +520,46 @@ const responsableNuevoId = getValor("editResponsable");
       );
     }
   }
+     // Notificar cuando cambia el responsable principal
+  if (responsableAnteriorId !== responsableNuevoId) {
+    try {
+      const responsableAnterior = miembrosSistema.find(
+        miembro => miembro.id === responsableAnteriorId
+      );
+
+      const responsableNuevo = miembrosSistema.find(
+        miembro => miembro.id === responsableNuevoId
+      );
+
+      const nombreAnterior = responsableAnterior?.nombre || "Sin responsable";
+      const nombreNuevo = responsableNuevo?.nombre || "Sin responsable";
+
+      const { error: errorDiscord } = await supabaseClient.functions.invoke(
+        "discord-planner",
+        {
+          body: {
+            titulo: "👤 Cambio de responsable",
+            mensaje:
+              `**${titulo}**\n` +
+              `Responsable anterior: ${nombreAnterior}\n` +
+              `Nuevo responsable: ${nombreNuevo}`
+          }
+        }
+      );
+
+      if (errorDiscord) {
+        console.warn(
+          "El responsable cambió, pero no se notificó en Discord:",
+          errorDiscord
+        );
+      }
+    } catch (errorDiscord) {
+      console.warn(
+        "El responsable cambió, pero falló la notificación:",
+        errorDiscord
+      );
+    }
+  }
   cerrarModalEditarTarea();
   await cargarTablero();
 }
