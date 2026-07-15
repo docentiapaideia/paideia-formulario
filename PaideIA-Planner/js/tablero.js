@@ -17,6 +17,12 @@ async function iniciarTablero() {
   registrarEventos();
   await cargarCatalogosSistema();
   await cargarTablero();
+
+  const parametros = new URLSearchParams(window.location.search);
+
+  if (parametros.get("accion") === "nueva-tarea") {
+    await abrirModalNuevaTarea("Nuevo", false);
+  }
 }
 
 /* =========================================================
