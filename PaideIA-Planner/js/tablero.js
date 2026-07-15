@@ -452,6 +452,12 @@ async function guardarEdicionTarea(event) {
   const columnaIdSeleccionada = getValor("editColumna");
   const columnaSeleccionada = columnasSistema.find(c => c.id === columnaIdSeleccionada);
   const tareaOriginal = tareasTablero.find(t => t.id === id) || {};
+   const responsableAnteriorId =
+  tareaOriginal.responsable_id ||
+  tareaOriginal.responsable_principal_id ||
+  "";
+
+const responsableNuevoId = getValor("editResponsable");
   const columnaEsFinal = !!columnaSeleccionada?.es_final;
   const editEsMadre = getValor("editEsTareaMadre") === "true";
 
