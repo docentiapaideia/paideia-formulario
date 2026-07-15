@@ -486,7 +486,34 @@ async function guardarEdicionTarea(event) {
   );
   await actualizarEtiquetaTarea(id, getValor("editEtiqueta"));
   await guardarChecklistDesdeTextarea(id, getValor("editChecklist"));
+  // Notificar en Discord únicamente cuando la tarea pasa a Finalizado
+  const yaEstabaFinalizada = Boolean(tareaOriginal.finalizada_en);
 
+  if (columnaEsFinal && !yaEstabaFinalizada) {
+    try {
+      const { error: errorDiscord } = await supabaseClient.functions.invoke(
+        "discord-planner",
+        {
+          body: {
+            titulo: "✅ Tarea finalizada",
+            mensaje: `**${titulo}**\nLa tarea fue marcada como finalizada.`
+          }
+        }
+      );
+
+      if (errorDiscord) {
+        console.warn(
+          "La tarea se finalizó, pero no se notificó en Discord:",
+          errorDiscord
+        );
+      }
+    } catch (errorDiscord) {
+      console.warn(
+        "La tarea se finalizó, pero falló la notificación a Discord:",
+        errorDiscord
+      );
+    }
+  }
   cerrarModalEditarTarea();
   await cargarTablero();
 }
