@@ -14,9 +14,6 @@ let checklistPorTarea = {};
 document.addEventListener("DOMContentLoaded", iniciarTablero);
 
 async function iniciarTablero() {
- document.addEventListener("DOMContentLoaded", iniciarTablero);
-
-async function iniciarTablero() {
   registrarEventos();
   await cargarCatalogosSistema();
   await cargarTablero();
@@ -31,14 +28,7 @@ function abrirNuevaTareaDesdeURL() {
     return;
   }
 
-  const botonNuevaTarea = document.getElementById("btnNuevaTarea");
-
-  if (!botonNuevaTarea) {
-    console.error("No se encontró el botón btnNuevaTarea.");
-    return;
-  }
-
-  botonNuevaTarea.click();
+  abrirModalNuevaTarea("Nuevo", false);
 
   // Limpia el parámetro para que al actualizar no vuelva a abrirse.
   window.history.replaceState(
@@ -46,7 +36,6 @@ function abrirNuevaTareaDesdeURL() {
     document.title,
     window.location.pathname
   );
-}
 }
 
 /* =========================================================
@@ -483,8 +472,6 @@ const responsableAnteriorId =
     asignacion =>
       normalizarTexto(asignacion.rol_asignacion || "") === "responsable"
   )?.miembro_id || "";
-
-const responsableNuevoId = getValor("editResponsable");
 
 const responsableNuevoId = getValor("editResponsable");
   const columnaEsFinal = !!columnaSeleccionada?.es_final;
