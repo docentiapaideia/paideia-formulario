@@ -14,15 +14,39 @@ let checklistPorTarea = {};
 document.addEventListener("DOMContentLoaded", iniciarTablero);
 
 async function iniciarTablero() {
+ document.addEventListener("DOMContentLoaded", iniciarTablero);
+
+async function iniciarTablero() {
   registrarEventos();
   await cargarCatalogosSistema();
   await cargarTablero();
 
+  abrirNuevaTareaDesdeURL();
+}
+
+function abrirNuevaTareaDesdeURL() {
   const parametros = new URLSearchParams(window.location.search);
 
-  if (parametros.get("accion") === "nueva-tarea") {
-    await abrirModalNuevaTarea("Nuevo", false);
+  if (parametros.get("accion") !== "nueva-tarea") {
+    return;
   }
+
+  const botonNuevaTarea = document.getElementById("btnNuevaTarea");
+
+  if (!botonNuevaTarea) {
+    console.error("No se encontró el botón btnNuevaTarea.");
+    return;
+  }
+
+  botonNuevaTarea.click();
+
+  // Limpia el parámetro para que al actualizar no vuelva a abrirse.
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname
+  );
+}
 }
 
 /* =========================================================
