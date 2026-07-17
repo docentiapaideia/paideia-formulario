@@ -20,8 +20,14 @@ function extraerUrl(v){
   if(!texto)return '';
   const matchHttp=texto.match(/https?:\/\/[^\s]+/i);
   if(matchHttp)return matchHttp[0].replace(/[),.;]+$/,'');
-  const matchDominio=texto.match(/(?:www\.)?[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/i);
-  return matchDominio ? ('https://' + matchDominio[0].replace(/[),.;]+$/,'')) : '';
+  const regexDominio=/(?:www\.)?[a-z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/ig;
+  let matchDominio;
+  while((matchDominio=regexDominio.exec(texto))!==null){
+    // Evita interpretar el dominio de una dirección de correo como evidencia web.
+    if(matchDominio.index>0 && texto[matchDominio.index-1]==='@')continue;
+    return 'https://' + matchDominio[0].replace(/[),.;]+$/,'');
+  }
+  return '';
 }
 function urlValida(v){
   const encontrada=extraerUrl(v);
