@@ -280,10 +280,22 @@ function construirCuerpo(r){
 async function cargarRegistrosCorreo(){
   if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
   $('#estadoCorreos').className='status';
-  $('#estadoCorreos').textContent='Cargando registros observados e historial de correos…';
+  $('#estadoCorreos').textContent='Buscando la última importación y sus registros observados…';
+
+  const {data:ultimaImportacion,error:errorImportacion}=await supabaseClient
+    .from('bp_importaciones')
+    .select('id,nombre_archivo,fecha_importacion,total_registros')
+    .order('fecha_importacion',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+  if(errorImportacion)throw errorImportacion;
+  if(!ultimaImportacion)throw new Error('Todavía no hay importaciones guardadas en Supabase.');
+
   const {data:obs,error}=await supabaseClient.from('bp_registros')
-    .select('id,nombre,email,institucion,titulo,observaciones,estado_curaduria,fecha_actualizacion')
-    .eq('estado_curaduria','OBSERVADO').eq('activo',true).order('nombre');
+    .select('id,nombre,email,institucion,titulo,observaciones,estado_curaduria,fecha_actualizacion,ultima_importacion_id')
+    .eq('estado_curaduria','OBSERVADO')
+    .eq('ultima_importacion_id',ultimaImportacion.id)
+    .order('nombre');
   if(error)throw error;
   const ids=(obs||[]).map(x=>x.id);
   let correos=[];
@@ -300,7 +312,8 @@ async function cargarRegistrosCorreo(){
   seleccionCorreos.clear();
   mostrarCorreos();
   $('#estadoCorreos').className='status ok';
-  $('#estadoCorreos').textContent=`Se cargaron ${registrosCorreo.length} registros observados.`;
+  const fechaImportacion=fechaLegible(ultimaImportacion.fecha_importacion);
+  $('#estadoCorreos').textContent=`Última importación: ${ultimaImportacion.nombre_archivo} (${fechaImportacion}). Se cargaron ${registrosCorreo.length} registros observados.`;
 }
 
 function correosFiltrados(){
