@@ -75,6 +75,60 @@
       </div>
     </section>
   </section>
+
+  <section class="card" id="correosCard">
+    <div class="section-title">
+      <div>
+        <h2>2. Gestión de correos</h2>
+        <p class="muted">Carga los registros observados guardados en Supabase, revisá el mensaje y enviá únicamente los seleccionados.</p>
+      </div>
+      <button id="cargarCorreos" class="secondary" disabled>Cargar observados</button>
+    </div>
+    <div class="mail-toolbar">
+      <label>Estado del correo
+        <select id="filtroCorreo">
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="TODOS">Todos</option>
+          <option value="ENVIADO">Enviados</option>
+          <option value="ERROR">Con error</option>
+        </select>
+      </label>
+      <label>Buscar
+        <input id="buscarCorreo" type="search" placeholder="Nombre, correo, institución o título">
+      </label>
+      <button id="seleccionarVisibles" class="secondary" disabled>Seleccionar visibles</button>
+      <button id="limpiarSeleccion" class="secondary" disabled>Limpiar selección</button>
+      <button id="previsualizarCorreo" disabled>Previsualizar selección</button>
+    </div>
+    <div id="estadoCorreos" class="status">Iniciá sesión y cargá los observados.</div>
+    <div class="table-wrap mail-table-wrap">
+      <table>
+        <thead><tr><th></th><th>Nombre</th><th>Correo</th><th>Experiencia</th><th>Observación</th><th>Último envío</th></tr></thead>
+        <tbody id="tablaCorreosBody"><tr><td colspan="6" class="muted">Sin datos.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <dialog id="modalCorreo" class="mail-dialog">
+    <form method="dialog" class="mail-dialog-inner">
+      <div class="section-title">
+        <h2>Previsualización del correo</h2>
+        <button value="cancel" class="secondary">Cerrar</button>
+      </div>
+      <p id="resumenSeleccion" class="muted"></p>
+      <label>Asunto
+        <input id="correoAsunto" type="text">
+      </label>
+      <label>Cuerpo del mensaje
+        <textarea id="correoCuerpo" rows="17"></textarea>
+      </label>
+      <div class="actions">
+        <button id="enviarSeleccionados" value="none" type="button">Enviar seleccionados</button>
+      </div>
+      <div id="estadoEnvio" class="status">Revisá el contenido antes de enviar.</div>
+    </form>
+  </dialog>
+
 </main>
 <script src="js/app.js"></script>
 </body>
