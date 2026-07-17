@@ -252,3 +252,153 @@ $('#iniciarSesion').addEventListener('click',async()=>{try{await iniciarSesion()
 $('#cerrarSesion').addEventListener('click',cerrarSesion);
 
 (async()=>{if(supabaseClient){const {data}=await supabaseClient.auth.getSession();usuarioActual=data.session?.user||null;}mostrarSesion();})();
+
+// ===== Gestión de correos =====
+let registrosCorreo = [];
+let seleccionCorreos = new Set();
+
+function observacionCorreo(r){
+  const obs=Array.isArray(r.observaciones)?r.observaciones:[];
+  return obs.filter(x=>!String(x).toLowerCase().startsWith('correo ')).join('; ') || 'La presentación requiere completar o corregir información.';
+}
+function estadoUltimoCorreo(r){
+  if(!r.ultimo_correo)return 'PENDIENTE';
+  return r.ultimo_correo.estado||'PENDIENTE';
+}
+function fechaLegible(v){
+  if(!v)return 'Sin envío';
+  try{return new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short'}).format(new Date(v));}catch{return v;}
+}
+function construirAsunto(){return 'Solicitud de regularización de evidencia – Buenas Prácticas PAIDEIA';}
+function construirCuerpo(r){
+  const nombre=norm(r.nombre)||'participante';
+  const titulo=norm(r.titulo)||'la experiencia presentada';
+  const detalle=observacionCorreo(r);
+  return `Hola, ${nombre}:\n\nNos comunicamos desde el Programa PAIDEIA en relación con la experiencia presentada bajo el título “${titulo}”.\n\nDurante el proceso de revisión y curaduría se detectó la siguiente situación:\n\n${detalle}\n\nPara poder continuar con la evaluación de la propuesta, necesitamos que complete o corrija la información señalada. En caso de haber incorporado un enlace de Google Drive, asegúrese de que el archivo o la carpeta estén configurados con acceso para cualquier persona que posea el enlace.\n\nUna vez realizada la corrección, responda a este correo para informarnos.\n\nAgradecemos su participación y el trabajo realizado.\n\nSaludos cordiales,\nEquipo PAIDEIA`;
+}
+
+async function cargarRegistrosCorreo(){
+  if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
+  $('#estadoCorreos').className='status';
+  $('#estadoCorreos').textContent='Cargando registros observados e historial de correos…';
+  const {data:obs,error}=await supabaseClient.from('bp_registros')
+    .select('id,nombre,email,institucion,titulo,observaciones,estado_curaduria,fecha_actualizacion')
+    .eq('estado_curaduria','OBSERVADO').eq('activo',true).order('nombre');
+  if(error)throw error;
+  const ids=(obs||[]).map(x=>x.id);
+  let correos=[];
+  if(ids.length){
+    const {data,error:mailError}=await supabaseClient.from('bp_correos')
+      .select('id,registro_id,destinatario,estado,fecha_creacion,fecha_envio,error')
+      .in('registro_id',ids).order('fecha_creacion',{ascending:false});
+    if(mailError)throw mailError;
+    correos=data||[];
+  }
+  const latest=new Map();
+  for(const c of correos)if(!latest.has(c.registro_id))latest.set(c.registro_id,c);
+  registrosCorreo=(obs||[]).map(r=>({...r,ultimo_correo:latest.get(r.id)||null}));
+  seleccionCorreos.clear();
+  mostrarCorreos();
+  $('#estadoCorreos').className='status ok';
+  $('#estadoCorreos').textContent=`Se cargaron ${registrosCorreo.length} registros observados.`;
+}
+
+function correosFiltrados(){
+  const filtro=$('#filtroCorreo').value;
+  const q=canon($('#buscarCorreo').value);
+  return registrosCorreo.filter(r=>{
+    const estado=estadoUltimoCorreo(r);
+    const coincideEstado=filtro==='TODOS'||estado===filtro;
+    const texto=canon([r.nombre,r.email,r.institucion,r.titulo,observacionCorreo(r)].join(' '));
+    return coincideEstado&&(!q||texto.includes(q));
+  });
+}
+function mostrarCorreos(){
+  const visibles=correosFiltrados();
+  $('#tablaCorreosBody').innerHTML=visibles.length?visibles.map(r=>{
+    const estado=estadoUltimoCorreo(r);
+    const valido=emailUtilizable(r.email);
+    const checked=seleccionCorreos.has(r.id)?'checked':'';
+    const disabled=!valido||estado==='ENVIADO'?'disabled':'';
+    const clase=disabled?'row-disabled':'';
+    const envio=r.ultimo_correo?`${estado} · ${fechaLegible(r.ultimo_correo.fecha_envio||r.ultimo_correo.fecha_creacion)}`:'PENDIENTE';
+    return `<tr class="${clase}"><td class="checkbox-cell"><input class="mail-check" type="checkbox" data-id="${r.id}" ${checked} ${disabled}></td><td>${esc(r.nombre)}</td><td>${esc(r.email)}${valido?'':'<br><small class="muted">Correo no utilizable</small>'}</td><td>${esc(r.titulo)}</td><td>${esc(observacionCorreo(r))}</td><td><span class="mail-status ${estado}">${esc(envio)}</span>${r.ultimo_correo?.error?`<br><small>${esc(r.ultimo_correo.error)}</small>`:''}</td></tr>`;
+  }).join(''):'<tr><td colspan="6" class="muted">No hay registros para este filtro.</td></tr>';
+  document.querySelectorAll('.mail-check').forEach(c=>c.addEventListener('change',e=>{
+    const id=e.target.dataset.id;
+    if(e.target.checked)seleccionCorreos.add(id);else seleccionCorreos.delete(id);
+    actualizarBotonesCorreo();
+  }));
+  actualizarBotonesCorreo();
+}
+function actualizarBotonesCorreo(){
+  const activo=!!usuarioActual;
+  $('#cargarCorreos').disabled=!activo;
+  $('#seleccionarVisibles').disabled=!activo||!registrosCorreo.length;
+  $('#limpiarSeleccion').disabled=!seleccionCorreos.size;
+  $('#previsualizarCorreo').disabled=!seleccionCorreos.size;
+}
+function seleccionarVisibles(){
+  for(const r of correosFiltrados()){
+    if(emailUtilizable(r.email)&&estadoUltimoCorreo(r)!=='ENVIADO')seleccionCorreos.add(r.id);
+  }
+  mostrarCorreos();
+}
+function abrirPrevisualizacion(){
+  const elegidos=registrosCorreo.filter(r=>seleccionCorreos.has(r.id));
+  if(!elegidos.length)return;
+  const primero=elegidos[0];
+  $('#correoAsunto').value=construirAsunto();
+  $('#correoCuerpo').value=construirCuerpo(primero);
+  $('#resumenSeleccion').textContent=elegidos.length===1
+    ? `Destinatario: ${primero.nombre} <${primero.email}>`
+    : `${elegidos.length} destinatarios seleccionados. El texto se personalizará automáticamente para cada registro.`;
+  $('#estadoEnvio').className='status';
+  $('#estadoEnvio').textContent='Revisá el contenido antes de enviar.';
+  $('#modalCorreo').showModal();
+}
+async function enviarUnCorreo(r,asuntoBase,cuerpoEditado,esMultiple){
+  const asunto=asuntoBase;
+  const cuerpo=esMultiple?construirCuerpo(r):cuerpoEditado;
+  const {data,error}=await supabaseClient.functions.invoke('enviar-correo',{body:{
+    registro_id:r.id,destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
+  }});
+  if(error)throw new Error(error.message||'Falló la Edge Function.');
+  if(data?.error)throw new Error(data.error);
+  return data;
+}
+async function enviarSeleccionados(){
+  const elegidos=registrosCorreo.filter(r=>seleccionCorreos.has(r.id));
+  if(!elegidos.length)return;
+  const confirmacion=confirm(`Se enviarán ${elegidos.length} correo(s) reales desde docentiapaideia@gmail.com. ¿Continuar?`);
+  if(!confirmacion)return;
+  $('#enviarSeleccionados').disabled=true;
+  const asunto=norm($('#correoAsunto').value);
+  const cuerpo=$('#correoCuerpo').value.trim();
+  if(!asunto||!cuerpo){alert('El asunto y el cuerpo no pueden estar vacíos.');$('#enviarSeleccionados').disabled=false;return;}
+  let enviados=0,errores=0;
+  for(let i=0;i<elegidos.length;i++){
+    const r=elegidos[i];
+    $('#estadoEnvio').className='status';
+    $('#estadoEnvio').textContent=`Enviando ${i+1} de ${elegidos.length}: ${r.nombre}…`;
+    try{await enviarUnCorreo(r,asunto,cuerpo,elegidos.length>1);enviados++;}
+    catch(err){errores++;console.error('Error enviando a',r.email,err);}
+  }
+  $('#estadoEnvio').className='status '+(errores?'error':'ok');
+  $('#estadoEnvio').textContent=`Proceso terminado: ${enviados} enviados y ${errores} con error.`;
+  $('#enviarSeleccionados').disabled=false;
+  seleccionCorreos.clear();
+  await cargarRegistrosCorreo();
+}
+
+$('#cargarCorreos').addEventListener('click',async()=>{try{await cargarRegistrosCorreo();}catch(err){ $('#estadoCorreos').className='status error';$('#estadoCorreos').textContent='Error: '+err.message; }});
+$('#filtroCorreo').addEventListener('change',mostrarCorreos);
+$('#buscarCorreo').addEventListener('input',mostrarCorreos);
+$('#seleccionarVisibles').addEventListener('click',seleccionarVisibles);
+$('#limpiarSeleccion').addEventListener('click',()=>{seleccionCorreos.clear();mostrarCorreos();});
+$('#previsualizarCorreo').addEventListener('click',abrirPrevisualizacion);
+$('#enviarSeleccionados').addEventListener('click',enviarSeleccionados);
+
+const mostrarSesionOriginal=mostrarSesion;
+mostrarSesion=function(){mostrarSesionOriginal();actualizarBotonesCorreo();if(!usuarioActual){registrosCorreo=[];seleccionCorreos.clear();mostrarCorreos();}};
+actualizarBotonesCorreo();
