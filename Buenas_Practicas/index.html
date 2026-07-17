@@ -1,6 +1,81 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIDEIA · Curaduría de Buenas Prácticas</title><link rel="stylesheet" href="css/app.css"><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="js/config.js"></script></head>
-<body><main class="app"><header class="header"><div class="brand"><h1>PAIDEIA · Buenas Prácticas</h1><p>Curaduría, seguimiento y comunicaciones</p></div></header>
-<section class="card"><h2>1. Importar archivo original</h2><p class="muted">Seleccioná el Excel que se actualiza en Drive. En esta primera versión el procesamiento se realiza localmente en el navegador.</p><div class="actions"><label class="file-label" for="archivo">Seleccionar Excel</label><input id="archivo" type="file" accept=".xlsx,.xls"><button id="exportar" class="secondary">Exportar resultado</button></div><div id="estado" class="status">Esperando archivo…</div></section>
-<section id="resultados" class="hidden"><div class="kpis"><div class="kpi"><span>Total</span><strong id="total">0</strong></div><div class="kpi"><span>Aptos</span><strong id="apto">0</strong></div><div class="kpi"><span>Observados</span><strong id="observado">0</strong></div><div class="kpi"><span>Duplicados</span><strong id="duplicado">0</strong></div><div class="kpi"><span>Pendientes</span><strong id="pendiente">0</strong></div><div class="kpi"><span>Correos posibles</span><strong id="correos">0</strong></div></div>
-<section class="card"><h2>Resultado de la curaduría</h2><div class="table-wrap"><table><thead><tr><th>Fila</th><th>Nombre</th><th>Correo</th><th>Título</th><th>Estado</th><th>Observaciones</th></tr></thead><tbody id="tablaBody"></tbody></table></div></section></section>
-</main><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PAIDEIA · Curaduría de Buenas Prácticas</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="brand">
+      <h1>PAIDEIA · Buenas Prácticas</h1>
+      <p>Curaduría, seguimiento y comunicaciones</p>
+    </div>
+    <div id="sesionActual" class="session-pill">Sin sesión</div>
+  </header>
+
+  <section class="card" id="accesoCard">
+    <h2>Acceso al sistema</h2>
+    <p class="muted">Iniciá sesión con el usuario autorizado de PAIDEIA para guardar las importaciones y el historial en Supabase.</p>
+    <div class="login-grid">
+      <label>Correo
+        <input id="loginEmail" type="email" autocomplete="username" placeholder="usuario@correo.com">
+      </label>
+      <label>Contraseña
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Contraseña">
+      </label>
+      <button id="iniciarSesion">Ingresar</button>
+      <button id="cerrarSesion" class="secondary hidden">Cerrar sesión</button>
+    </div>
+    <div id="estadoSesion" class="status">Podés curar y exportar sin iniciar sesión. Para guardar en Supabase, el acceso es obligatorio.</div>
+  </section>
+
+  <section class="card">
+    <h2>1. Importar archivo original</h2>
+    <p class="muted">Seleccioná el Excel que se actualiza en Drive. El archivo se procesa localmente en el navegador y solo se guarda en Supabase cuando presionás el botón correspondiente.</p>
+    <div class="actions">
+      <label class="file-label" for="archivo">Seleccionar Excel</label>
+      <input id="archivo" type="file" accept=".xlsx,.xls">
+      <button id="exportar" class="secondary" disabled>Exportar resultado</button>
+      <button id="guardarSupabase" disabled>Guardar importación en Supabase</button>
+    </div>
+    <div id="estado" class="status">Esperando archivo…</div>
+  </section>
+
+  <section id="resultados" class="hidden">
+    <div class="kpis">
+      <div class="kpi"><span>Total</span><strong id="total">0</strong></div>
+      <div class="kpi"><span>Aptos</span><strong id="apto">0</strong></div>
+      <div class="kpi"><span>Observados</span><strong id="observado">0</strong></div>
+      <div class="kpi"><span>Duplicados</span><strong id="duplicado">0</strong></div>
+      <div class="kpi"><span>Nuevos/cambiados</span><strong id="cambios">–</strong></div>
+      <div class="kpi"><span>Correos posibles</span><strong id="correos">0</strong></div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Resultado de la curaduría</h2>
+        <select id="filtroEstado" aria-label="Filtrar por estado">
+          <option value="TODOS">Todos</option>
+          <option value="APTO">Aptos</option>
+          <option value="OBSERVADO">Observados</option>
+          <option value="DUPLICADO">Duplicados</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fila</th><th>Nombre</th><th>Correo</th><th>Título</th><th>Estado</th><th>Observaciones</th></tr></thead>
+          <tbody id="tablaBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+<script src="js/app.js"></script>
+</body>
+</html>
