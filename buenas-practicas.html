@@ -1924,7 +1924,7 @@ button.password-toggle:hover,
 
       <div class="repo-admin-panel" id="repoAdminPanel">
         <h3 style="color:var(--navy);margin-bottom:8px;">Experiencias pendientes de validación</h3>
-        <p class="pa-muted" style="margin-bottom:16px;">Estas experiencias se leen desde el Google Sheet. Al validar, se publican en Supabase para que las vean los usuarios.</p>
+        <p class="pa-muted" style="margin-bottom:16px;">Estas experiencias ya superaron la curaduría automática y pertenecen a la última importación. Al validarlas, quedan disponibles para los demás usuarios del portal.</p>
 
         <div class="repo-toolbar">
           <input class="pa-input" id="pendingSearch" type="text" placeholder="Buscar pendientes..." onkeyup="filterPendingExperiences()">
@@ -3350,25 +3350,72 @@ function nivelClass(nivel) {
   return "tag-formacion";
 }
 
+async function getLatestBpImportacion() {
+  const { data, error } = await supabaseClient
+    .from("bp_importaciones")
+    .select("id,nombre_archivo,fecha_importacion,total_registros")
+    .order("fecha_importacion", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
+function normalizeBpExperience(row) {
+  return {
+    ...row,
+    nombre: row.nombre || "",
+    email: row.email || "",
+    institucion: row.institucion || "",
+    jurisdiccion: row.jurisdiccion || "",
+    nivel: row.nivel || "",
+    area: row.area || "",
+    titulo: row.titulo || "",
+    anio: row.anio || "",
+    herramientas: row.herramientas || "",
+    ejes: row.ejes || "",
+    descripcion: row.descripcion || "",
+    rolIA: row.rol_ia || "",
+    enlace: row.enlace || "",
+    p1: row.p1_proposito || "",
+    p2: row.p2_por_que_ia || "",
+    p3: row.p3_mirada_critica || "",
+    p4: row.p4_oportunidades || "",
+    p5: row.p5_innovacion || "",
+    p6: row.p6_ajustes || "",
+    p7: row.p7_transferencia || ""
+  };
+}
+
 async function loadExperienciasPublicas() {
   const container = document.getElementById("repoGrid");
   if (!container || !supabaseClient) return;
   container.innerHTML = '<div class="pa-empty">Cargando experiencias validadas...</div>';
 
-  const { data, error } = await supabaseClient
-    .from("experiences")
-    .select("*")
-    .eq("validated", true)
-    .order("created_at", { ascending: false });
+  try {
+    const ultima = await getLatestBpImportacion();
+    if (!ultima) {
+      publicExperiences = [];
+      renderPublicExperiences([]);
+      return;
+    }
 
-  if (error) {
-    console.error("Error experiencias públicas:", error);
+    const { data, error } = await supabaseClient
+      .from("bp_registros")
+      .select("*")
+      .eq("ultima_importacion_id", ultima.id)
+      .eq("estado_curaduria", "APTO")
+      .eq("estado_publicacion", "VALIDADO")
+      .eq("activo", true)
+      .order("fecha_validacion", { ascending: false, nullsFirst: false });
+
+    if (error) throw error;
+    publicExperiences = (data || []).map(normalizeBpExperience);
+    renderPublicExperiences(publicExperiences);
+  } catch (error) {
+    console.error("Error experiencias validadas:", error);
     container.innerHTML = '<div class="pa-empty">No se pudieron cargar las experiencias validadas: ' + expEscape(error.message) + '</div>';
-    return;
   }
-
-  publicExperiences = data || [];
-  renderPublicExperiences(publicExperiences);
 }
 
 function getExperienceSummary(text) {
@@ -3732,37 +3779,33 @@ async function loadPendingExperiences() {
   if (!panel || !list || currentRole !== "admin") return;
 
   panel.classList.add("show");
-  list.innerHTML = '<div class="repo-empty">Cargando experiencias pendientes...</div>';
+  list.innerHTML = '<div class="repo-empty">Cargando experiencias aptas pendientes de validación...</div>';
   if (count) count.textContent = "Pendientes: —";
 
   try {
-    const separador = EXPERIENCE_SHEET_URL.includes("?") ? "&" : "?";
-    const response = await fetch(EXPERIENCE_SHEET_URL + separador + "cachebust=" + Date.now());
-    const result = await response.json();
-
-    // Soporta los dos formatos posibles del Apps Script:
-    // 1) { ok: true, experiencias: [...] }
-    // 2) { result: "ok", data: [...] }
-    const estaOk = result && (result.ok === true || result.result === "ok");
-    if (!estaOk) {
-      throw new Error(result?.error || result?.message || "No se pudo leer el Google Sheet.");
+    const ultima = await getLatestBpImportacion();
+    if (!ultima) {
+      pendingExperiences = [];
+      renderPendingExperiences([], 0);
+      return;
     }
 
-    const rawData = Array.isArray(result.experiencias)
-      ? result.experiencias
-      : (Array.isArray(result.data) ? result.data : []);
+    const { data, error } = await supabaseClient
+      .from("bp_registros")
+      .select("*")
+      .eq("ultima_importacion_id", ultima.id)
+      .eq("estado_curaduria", "APTO")
+      .eq("estado_publicacion", "PENDIENTE")
+      .eq("activo", true)
+      .order("jurisdiccion", { ascending: true })
+      .order("titulo", { ascending: true });
 
-    const normalized = rawData.map(normalizeSheetExperience);
-
-    pendingExperiences = normalized.filter(exp =>
-      (exp.titulo || exp.descripcion || exp.nombre || exp.email) &&
-      normalizeText(exp.estado || "pendiente") === "pendiente"
-    );
-
-    renderPendingExperiences(pendingExperiences, rawData.length);
+    if (error) throw error;
+    pendingExperiences = (data || []).map(normalizeBpExperience);
+    renderPendingExperiences(pendingExperiences, ultima.total_registros);
   } catch (err) {
     console.error("Error pendientes:", err);
-    list.innerHTML = `<div class="repo-empty">No se pudieron cargar pendientes: ${expEscape(err.message)}<br>Revisá que la URL del Apps Script esté publicada y que devuelva ok:true con experiencias.</div>`;
+    list.innerHTML = `<div class="repo-empty">No se pudieron cargar los aptos pendientes: ${expEscape(err.message)}</div>`;
     if (count) count.textContent = "Error";
   }
 }
@@ -3809,42 +3852,48 @@ function filterPendingExperiences() {
 async function validateExperience(index) {
   if (currentRole !== "admin") return alert("Solo un administrador puede validar experiencias.");
   const exp = pendingExperiences[index];
-  if (!exp) return alert("No se encontró la experiencia seleccionada.");
+  if (!exp?.id) return alert("No se encontró la experiencia seleccionada.");
 
-  // IMPORTANTE:
-  // Supabase solo acepta columnas que existan en la tabla "experiences".
-  // El error anterior venía porque se intentaba guardar "rolIA", pero esa columna no existe.
-  // Por eso acá enviamos únicamente los campos principales que usa el repositorio público.
-  const payload = {
-    titulo: exp.titulo || "",
-    // Guardamos la ficha completa en descripcion para no depender de columnas extra en Supabase.
-    // Así la vista pública muestra TODOS los datos cargados, incluidos P1-P7 y la URL de Drive.
-    descripcion: buildFullFichaText(exp),
-    nombre: exp.nombre || "",
-    email: exp.email || "",
-    institucion: exp.institucion || "",
-    jurisdiccion: exp.jurisdiccion || "",
-    nivel: exp.nivel || "",
-    area: exp.area || "",
-    anio: exp.anio || "",
-    herramientas: exp.herramientas || "",
-    ejes: exp.ejes || "",
-    enlace: exp.enlace || "",
-    validated: true
-  };
+  const ok = confirm(`¿Validar y habilitar para los usuarios la experiencia “${exp.titulo || "Sin título"}”?`);
+  if (!ok) return;
 
-  const { error } = await supabaseClient.from("experiences").insert(payload);
+  const { error } = await supabaseClient
+    .from("bp_registros")
+    .update({
+      estado_publicacion: "VALIDADO",
+      fecha_validacion: new Date().toISOString(),
+      validado_por: currentUser?.id || null,
+      observacion_validacion: null
+    })
+    .eq("id", exp.id)
+    .eq("estado_curaduria", "APTO");
+
   if (error) {
     console.error("Error validando:", error);
     alert("No se pudo validar: " + error.message);
     return;
   }
 
-  alert("Experiencia validada y publicada correctamente.");
-  pendingExperiences.splice(index, 1);
+  try {
+    await supabaseClient.from("bp_historial").insert({
+      registro_id: exp.id,
+      importacion_id: exp.ultima_importacion_id || null,
+      usuario_id: currentUser?.id || null,
+      accion: "EXPERIENCIA_VALIDADA",
+      estado_anterior: "PENDIENTE",
+      estado_nuevo: "VALIDADO",
+      detalle: { titulo: exp.titulo || "", origen: "panel_buenas_practicas" }
+    });
+  } catch (logError) {
+    console.warn("La validación se guardó, pero no pudo registrarse el historial:", logError);
+  }
+
+  alert("Experiencia validada. Ya está disponible para los demás usuarios.");
+  pendingExperiences = pendingExperiences.filter(item => item.id !== exp.id);
   renderPendingExperiences(pendingExperiences);
   await loadExperienciasPublicas();
 }
+
 </script>
 
 
@@ -3852,7 +3901,7 @@ async function validateExperience(index) {
 <div class="exp-detail-modal" id="experienceDetailModal" aria-hidden="true">
   <div class="exp-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="experienceDetailTitle">
     <div class="exp-detail-header">
-      <div class="exp-detail-kicker">PAIDEIA · Ficha de experiencia validada</div>
+      <div class="exp-detail-kicker">PAIDEIA · Ficha de experiencia validada por el equipo</div>
       <h3 id="experienceDetailTitle">Detalle de experiencia</h3>
       <button class="exp-detail-close" type="button" onclick="closeExperienceDetail()" aria-label="Cerrar">×</button>
     </div>
