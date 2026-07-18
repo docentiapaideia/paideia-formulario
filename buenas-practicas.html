@@ -1687,6 +1687,74 @@ button.password-toggle:hover,
   .apps-grid { grid-template-columns: repeat(2, minmax(118px, 1fr)); }
 }
 
+
+/* ── CENTRO INTEGRADO DE BUENAS PRÁCTICAS ─────────────────────── */
+.bp-workflow-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 8px;
+  background: rgba(13,31,78,.045);
+  border: 1px solid rgba(13,31,78,.08);
+  border-radius: 14px;
+}
+.bp-workflow-tab {
+  border: 1px solid rgba(13,31,78,.12);
+  background: #fff;
+  color: var(--navy);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .18s ease;
+}
+.bp-workflow-tab:hover {
+  background: #f4f7fc;
+  transform: translateY(-1px);
+}
+.bp-workflow-tab.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+  box-shadow: 0 5px 16px rgba(13,31,78,.18);
+}
+.bp-workflow-panel { display: none; }
+.bp-workflow-panel.active { display: block; animation: fadeIn .25s ease; }
+.bp-admin-frame-shell {
+  height: calc(100vh - 285px);
+  min-height: 720px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(13,31,78,.10);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(13,31,78,.08);
+}
+.bp-admin-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #f5f7fb;
+}
+.bp-step-note {
+  margin-bottom: 16px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(13,31,78,.045), rgba(201,162,39,.08));
+  border: 1px solid rgba(13,31,78,.08);
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .bp-workflow-tabs { flex-direction: column; }
+  .bp-workflow-tab { width: 100%; text-align: left; }
+  .bp-admin-frame-shell { height: 78vh; min-height: 640px; }
+}
+
 </style>
 </head>
 <body>
@@ -1914,43 +1982,98 @@ button.password-toggle:hover,
       </div>
     </div>
 
-        <!-- REPOSITORIO -->
+        <!-- REPOSITORIO / CENTRO INTEGRADO -->
     <div class="section" id="s-repositorio">
       <div class="section-header">
-        <div class="breadcrumb">PAIDEIA · Repositorio</div>
-        <h2>Repositorio de experiencias</h2>
-        <p>Prácticas pedagógicas con IA validadas por el equipo PaideIA.</p>
+        <div class="breadcrumb">PAIDEIA · Buenas Prácticas</div>
+        <h2>Gestión integral de experiencias</h2>
+        <p>Curaduría automática, comunicación, validación humana y consulta de experiencias aprobadas.</p>
       </div>
 
-      <div class="repo-admin-panel" id="repoAdminPanel">
-        <h3 style="color:var(--navy);margin-bottom:8px;">Experiencias pendientes de validación</h3>
-        <p class="pa-muted" style="margin-bottom:16px;">Estas experiencias ya superaron la curaduría automática y pertenecen a la última importación. Al validarlas, quedan disponibles para los demás usuarios del portal.</p>
+      <div class="bp-workflow-tabs" role="tablist" aria-label="Etapas de Buenas Prácticas">
+        <button class="bp-workflow-tab active" id="bpTabCurar" type="button"
+                onclick="showBpWorkflowTab('curar')" role="tab">
+          1. Importar, curar y comunicar
+        </button>
+        <button class="bp-workflow-tab" id="bpTabValidar" type="button"
+                onclick="showBpWorkflowTab('validar')" role="tab">
+          2. Validar experiencias aptas
+        </button>
+        <button class="bp-workflow-tab" id="bpTabAprobadas" type="button"
+                onclick="showBpWorkflowTab('aprobadas')" role="tab">
+          3. Experiencias validadas
+        </button>
+      </div>
 
-        <div class="repo-toolbar">
-          <input class="pa-input" id="pendingSearch" type="text" placeholder="Buscar pendientes..." onkeyup="filterPendingExperiences()">
-          <button class="pa-btn secondary" type="button" onclick="loadPendingExperiences()">Actualizar pendientes</button>
-          <span class="contacts-count" id="pendingCount">Pendientes: —</span>
+      <!-- SOLAPA 1: APP COMPLETA DE CURADURÍA Y CORREOS -->
+      <div class="bp-workflow-panel active" id="bpPanelCurar">
+        <div class="bp-step-note">
+          Subí el Excel original, ejecutá la curaduría, guardá la importación en Supabase
+          y gestioná los correos de los registros observados. Al guardar, los registros
+          <strong>APTO</strong> pasan automáticamente a la siguiente solapa como pendientes
+          de validación humana.
+        </div>
+        <div class="bp-admin-frame-shell">
+          <iframe
+            class="bp-admin-frame"
+            id="bpCuraduriaIframe"
+            src="./Buenas_Practicas/"
+            title="PAIDEIA - Curaduría y gestión de correos"
+            loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <!-- SOLAPA 2: VALIDACIÓN HUMANA -->
+      <div class="bp-workflow-panel" id="bpPanelValidar">
+        <div class="bp-step-note">
+          Aquí aparecen exclusivamente las experiencias <strong>APTO</strong> de la última
+          importación que todavía no fueron validadas. La curaduría automática no publica:
+          la aprobación final sigue siendo una decisión humana.
         </div>
 
-        <div class="repo-pending-list" id="pendingExperiencesList">
-          <div class="repo-empty">Cargando experiencias pendientes...</div>
+        <div class="repo-admin-panel" id="repoAdminPanel">
+          <h3 style="color:var(--navy);margin-bottom:8px;">Experiencias pendientes de validación</h3>
+          <p class="pa-muted" style="margin-bottom:16px;">
+            Revisá la ficha y la evidencia. Al validar, la experiencia pasa a la solapa
+            “Experiencias validadas” y queda disponible para los demás usuarios del portal.
+          </p>
+
+          <div class="repo-toolbar">
+            <input class="pa-input" id="pendingSearch" type="text"
+                   placeholder="Buscar pendientes..." onkeyup="filterPendingExperiences()">
+            <button class="pa-btn secondary" type="button"
+                    onclick="loadPendingExperiences()">Actualizar pendientes</button>
+            <span class="contacts-count" id="pendingCount">Pendientes: —</span>
+          </div>
+
+          <div class="repo-pending-list" id="pendingExperiencesList">
+            <div class="repo-empty">Ingresá como administrador para revisar las experiencias aptas.</div>
+          </div>
         </div>
       </div>
 
-      <div class="approved-title-block">
-        <h3>Fichas aprobadas</h3>
-        <p>Experiencias validadas disponibles para consulta pública.</p>
-      </div>
+      <!-- SOLAPA 3: CURADAS + VALIDADAS -->
+      <div class="bp-workflow-panel" id="bpPanelAprobadas">
+        <div class="bp-step-note">
+          Esta sección muestra únicamente experiencias que superaron ambas etapas:
+          <strong>curaduría automática</strong> y <strong>validación humana</strong>.
+        </div>
 
-      <div class="filters">
-        <button class="filter-chip active" type="button" onclick="setRepoLevelFilter('')">Todos los niveles</button>
-        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Inicial')">Inicial</button>
-        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Primario')">Primario</button>
-        <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Secundario')">Secundario</button>
-      </div>
+        <div class="approved-title-block">
+          <h3>Fichas aprobadas</h3>
+          <p>Experiencias validadas disponibles para los usuarios del portal.</p>
+        </div>
 
-      <div class="exp-grid" id="repoGrid">
-        <div class="pa-empty">Cargando experiencias validadas...</div>
+        <div class="filters">
+          <button class="filter-chip active" type="button" onclick="setRepoLevelFilter('')">Todos los niveles</button>
+          <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Inicial')">Inicial</button>
+          <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Primario')">Primario</button>
+          <button class="filter-chip" type="button" onclick="setRepoLevelFilter('Secundario')">Secundario</button>
+        </div>
+
+        <div class="exp-grid" id="repoGrid">
+          <div class="pa-empty">Cargando experiencias validadas...</div>
+        </div>
       </div>
     </div>
 
@@ -3943,6 +4066,44 @@ document.addEventListener('click', function(event) {
 });
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape') closeAppPopup();
+});
+</script>
+
+
+<script>
+function showBpWorkflowTab(tabName) {
+  const map = {
+    curar: ['bpTabCurar', 'bpPanelCurar'],
+    validar: ['bpTabValidar', 'bpPanelValidar'],
+    aprobadas: ['bpTabAprobadas', 'bpPanelAprobadas']
+  };
+
+  Object.values(map).forEach(([tabId, panelId]) => {
+    document.getElementById(tabId)?.classList.remove('active');
+    document.getElementById(panelId)?.classList.remove('active');
+  });
+
+  const selected = map[tabName] || map.curar;
+  document.getElementById(selected[0])?.classList.add('active');
+  document.getElementById(selected[1])?.classList.add('active');
+
+  if (tabName === 'validar' && typeof loadPendingExperiences === 'function') {
+    loadPendingExperiences();
+  }
+
+  if (tabName === 'aprobadas' && typeof loadApprovedExperiences === 'function') {
+    loadApprovedExperiences();
+  } else if (tabName === 'aprobadas' && typeof loadRepositoryExperiences === 'function') {
+    loadRepositoryExperiences();
+  }
+}
+
+// Cuando la curaduría del iframe guarda datos, se puede actualizar la validación
+// cambiando de solapa o usando "Actualizar pendientes".
+window.addEventListener('message', (event) => {
+  if (event?.data?.type === 'PAIDEIA_BP_IMPORTACION_GUARDADA') {
+    if (typeof loadPendingExperiences === 'function') loadPendingExperiences();
+  }
 });
 </script>
 
