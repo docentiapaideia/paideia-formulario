@@ -3496,17 +3496,17 @@ function normalizeBpExperience(row) {
     titulo: row.titulo || "",
     anio: row.anio || "",
     herramientas: row.herramientas || "",
-    ejes: row.ejes || "",
+    ejes: Array.isArray(row.ejes) ? row.ejes.join(", ") : (row.ejes || ""),
     descripcion: row.descripcion || "",
     rolIA: row.rol_ia || "",
     enlace: row.enlace || "",
-    p1: row.p1_proposito || "",
-    p2: row.p2_por_que_ia || "",
-    p3: row.p3_mirada_critica || "",
-    p4: row.p4_oportunidades || "",
-    p5: row.p5_innovacion || "",
-    p6: row.p6_ajustes || "",
-    p7: row.p7_transferencia || ""
+    p1: row.q1 ?? row.p1_proposito ?? "",
+    p2: row.q2 ?? row.p2_por_que_ia ?? "",
+    p3: row.q3 ?? row.p3_mirada_critica ?? "",
+    p4: row.q4 ?? row.p4_oportunidades ?? "",
+    p5: row.q5 ?? row.p5_innovacion ?? "",
+    p6: row.q6 ?? row.p6_ajustes ?? "",
+    p7: row.q7 ?? row.p7_transferencia ?? ""
   };
 }
 
@@ -3516,17 +3516,9 @@ async function loadExperienciasPublicas() {
   container.innerHTML = '<div class="pa-empty">Cargando experiencias validadas...</div>';
 
   try {
-    const ultima = await getLatestBpImportacion();
-    if (!ultima) {
-      publicExperiences = [];
-      renderPublicExperiences([]);
-      return;
-    }
-
     const { data, error } = await supabaseClient
-      .from("bp_registros")
+      .from("bp_experiencias")
       .select("*")
-      .eq("ultima_importacion_id", ultima.id)
       .eq("estado_curaduria", "APTO")
       .eq("estado_publicacion", "VALIDADO")
       .eq("activo", true)
@@ -3902,21 +3894,13 @@ async function loadPendingExperiences() {
   if (!panel || !list || currentRole !== "admin") return;
 
   panel.classList.add("show");
-  list.innerHTML = '<div class="repo-empty">Cargando experiencias aptas pendientes de validación...</div>';
+  list.innerHTML = '<div class="repo-empty">Cargando experiencias pendientes de validación...</div>';
   if (count) count.textContent = "Pendientes: —";
 
   try {
-    const ultima = await getLatestBpImportacion();
-    if (!ultima) {
-      pendingExperiences = [];
-      renderPendingExperiences([], 0);
-      return;
-    }
-
     const { data, error } = await supabaseClient
-      .from("bp_registros")
+      .from("bp_experiencias")
       .select("*")
-      .eq("ultima_importacion_id", ultima.id)
       .eq("estado_curaduria", "APTO")
       .eq("estado_publicacion", "PENDIENTE")
       .eq("activo", true)
@@ -3925,10 +3909,10 @@ async function loadPendingExperiences() {
 
     if (error) throw error;
     pendingExperiences = (data || []).map(normalizeBpExperience);
-    renderPendingExperiences(pendingExperiences, ultima.total_registros);
+    renderPendingExperiences(pendingExperiences);
   } catch (err) {
     console.error("Error pendientes:", err);
-    list.innerHTML = `<div class="repo-empty">No se pudieron cargar los aptos pendientes: ${expEscape(err.message)}</div>`;
+    list.innerHTML = `<div class="repo-empty">No se pudieron cargar las experiencias pendientes: ${expEscape(err.message)}</div>`;
     if (count) count.textContent = "Error";
   }
 }
@@ -3939,8 +3923,7 @@ function renderPendingExperiences(items, totalFromSheet) {
   if (!list) return;
 
   if (!items || !items.length) {
-    const extra = totalFromSheet !== undefined ? `<br>Total leído desde el Sheet: ${totalFromSheet}` : "";
-    list.innerHTML = `<div class="repo-empty">No hay experiencias pendientes de validación.${extra}</div>`;
+    list.innerHTML = '<div class="repo-empty">No hay experiencias pendientes de validación.</div>';
     if (count) count.textContent = "Pendientes: 0";
     return;
   }
@@ -3980,11 +3963,14 @@ async function validateExperience(index) {
   const ok = confirm(`¿Validar y habilitar para los usuarios la experiencia “${exp.titulo || "Sin título"}”?`);
   if (!ok) return;
 
+  const fechaValidacion = new Date().toISOString();
+
   const { error } = await supabaseClient
-    .from("bp_registros")
+    .from("bp_experiencias")
     .update({
+      estado_presentacion: "VALIDADA",
       estado_publicacion: "VALIDADO",
-      fecha_validacion: new Date().toISOString(),
+      fecha_validacion: fechaValidacion,
       validado_por: currentUser?.id || null,
       observacion_validacion: null
     })
@@ -3997,21 +3983,20 @@ async function validateExperience(index) {
     return;
   }
 
-  try {
-    await supabaseClient.from("bp_historial").insert({
-      registro_id: exp.id,
-      importacion_id: exp.ultima_importacion_id || null,
-      usuario_id: currentUser?.id || null,
-      accion: "EXPERIENCIA_VALIDADA",
-      estado_anterior: "PENDIENTE",
-      estado_nuevo: "VALIDADO",
-      detalle: { titulo: exp.titulo || "", origen: "panel_buenas_practicas" }
-    });
-  } catch (logError) {
+  const { error: logError } = await supabaseClient.from("bp_historial").insert({
+    experiencia_id: exp.id,
+    usuario_id: currentUser?.id || null,
+    accion: "EXPERIENCIA_VALIDADA",
+    estado_anterior: "PENDIENTE",
+    estado_nuevo: "VALIDADO",
+    detalle: { titulo: exp.titulo || "", origen: "panel_buenas_practicas" }
+  });
+
+  if (logError) {
     console.warn("La validación se guardó, pero no pudo registrarse el historial:", logError);
   }
 
-  alert("Experiencia validada. Ya está disponible para los demás usuarios.");
+  alert("Experiencia validada.");
   pendingExperiences = pendingExperiences.filter(item => item.id !== exp.id);
   renderPendingExperiences(pendingExperiences);
   await loadExperienciasPublicas();
