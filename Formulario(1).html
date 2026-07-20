@@ -232,6 +232,120 @@ button.password-toggle:hover,
   .menu-open-btn { padding: 8px 11px; }
 }
 
+
+/* ── MIS EXPERIENCIAS ─────────────────────────────────────────── */
+.my-exp-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.my-exp-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.my-exp-head h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+.my-exp-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.my-exp-body { padding: 18px 22px; }
+.my-exp-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.my-exp-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.my-exp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+.my-exp-table th,
+.my-exp-table td {
+  text-align: left;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  vertical-align: top;
+}
+.my-exp-table th {
+  background: #f8fafc;
+  color: var(--text);
+  font-weight: 700;
+}
+.my-exp-table tr:last-child td { border-bottom: none; }
+.my-exp-title { font-weight: 700; color: var(--text); }
+.my-exp-muted { color: var(--muted); font-size: 12px; }
+.my-exp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.my-exp-btn {
+  padding: 7px 11px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.my-exp-btn.edit { background: var(--primary-soft); color: var(--primary); }
+.my-exp-btn.delete { background: #fef2f2; color: var(--danger); }
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status-PENDIENTE { background: #fff7ed; color: #9a3412; }
+.status-APTO { background: #ecfdf5; color: #047857; }
+.status-OBSERVADO { background: #fef2f2; color: #b91c1c; }
+.status-DUPLICADO { background: #f3f4f6; color: #4b5563; }
+.status-REVISION_MANUAL { background: #eff6ff; color: #1d4ed8; }
+.status-VALIDADO { background: #ecfdf5; color: #065f46; }
+.editor-mode-banner {
+  display: none;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.editor-mode-banner.show { display: block; }
+.auth-warning {
+  padding: 14px 16px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.empty-row {
+  padding: 18px !important;
+  color: var(--muted);
+  text-align: center !important;
+}
+
 </style>
 </head>
 <body>
@@ -244,6 +358,42 @@ button.password-toggle:hover,
       <h1>Buenas prácticas docentes con Inteligencia Artificial</h1>
       <p>Convocatoria a un relevamiento federal &middot; Programa PAIDEIA<br>
       Per&iacute;odo elegible: pr&aacute;cticas implementadas entre 2023 y 2026 &nbsp;&middot;&nbsp; Consultas: <strong>paideia@educacion.gob.ar</strong></p>
+    </div>
+  </section>
+
+
+  <!-- MIS EXPERIENCIAS -->
+  <section class="my-exp-panel" id="misExperienciasPanel">
+    <div class="my-exp-head">
+      <div>
+        <h2>Mis experiencias</h2>
+        <p>Podés volver a abrir una presentación, corregirla o eliminarla sin generar una nueva fila.</p>
+      </div>
+      <button type="button" class="btn-secondary" onclick="cargarMisExperiencias()">Actualizar lista</button>
+    </div>
+    <div class="my-exp-body">
+      <div id="authWarning" class="auth-warning" style="display:none">
+        Para ver y editar tus experiencias, ingresá al portal con tu usuario.
+      </div>
+      <div id="editorModeBanner" class="editor-mode-banner">
+        Estás editando una experiencia existente. Al guardar, se actualizará el mismo registro.
+        <button type="button" class="my-exp-btn edit" style="margin-left:8px" onclick="cancelarEdicion()">Cancelar edición</button>
+      </div>
+      <div class="my-exp-table-wrap">
+        <table class="my-exp-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Estado</th>
+              <th>Última actualización</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="misExperienciasBody">
+            <tr><td colspan="4" class="empty-row">Cargando experiencias...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -485,7 +635,7 @@ button.password-toggle:hover,
       </div>
       <div class="actions" style="margin-top:16px">
         <button type="button" class="btn-secondary" onclick="goToBloque(2)">&larr; Volver</button>
-        <button type="submit" class="btn-success">&#10003; Enviar experiencia</button>
+        <button type="submit" class="btn-success" id="submitExperienceBtn">&#10003; Guardar experiencia</button>
       </div>
       <div id="formMessage" class="message"></div>
     </div>
@@ -498,11 +648,12 @@ button.password-toggle:hover,
   <div class="success-box">
     <div class="success-icon">✓</div>
     <h2>La carga se registró con éxito</h2>
-    <p>La experiencia fue enviada correctamente y quedó registrada en el sistema.</p>
+    <p>La experiencia fue guardada correctamente y quedó registrada en el sistema.</p>
     <button type="button" class="btn-success" onclick="volverAlInicio()">Volver al inicio</button>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
 function togglePasswordVisibility(inputId, btn) {
@@ -518,7 +669,14 @@ function togglePasswordVisibility(inputId, btn) {
 }
 
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw50bAzFGUmVNied62HyFjGuMseYf-G7KerWdO8FATB1uxs5E9SQZtmoH5MP8G7IfQwMA/exec';
+  const SUPABASE_URL = 'https://mhwcnlkrwylloyxpmmqu.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   let bloqueActual = 1;
+  let currentUser = null;
+  let experienciaEditandoId = null;
+  let experienciasUsuario = [];
 
   function goToBloque(n) {
     document.getElementById('bloque' + bloqueActual).classList.remove('active');
@@ -617,9 +775,16 @@ function togglePasswordVisibility(inputId, btn) {
     const modal = document.getElementById('successModal');
     if (modal) modal.classList.remove('show');
 
+    experienciaEditandoId = null;
     document.getElementById('paideia-form').reset();
+    document.getElementById('editorModeBanner')?.classList.remove('show');
+    const submitBtn = document.getElementById('submitExperienceBtn');
+    if (submitBtn) submitBtn.innerHTML = '&#10003; Guardar experiencia';
+    const emailInput = document.getElementById('email');
+    if (emailInput && currentUser) emailInput.value = currentUser.email || '';
     goToBloque(1);
     updatePreview();
+    cargarMisExperiencias();
 
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'PAIDEIA_FORM_SUCCESS' }, '*');
@@ -628,50 +793,367 @@ function togglePasswordVisibility(inputId, btn) {
     }
   }
 
-  document.getElementById('paideia-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!validarBloque(3)) return;
-    const ejes = [...document.querySelectorAll('input[name="ejes"]:checked')].map(el=>el.value).join(', ');
-    const equipo = document.querySelector('input[name="equipo"]:checked')?.value || '';
-    const payload = {
-      timestamp: new Date().toLocaleString('es-AR'),
-      nombre: document.getElementById('nombre').value,
-      email: document.getElementById('email').value,
-      institucion: document.getElementById('institucion').value,
-      jurisdiccion: document.getElementById('jurisdiccion').value,
-      nivel: document.getElementById('nivel').value,
-      area: document.getElementById('area').value,
-      equipo, equipoNombres: document.getElementById('equipoNombres').value,
-      titulo: document.getElementById('titulo').value,
-      anio: document.getElementById('anio').value,
-      herramientas: document.getElementById('herramientas').value,
-      ejes, descripcion: document.getElementById('descripcion').value,
-      rolIA: document.getElementById('rolIA').value,
-      enlace: document.getElementById('enlace').value,
-      q1: document.getElementById('q1').value,
-      q2: document.getElementById('q2').value,
-      q3: document.getElementById('q3').value,
-      q4: document.getElementById('q4').value,
-      q5: document.getElementById('q5').value,
-      q6: document.getElementById('q6').value,
-      q7: document.getElementById('q7').value,
-    };
-    if (SHEET_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT') {
-      showMsg('info','✓ Demo: formulario completo y listo. Configurá SHEET_URL para activar el guardado en Google Sheets.');
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatDate(value) {
+    if (!value) return '—';
+    try {
+      return new Intl.DateTimeFormat('es-AR', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  }
+
+  async function initSupabaseExperienceForm() {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    currentUser = sessionData?.session?.user || null;
+
+    const warning = document.getElementById('authWarning');
+    if (!currentUser) {
+      if (warning) warning.style.display = 'block';
+      renderMisExperiencias([]);
       return;
     }
-    showMsg('info','Enviando… por favor esperá.');
-    try {
-      const params = new URLSearchParams(payload).toString();
-      const img = new Image();
-      img.src = SHEET_URL + '?' + params;
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      mostrarExito();
-    } catch(err) {
-      showMsg('error','Error al enviar. Escribí a paideia@educacion.gob.ar');
+
+    if (warning) warning.style.display = 'none';
+
+    // Completa el correo con el usuario autenticado si está vacío.
+    const emailInput = document.getElementById('email');
+    if (emailInput && !emailInput.value) emailInput.value = currentUser.email || '';
+
+    await cargarMisExperiencias();
+  }
+
+  async function cargarMisExperiencias() {
+    const tbody = document.getElementById('misExperienciasBody');
+    if (!tbody) return;
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    currentUser = sessionData?.session?.user || null;
+
+    if (!currentUser) {
+      renderMisExperiencias([]);
+      return;
     }
+
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Cargando experiencias...</td></tr>';
+
+    const { data, error } = await supabaseClient
+      .from('bp_experiencias')
+      .select('*')
+      .eq('activo', true)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-row">No se pudieron cargar: ${escapeHtml(error.message)}</td></tr>`;
+      return;
+    }
+
+    experienciasUsuario = data || [];
+    renderMisExperiencias(experienciasUsuario);
+  }
+
+  function renderMisExperiencias(items) {
+    const tbody = document.getElementById('misExperienciasBody');
+    if (!tbody) return;
+
+    if (!currentUser) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Iniciá sesión para ver tus experiencias.</td></tr>';
+      return;
+    }
+
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Todavía no cargaste experiencias.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = items.map(exp => {
+      const estado = exp.estado_publicacion === 'VALIDADO'
+        ? 'VALIDADO'
+        : (exp.estado_curaduria || 'PENDIENTE');
+
+      return `
+        <tr>
+          <td>
+            <div class="my-exp-title">${escapeHtml(exp.titulo || 'Sin título')}</div>
+            <div class="my-exp-muted">${escapeHtml(exp.institucion || '')}</div>
+          </td>
+          <td>
+            <span class="status-pill status-${escapeHtml(estado)}">${escapeHtml(estado)}</span>
+            ${exp.observaciones_curaduria
+              ? `<div class="my-exp-muted" style="margin-top:6px">${escapeHtml(exp.observaciones_curaduria)}</div>`
+              : ''}
+          </td>
+          <td>${escapeHtml(formatDate(exp.updated_at || exp.fecha_ultima_edicion))}</td>
+          <td>
+            <div class="my-exp-actions">
+              <button type="button" class="my-exp-btn edit" onclick="editarExperiencia('${exp.id}')">Editar</button>
+              <button type="button" class="my-exp-btn delete" onclick="eliminarExperiencia('${exp.id}')">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function setRadioValue(name, value) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.checked = input.value === value;
+    });
+  }
+
+  function setCheckboxValues(name, values) {
+    const normalized = Array.isArray(values)
+      ? values
+      : String(values || '').split(',').map(v => v.trim()).filter(Boolean);
+
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.checked = normalized.includes(input.value);
+    });
+  }
+
+  async function editarExperiencia(id) {
+    const exp = experienciasUsuario.find(item => item.id === id);
+    if (!exp) {
+      alert('No se encontró la experiencia.');
+      return;
+    }
+
+    experienciaEditandoId = id;
+
+    const values = {
+      nombre: exp.nombre,
+      email: exp.email,
+      institucion: exp.institucion,
+      jurisdiccion: exp.jurisdiccion,
+      nivel: exp.nivel,
+      area: exp.area,
+      equipoNombres: exp.equipo_nombres,
+      titulo: exp.titulo,
+      anio: exp.anio,
+      herramientas: exp.herramientas,
+      enlace: exp.enlace,
+      descripcion: exp.descripcion,
+      rolIA: exp.rol_ia,
+      q1: exp.q1,
+      q2: exp.q2,
+      q3: exp.q3,
+      q4: exp.q4,
+      q5: exp.q5,
+      q6: exp.q6,
+      q7: exp.q7
+    };
+
+    Object.entries(values).forEach(([idField, value]) => {
+      const el = document.getElementById(idField);
+      if (el) el.value = value ?? '';
+    });
+
+    setRadioValue('equipo', exp.equipo || 'No, fue individual');
+    setCheckboxValues('ejes', exp.ejes || []);
+
+    const esEquipo = String(exp.equipo || '').toLowerCase().includes('equipo');
+    document.getElementById('campoEquipo').style.display = esEquipo ? 'flex' : 'none';
+    document.getElementById('equipoNombres').required = esEquipo;
+
+    document.getElementById('editorModeBanner')?.classList.add('show');
+    const submitBtn = document.getElementById('submitExperienceBtn');
+    if (submitBtn) submitBtn.innerHTML = '&#10003; Guardar correcciones';
+
+    goToBloque(1);
+    updatePreview();
+    window.scrollTo({ top: document.getElementById('paideia-form').offsetTop - 20, behavior: 'smooth' });
+  }
+
+  function cancelarEdicion() {
+    experienciaEditandoId = null;
+    document.getElementById('paideia-form').reset();
+    document.getElementById('editorModeBanner')?.classList.remove('show');
+    const submitBtn = document.getElementById('submitExperienceBtn');
+    if (submitBtn) submitBtn.innerHTML = '&#10003; Guardar experiencia';
+
+    const emailInput = document.getElementById('email');
+    if (emailInput && currentUser) emailInput.value = currentUser.email || '';
+
+    document.getElementById('campoEquipo').style.display = 'none';
+    document.getElementById('equipoNombres').required = false;
+    goToBloque(1);
+    updatePreview();
+  }
+
+  async function eliminarExperiencia(id) {
+    const exp = experienciasUsuario.find(item => item.id === id);
+    const ok = confirm(`¿Querés eliminar la experiencia "${exp?.titulo || ''}"?\n\nEl registro se conservará en el historial, pero dejará de mostrarse.`);
+    if (!ok) return;
+
+    const { error } = await supabaseClient
+      .from('bp_experiencias')
+      .update({
+        activo: false,
+        estado_presentacion: 'ELIMINADA'
+      })
+      .eq('id', id);
+
+    if (error) {
+      alert('No se pudo eliminar: ' + error.message);
+      return;
+    }
+
+    if (experienciaEditandoId === id) cancelarEdicion();
+    await cargarMisExperiencias();
+  }
+
+  function construirPayloadSupabase() {
+    const ejes = [...document.querySelectorAll('input[name="ejes"]:checked')].map(el => el.value);
+    const equipo = document.querySelector('input[name="equipo"]:checked')?.value || '';
+
+    return {
+      nombre: document.getElementById('nombre').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      institucion: document.getElementById('institucion').value.trim(),
+      jurisdiccion: document.getElementById('jurisdiccion').value,
+      nivel: document.getElementById('nivel').value,
+      area: document.getElementById('area').value.trim(),
+      equipo,
+      equipo_nombres: document.getElementById('equipoNombres').value.trim() || null,
+      titulo: document.getElementById('titulo').value.trim(),
+      anio: Number(document.getElementById('anio').value),
+      herramientas: document.getElementById('herramientas').value.trim(),
+      ejes,
+      descripcion: document.getElementById('descripcion').value.trim(),
+      rol_ia: document.getElementById('rolIA').value.trim(),
+      enlace: document.getElementById('enlace').value.trim(),
+      q1: document.getElementById('q1').value.trim(),
+      q2: document.getElementById('q2').value.trim(),
+      q3: document.getElementById('q3').value.trim(),
+      q4: document.getElementById('q4').value.trim(),
+      q5: document.getElementById('q5').value.trim(),
+      q6: document.getElementById('q6').value.trim(),
+      q7: document.getElementById('q7').value.trim()
+    };
+  }
+
+  async function enviarRespaldoSheet(payload) {
+    // Se conserva temporalmente como respaldo durante la transición.
+    try {
+      if (!SHEET_URL || SHEET_URL === 'TU_URL_DE_GOOGLE_APPS_SCRIPT') return;
+
+      const sheetPayload = {
+        timestamp: new Date().toLocaleString('es-AR'),
+        nombre: payload.nombre,
+        email: payload.email,
+        institucion: payload.institucion,
+        jurisdiccion: payload.jurisdiccion,
+        nivel: payload.nivel,
+        area: payload.area,
+        equipo: payload.equipo,
+        equipoNombres: payload.equipo_nombres || '',
+        titulo: payload.titulo,
+        anio: payload.anio,
+        herramientas: payload.herramientas,
+        ejes: (payload.ejes || []).join(', '),
+        descripcion: payload.descripcion,
+        rolIA: payload.rol_ia,
+        enlace: payload.enlace,
+        q1: payload.q1,
+        q2: payload.q2,
+        q3: payload.q3,
+        q4: payload.q4,
+        q5: payload.q5,
+        q6: payload.q6,
+        q7: payload.q7,
+        modo: experienciaEditandoId ? 'ACTUALIZACION_SUPABASE' : 'NUEVA_SUPABASE',
+        experiencia_id: experienciaEditandoId || ''
+      };
+
+      const img = new Image();
+      img.src = SHEET_URL + '?' + new URLSearchParams(sheetPayload).toString();
+    } catch (error) {
+      console.warn('No se pudo generar el respaldo en Sheet:', error);
+    }
+  }
+
+  document.getElementById('paideia-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!validarBloque(3)) return;
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    currentUser = sessionData?.session?.user || null;
+
+    if (!currentUser) {
+      showMsg('error', 'Necesitás iniciar sesión en el portal para guardar la experiencia.');
+      return;
+    }
+
+    const payload = construirPayloadSupabase();
+    showMsg('info', experienciaEditandoId ? 'Guardando correcciones…' : 'Guardando experiencia…');
+
+    let error = null;
+    let savedId = experienciaEditandoId;
+
+    if (experienciaEditandoId) {
+      const result = await supabaseClient
+        .from('bp_experiencias')
+        .update(payload)
+        .eq('id', experienciaEditandoId)
+        .select('id')
+        .single();
+
+      error = result.error;
+      savedId = result.data?.id || experienciaEditandoId;
+    } else {
+      const result = await supabaseClient
+        .from('bp_experiencias')
+        .insert({
+          ...payload,
+          user_id: currentUser.id,
+          estado_presentacion: 'PRESENTADA',
+          estado_curaduria: 'PENDIENTE',
+          estado_publicacion: 'PENDIENTE'
+        })
+        .select('id')
+        .single();
+
+      error = result.error;
+      savedId = result.data?.id || null;
+    }
+
+    if (error) {
+      console.error(error);
+      showMsg('error', 'No se pudo guardar: ' + error.message);
+      return;
+    }
+
+    // Respaldo temporal en Google Sheet.
+    await enviarRespaldoSheet(payload);
+
+    experienciaEditandoId = null;
+    await cargarMisExperiencias();
+
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'PAIDEIA_EXPERIENCIA_GUARDADA',
+        experiencia_id: savedId
+      }, '*');
+    }
+
+    mostrarExito();
   });
 
+  initSupabaseExperienceForm();
   updatePreview();
 </script>
 </body>
