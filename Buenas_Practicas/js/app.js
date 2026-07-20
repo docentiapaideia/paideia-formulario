@@ -190,22 +190,22 @@ async function cargarPendientesSupabase(){
   if(!registros.length){
     $('#resultados').classList.add('hidden');
     $('#estado').className='status ok';
-    $('#estado').textContent='No hay experiencias nuevas o corregidas pendientes de curaduría.';
+    $('#estado').textContent='No hay experiencias pendientes.';
   }else{
     $('#estado').className='status ok';
-    $('#estado').textContent=`Se cargaron ${registros.length} experiencias pendientes. Revisá el resultado y presioná “Aplicar curaduría en Supabase”.`;
+    $('#estado').textContent=`Se cargaron ${registros.length} experiencias pendientes.`;
   }
 }
 
 async function aplicarCuraduriaSupabase(){
   if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
-  if(origenRegistros!=='SUPABASE'||!registros.length)throw new Error('Primero cargá pendientes desde Supabase.');
+  if(origenRegistros!=='SUPABASE'||!registros.length)throw new Error('Primero cargá las experiencias pendientes.');
   const confirmar=confirm(`Se actualizarán ${registros.length} experiencias con el resultado de la curaduría. ¿Continuar?`);
   if(!confirmar)return;
 
   $('#aplicarCuraduria').disabled=true;
   $('#estado').className='status';
-  $('#estado').textContent='Aplicando curaduría en Supabase…';
+  $('#estado').textContent='Aplicando curaduría…';
 
   let ok=0;
   const errores=[];
@@ -259,7 +259,7 @@ function mostrar(){
 }
 
 async function iniciarSesion(){
-  if(!supabaseClient)throw new Error('Falta la configuración de Supabase.');
+  if(!supabaseClient)throw new Error('Falta la configuración del sistema.');
   const email=norm($('#loginEmail').value);const password=$('#loginPassword').value;
   if(!email||!password)throw new Error('Ingresá correo y contraseña.');
   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
@@ -273,7 +273,7 @@ function mostrarSesion(){
   $('#cerrarSesion').classList.toggle('hidden',!activo);
   $('#iniciarSesion').classList.toggle('hidden',activo);
   $('#estadoSesion').className='status '+(activo?'ok':'');
-  $('#estadoSesion').textContent=activo?'Sesión iniciada. Ya podés guardar importaciones en Supabase.':'Podés curar y exportar sin iniciar sesión. Para guardar en Supabase, el acceso es obligatorio.';
+  $('#estadoSesion').textContent=activo?'Sesión iniciada.':'Iniciá sesión para continuar.';
   actualizarBotonGuardar();
 }
 function actualizarBotonGuardar(){

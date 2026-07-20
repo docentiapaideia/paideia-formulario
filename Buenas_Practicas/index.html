@@ -21,7 +21,7 @@
 
   <section class="card" id="accesoCard">
     <h2>Acceso al sistema</h2>
-    <p class="muted">Iniciá sesión con el usuario autorizado de PAIDEIA para guardar las importaciones y el historial en Supabase.</p>
+    <p class="muted">Ingresá con tu usuario administrador.</p>
     <div class="login-grid">
       <label>Correo
         <input id="loginEmail" type="email" autocomplete="username" placeholder="usuario@correo.com">
@@ -32,27 +32,27 @@
       <button id="iniciarSesion">Ingresar</button>
       <button id="cerrarSesion" class="secondary hidden">Cerrar sesión</button>
     </div>
-    <div id="estadoSesion" class="status">Podés curar y exportar sin iniciar sesión. Para guardar en Supabase, el acceso es obligatorio.</div>
+    <div id="estadoSesion" class="status">Iniciá sesión para continuar.</div>
   </section>
 
   <section class="card">
-    <h2>1. Curar experiencias desde Supabase</h2>
+    <h2>1. Curaduría de experiencias</h2>
     <p class="muted">Carga las experiencias nuevas o corregidas desde <strong>bp_experiencias</strong>, aplica las reglas de curaduría y actualiza el mismo registro sin utilizar el Excel.</p>
     <div class="actions">
-      <button id="cargarPendientes" disabled>Cargar pendientes desde Supabase</button>
-      <button id="aplicarCuraduria" disabled>Aplicar curaduría en Supabase</button>
+      <button id="cargarPendientes" disabled>Cargar pendientes</button>
+      <button id="aplicarCuraduria" disabled>Aplicar curaduría</button>
       <button id="exportar" class="secondary" disabled>Exportar resultado</button>
     </div>
-    <div id="estado" class="status">Iniciá sesión para cargar las experiencias pendientes.</div>
+    <div id="estado" class="status">Iniciá sesión para continuar.</div>
   </section>
 
   <details class="card legacy-card">
-    <summary><strong>Importación histórica desde Excel</strong> · usar solo como respaldo</summary>
+    <summary><strong>Importar desde Excel</strong> · usar solo como respaldo</summary>
     <p class="muted">Esta opción se conserva durante la transición. Los nuevos registros deben ingresar mediante el formulario y la tabla bp_experiencias.</p>
     <div class="actions">
       <label class="file-label" for="archivo">Seleccionar Excel</label>
       <input id="archivo" type="file" accept=".xlsx,.xls">
-      <button id="guardarSupabase" disabled>Guardar importación histórica</button>
+      <button id="guardarSupabase" disabled>Guardar importación</button>
     </div>
   </details>
 
@@ -89,7 +89,7 @@
     <div class="section-title">
       <div>
         <h2>2. Gestión de correos</h2>
-        <p class="muted">Carga los registros observados guardados en Supabase, revisá el mensaje y enviá únicamente los seleccionados.</p>
+        <p class="muted">Revisá los casos observados y enviá los avisos seleccionados.</p>
       </div>
       <button id="cargarCorreos" class="secondary" disabled>Cargar observados</button>
     </div>
