@@ -8,6 +8,8 @@ let registros = [];
 let archivoActual = null;
 let hashArchivoActual = null;
 let usuarioActual = null;
+let origenRegistros = null; // 'SUPABASE' o 'EXCEL'
+let idsPendientes = [];
 
 function norm(v){return String(v ?? '').replace(/\s+/g,' ').trim();}
 function canon(s){return norm(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');}
@@ -111,6 +113,7 @@ function resolverDuplicados(lista){
 }
 
 async function procesarArchivo(file){
+  origenRegistros='EXCEL';
   archivoActual=file;
   const data=await file.arrayBuffer();
   hashArchivoActual=await sha(new Uint8Array(data).join(','));
@@ -134,6 +137,108 @@ async function procesarArchivo(file){
   actualizarBotonGuardar();
 }
 
+
+function mapearExperienciaSupabase(e, posicion){
+  return {
+    id:e.id,
+    fila_origen:posicion,
+    timestamp_origen:e.fecha_presentacion||e.created_at||'',
+    nombre:norm(e.nombre),email:norm(e.email),institucion:norm(e.institucion),
+    jurisdiccion:norm(e.jurisdiccion),nivel:norm(e.nivel),area:norm(e.area),
+    equipo:norm(e.equipo),nombres_equipo:norm(e.equipo_nombres),titulo:norm(e.titulo),
+    anio:norm(e.anio),herramientas:norm(e.herramientas),
+    ejes:Array.isArray(e.ejes)?e.ejes.join(', '):norm(e.ejes),
+    descripcion:norm(e.descripcion),rol_ia:norm(e.rol_ia),enlace:norm(e.enlace),
+    p1_proposito:norm(e.q1),p2_por_que_ia:norm(e.q2),p3_mirada_critica:norm(e.q3),
+    p4_oportunidades:norm(e.q4),p5_innovacion:norm(e.q5),p6_ajustes:norm(e.q6),
+    p7_transferencia:norm(e.q7),estado_origen:norm(e.estado_presentacion),
+    estado_anterior:norm(e.estado_curaduria),updated_at:e.updated_at||'',
+    _original:e
+  };
+}
+
+async function cargarPendientesSupabase(){
+  if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
+  $('#estado').className='status';
+  $('#estado').textContent='Cargando experiencias nuevas y corregidas…';
+
+  const {data:all,error}=await supabaseClient.from('bp_experiencias')
+    .select('*').eq('activo',true).order('updated_at',{ascending:true});
+  if(error)throw error;
+
+  const todas=(all||[]).map((e,i)=>evaluarRegistro(mapearExperienciaSupabase(e,i+1)));
+  const pendientes=todas.filter(r=>
+    r._original.estado_curaduria==='PENDIENTE' ||
+    r._original.estado_presentacion==='CORREGIDA'
+  );
+
+  // Los duplicados se determinan contra toda la base activa, no solo contra el lote pendiente.
+  resolverDuplicados(todas);
+  const estadosGlobales=new Map(todas.map(r=>[r.id,r]));
+  registros=pendientes.map(r=>estadosGlobales.get(r.id)||r);
+  idsPendientes=registros.map(r=>r.id);
+  origenRegistros='SUPABASE';
+  archivoActual=null;
+  hashArchivoActual=null;
+
+  mostrar();
+  $('#exportar').disabled=!registros.length;
+  $('#aplicarCuraduria').disabled=!registros.length;
+  $('#guardarSupabase').disabled=true;
+  $('#cambios').textContent=registros.length;
+
+  if(!registros.length){
+    $('#resultados').classList.add('hidden');
+    $('#estado').className='status ok';
+    $('#estado').textContent='No hay experiencias nuevas o corregidas pendientes de curaduría.';
+  }else{
+    $('#estado').className='status ok';
+    $('#estado').textContent=`Se cargaron ${registros.length} experiencias pendientes. Revisá el resultado y presioná “Aplicar curaduría en Supabase”.`;
+  }
+}
+
+async function aplicarCuraduriaSupabase(){
+  if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
+  if(origenRegistros!=='SUPABASE'||!registros.length)throw new Error('Primero cargá pendientes desde Supabase.');
+  const confirmar=confirm(`Se actualizarán ${registros.length} experiencias con el resultado de la curaduría. ¿Continuar?`);
+  if(!confirmar)return;
+
+  $('#aplicarCuraduria').disabled=true;
+  $('#estado').className='status';
+  $('#estado').textContent='Aplicando curaduría en Supabase…';
+
+  let ok=0;
+  const errores=[];
+  for(const r of registros){
+    const estadoPresentacion = r.estado_curaduria==='APTO' ? 'APTA'
+      : r.estado_curaduria==='DUPLICADO' ? 'RECHAZADA' : 'OBSERVADA';
+    const detalle=[...r.observaciones,...r.alertas_contacto].join('; ');
+    const {error}=await supabaseClient.from('bp_experiencias').update({
+      estado_curaduria:r.estado_curaduria,
+      estado_presentacion:estadoPresentacion,
+      estado_publicacion:'PENDIENTE',
+      observaciones_curaduria:detalle||null,
+      fecha_curaduria:new Date().toISOString(),
+      correo_notificacion_enviado:false
+    }).eq('id',r.id);
+    if(error)errores.push(`${r.titulo}: ${error.message}`); else ok++;
+  }
+
+  if(errores.length){
+    $('#estado').className='status error';
+    $('#estado').textContent=`Se actualizaron ${ok} registros y hubo ${errores.length} errores. ${errores[0]}`;
+    $('#aplicarCuraduria').disabled=false;
+    return;
+  }
+
+  $('#estado').className='status ok';
+  $('#estado').textContent=`Curaduría aplicada correctamente a ${ok} experiencias. Los observados ya están disponibles para la gestión de correos.`;
+  registros=[];idsPendientes=[];
+  $('#aplicarCuraduria').disabled=true;
+  $('#exportar').disabled=true;
+  $('#resultados').classList.add('hidden');
+}
+
 function registrosFiltrados(){const f=$('#filtroEstado').value;return f==='TODOS'?registros:registros.filter(r=>r.estado_curaduria===f);}
 function mostrar(){
   const counts={APTO:0,OBSERVADO:0,DUPLICADO:0};
@@ -145,7 +250,8 @@ function mostrar(){
   $('#correos').textContent=registros.filter(r=>r.estado_curaduria==='OBSERVADO'&&emailUtilizable(r.email)).length;
   $('#tablaBody').innerHTML=registrosFiltrados().map(r=>{
     const detalle=[...r.observaciones,...r.alertas_contacto.map(x=>'Contacto: '+x)].join('; ');
-    return `<tr><td>${r.fila_origen}</td><td>${esc(r.nombre)}</td><td>${esc(r.email)}</td><td>${esc(r.titulo)}</td><td><span class="badge ${r.estado_curaduria}">${r.estado_curaduria}</span></td><td>${esc(detalle)}</td></tr>`;
+    const ref=origenRegistros==='SUPABASE'?`<span class="source-pill">SUPABASE</span><br><small>${esc(String(r.id||'').slice(0,8))}</small>`:r.fila_origen;
+    return `<tr><td>${ref}</td><td>${esc(r.nombre)}</td><td>${esc(r.email)}</td><td>${esc(r.titulo)}</td><td><span class="badge ${r.estado_curaduria}">${r.estado_curaduria}</span></td><td>${esc(detalle)}</td></tr>`;
   }).join('');
   $('#resultados').classList.remove('hidden');
   $('#estado').className='status ok';
@@ -170,7 +276,11 @@ function mostrarSesion(){
   $('#estadoSesion').textContent=activo?'Sesión iniciada. Ya podés guardar importaciones en Supabase.':'Podés curar y exportar sin iniciar sesión. Para guardar en Supabase, el acceso es obligatorio.';
   actualizarBotonGuardar();
 }
-function actualizarBotonGuardar(){$('#guardarSupabase').disabled=!(usuarioActual&&registros.length&&archivoActual);}
+function actualizarBotonGuardar(){
+  $('#guardarSupabase').disabled=!(usuarioActual&&registros.length&&archivoActual&&origenRegistros==='EXCEL');
+  const cargar=$('#cargarPendientes');if(cargar)cargar.disabled=!usuarioActual;
+  const aplicar=$('#aplicarCuraduria');if(aplicar&&origenRegistros!=='SUPABASE')aplicar.disabled=true;
+}
 
 function payloadRegistro(r,importacionId){
   return {
@@ -244,7 +354,9 @@ function exportarResultado(){
   XLSX.writeFile(wb,'Buenas_Practicas_Curadas_App.xlsx');
 }
 
-$('#archivo').addEventListener('change',async e=>{try{$('#estado').className='status';$('#estado').textContent='Procesando archivo…';await procesarArchivo(e.target.files[0]);}catch(err){$('#estado').className='status error';$('#estado').textContent='Error: '+err.message;}});
+$('#cargarPendientes').addEventListener('click',async()=>{try{await cargarPendientesSupabase();}catch(err){$('#estado').className='status error';$('#estado').textContent='Error: '+err.message;}});
+$('#aplicarCuraduria').addEventListener('click',async()=>{try{await aplicarCuraduriaSupabase();}catch(err){$('#estado').className='status error';$('#estado').textContent='Error: '+err.message;$('#aplicarCuraduria').disabled=false;}});
+$('#archivo').addEventListener('change',async e=>{try{origenRegistros='EXCEL';$('#estado').className='status';$('#estado').textContent='Procesando archivo…';await procesarArchivo(e.target.files[0]);}catch(err){$('#estado').className='status error';$('#estado').textContent='Error: '+err.message;}});
 $('#exportar').addEventListener('click',exportarResultado);
 $('#guardarSupabase').addEventListener('click',async()=>{try{await guardarEnSupabase();}catch(err){$('#estado').className='status error';$('#estado').textContent='Error al guardar: '+err.message;actualizarBotonGuardar();}});
 $('#filtroEstado').addEventListener('change',mostrar);
@@ -274,48 +386,31 @@ function construirCuerpo(r){
   const nombre=norm(r.nombre)||'participante';
   const titulo=norm(r.titulo)||'la experiencia presentada';
   const detalle=observacionCorreo(r);
-  return `Hola, ${nombre}:\n\nNos comunicamos desde el Programa PAIDEIA en relación con la experiencia presentada bajo el título “${titulo}”.\n\nDurante el proceso de revisión y curaduría se detectó la siguiente situación:\n\n${detalle}\n\nPara poder continuar con la evaluación de la propuesta, necesitamos que complete o corrija la información señalada. En caso de haber incorporado un enlace de Google Drive, asegúrese de que el archivo o la carpeta estén configurados con acceso para cualquier persona que posea el enlace.\n\nUna vez realizada la corrección, responda a este correo para informarnos.\n\nAgradecemos su participación y el trabajo realizado.\n\nSaludos cordiales,\nEquipo PAIDEIA`;
+  return `Hola, ${nombre}:\n\nNos comunicamos desde el Programa PAIDEIA en relación con la experiencia presentada bajo el título “${titulo}”.\n\nDurante el proceso de revisión y curaduría se detectó la siguiente situación:\n\n${detalle}\n\nPara poder continuar con la evaluación de la propuesta, necesitamos que complete o corrija la información señalada. En caso de haber incorporado un enlace de Google Drive, asegúrese de que el archivo o la carpeta estén configurados con acceso para cualquier persona que posea el enlace.\n\nIngresá nuevamente al portal, abrí “Mis experiencias” y editá la misma presentación. Al guardar, volverá automáticamente a la cola de curaduría.\n\nAgradecemos su participación y el trabajo realizado.\n\nSaludos cordiales,\nEquipo PAIDEIA`;
 }
 
 async function cargarRegistrosCorreo(){
   if(!supabaseClient||!usuarioActual)throw new Error('Primero iniciá sesión.');
   $('#estadoCorreos').className='status';
-  $('#estadoCorreos').textContent='Buscando la última importación y sus registros observados…';
+  $('#estadoCorreos').textContent='Buscando experiencias observadas…';
 
-  const {data:ultimaImportacion,error:errorImportacion}=await supabaseClient
-    .from('bp_importaciones')
-    .select('id,nombre_archivo,fecha_importacion,total_registros')
-    .order('fecha_importacion',{ascending:false})
-    .limit(1)
-    .maybeSingle();
-  if(errorImportacion)throw errorImportacion;
-  if(!ultimaImportacion)throw new Error('Todavía no hay importaciones guardadas en Supabase.');
-
-  const {data:obs,error}=await supabaseClient.from('bp_registros')
-    .select('id,nombre,email,institucion,titulo,observaciones,estado_curaduria,fecha_actualizacion,ultima_importacion_id')
-    .eq('estado_curaduria','OBSERVADO')
-    .eq('ultima_importacion_id',ultimaImportacion.id)
-    .order('nombre');
+  const {data:obs,error}=await supabaseClient.from('bp_experiencias')
+    .select('id,nombre,email,institucion,titulo,observaciones_curaduria,estado_curaduria,updated_at,correo_notificacion_enviado,fecha_ultimo_correo')
+    .eq('activo',true).eq('estado_curaduria','OBSERVADO').order('nombre');
   if(error)throw error;
-  const ids=(obs||[]).map(x=>x.id);
-  let correos=[];
-  if(ids.length){
-    const {data,error:mailError}=await supabaseClient.from('bp_correos')
-      .select('id,registro_id,destinatario,estado,fecha_creacion,fecha_envio,error')
-      .in('registro_id',ids).order('fecha_creacion',{ascending:false});
-    if(mailError)throw mailError;
-    correos=data||[];
-  }
-  const latest=new Map();
-  for(const c of correos)if(!latest.has(c.registro_id))latest.set(c.registro_id,c);
-  registrosCorreo=(obs||[]).map(r=>({...r,ultimo_correo:latest.get(r.id)||null}));
+
+  registrosCorreo=(obs||[]).map(r=>({
+    ...r,
+    observaciones:r.observaciones_curaduria?[r.observaciones_curaduria]:[],
+    ultimo_correo:r.correo_notificacion_enviado?{
+      estado:'ENVIADO',fecha_envio:r.fecha_ultimo_correo
+    }:null
+  }));
   seleccionCorreos.clear();
   mostrarCorreos();
   $('#estadoCorreos').className='status ok';
-  const fechaImportacion=fechaLegible(ultimaImportacion.fecha_importacion);
-  $('#estadoCorreos').textContent=`Última importación: ${ultimaImportacion.nombre_archivo} (${fechaImportacion}). Se cargaron ${registrosCorreo.length} registros observados.`;
+  $('#estadoCorreos').textContent=`Se cargaron ${registrosCorreo.length} experiencias observadas desde bp_experiencias.`;
 }
-
 function correosFiltrados(){
   const filtro=$('#filtroCorreo').value;
   const q=canon($('#buscarCorreo').value);
@@ -394,7 +489,7 @@ async function enviarSeleccionados(){
     const r=elegidos[i];
     $('#estadoEnvio').className='status';
     $('#estadoEnvio').textContent=`Enviando ${i+1} de ${elegidos.length}: ${r.nombre}…`;
-    try{await enviarUnCorreo(r,asunto,cuerpo,elegidos.length>1);enviados++;}
+    try{await enviarUnCorreo(r,asunto,cuerpo,elegidos.length>1);await supabaseClient.from('bp_experiencias').update({correo_notificacion_enviado:true,fecha_ultimo_correo:new Date().toISOString()}).eq('id',r.id);enviados++;}
     catch(err){errores++;console.error('Error enviando a',r.email,err);}
   }
   $('#estadoEnvio').className='status '+(errores?'error':'ok');

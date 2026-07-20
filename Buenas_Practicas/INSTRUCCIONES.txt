@@ -1,0 +1,20 @@
+PAIDEIA · CURADURÍA DIRECTA DESDE SUPABASE
+
+INSTALACIÓN
+1. Reemplazar en GitHub la carpeta Buenas_Practicas por esta carpeta.
+2. Conservar js/config.js con la configuración actual.
+3. Confirmar el commit y actualizar con Ctrl+F5.
+
+PRUEBA
+1. Iniciar sesión como administrador.
+2. Presionar Cargar pendientes desde Supabase.
+3. Revisar aptos, observados y duplicados.
+4. Presionar Aplicar curaduría en Supabase.
+5. Revisar bp_experiencias en Table Editor.
+
+ESTADOS
+APTO -> estado_presentacion APTA
+OBSERVADO -> estado_presentacion OBSERVADA
+DUPLICADO -> estado_presentacion RECHAZADA
+
+El Excel queda disponible dentro del bloque Importación histórica.

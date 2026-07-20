@@ -36,16 +36,25 @@
   </section>
 
   <section class="card">
-    <h2>1. Importar archivo original</h2>
-    <p class="muted">Seleccioná el Excel que se actualiza en Drive. El archivo se procesa localmente en el navegador y solo se guarda en Supabase cuando presionás el botón correspondiente.</p>
+    <h2>1. Curar experiencias desde Supabase</h2>
+    <p class="muted">Carga las experiencias nuevas o corregidas desde <strong>bp_experiencias</strong>, aplica las reglas de curaduría y actualiza el mismo registro sin utilizar el Excel.</p>
+    <div class="actions">
+      <button id="cargarPendientes" disabled>Cargar pendientes desde Supabase</button>
+      <button id="aplicarCuraduria" disabled>Aplicar curaduría en Supabase</button>
+      <button id="exportar" class="secondary" disabled>Exportar resultado</button>
+    </div>
+    <div id="estado" class="status">Iniciá sesión para cargar las experiencias pendientes.</div>
+  </section>
+
+  <details class="card legacy-card">
+    <summary><strong>Importación histórica desde Excel</strong> · usar solo como respaldo</summary>
+    <p class="muted">Esta opción se conserva durante la transición. Los nuevos registros deben ingresar mediante el formulario y la tabla bp_experiencias.</p>
     <div class="actions">
       <label class="file-label" for="archivo">Seleccionar Excel</label>
       <input id="archivo" type="file" accept=".xlsx,.xls">
-      <button id="exportar" class="secondary" disabled>Exportar resultado</button>
-      <button id="guardarSupabase" disabled>Guardar importación en Supabase</button>
+      <button id="guardarSupabase" disabled>Guardar importación histórica</button>
     </div>
-    <div id="estado" class="status">Esperando archivo…</div>
-  </section>
+  </details>
 
   <section id="resultados" class="hidden">
     <div class="kpis">
@@ -69,7 +78,7 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Fila</th><th>Nombre</th><th>Correo</th><th>Título</th><th>Estado</th><th>Observaciones</th></tr></thead>
+          <thead><tr><th>Registro</th><th>Nombre</th><th>Correo</th><th>Título</th><th>Estado</th><th>Observaciones</th></tr></thead>
           <tbody id="tablaBody"></tbody>
         </table>
       </div>
