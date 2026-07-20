@@ -346,32 +346,6 @@ button.password-toggle:hover,
   text-align: center !important;
 }
 
-
-.my-exp-filters {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, .7fr) minmax(180px, .8fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.my-exp-filters input,
-.my-exp-filters select {
-  margin: 0;
-}
-.admin-badge {
-  display: none;
-  margin-left: 8px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #ede9fe;
-  color: #6d28d9;
-  font-size: 11px;
-  font-weight: 700;
-}
-.admin-badge.show { display: inline-flex; }
-@media(max-width:800px){
-  .my-exp-filters { grid-template-columns: 1fr; }
-}
-
 </style>
 </head>
 <body>
@@ -392,8 +366,8 @@ button.password-toggle:hover,
   <section class="my-exp-panel" id="misExperienciasPanel">
     <div class="my-exp-head">
       <div>
-        <h2 id="myExperiencesTitle">Mis experiencias <span id="adminBadge" class="admin-badge">ADMIN</span></h2>
-        <p id="myExperiencesSubtitle">Podés volver a abrir una presentación, corregirla o eliminarla sin generar una nueva fila.</p>
+        <h2>Mis experiencias</h2>
+        <p>Podés volver a abrir una presentación, corregirla o eliminarla sin generar una nueva fila.</p>
       </div>
       <button type="button" class="btn-secondary" onclick="cargarMisExperiencias()">Actualizar lista</button>
     </div>
@@ -405,23 +379,6 @@ button.password-toggle:hover,
         Estás editando una experiencia existente. Al guardar, se actualizará el mismo registro.
         <button type="button" class="my-exp-btn edit" style="margin-left:8px" onclick="cancelarEdicion()">Cancelar edición</button>
       </div>
-
-      <div class="my-exp-filters" id="myExperiencesFilters" style="display:none">
-        <input id="myExpSearch" type="search" placeholder="Buscar por título, autor, correo o institución" oninput="aplicarFiltrosExperiencias()">
-        <select id="myExpStatusFilter" onchange="aplicarFiltrosExperiencias()">
-          <option value="">Todos los estados</option>
-          <option value="PENDIENTE">Pendiente</option>
-          <option value="APTO">Apto</option>
-          <option value="OBSERVADO">Observado</option>
-          <option value="DUPLICADO">Duplicado</option>
-          <option value="REVISION_MANUAL">Revisión manual</option>
-          <option value="VALIDADO">Validado</option>
-        </select>
-        <select id="myExpJurFilter" onchange="aplicarFiltrosExperiencias()">
-          <option value="">Todas las jurisdicciones</option>
-        </select>
-      </div>
-
       <div class="my-exp-table-wrap">
         <table class="my-exp-table">
           <thead>
@@ -718,7 +675,6 @@ function togglePasswordVisibility(inputId, btn) {
 
   let bloqueActual = 1;
   let currentUser = null;
-  let currentRole = 'user';
   let experienciaEditandoId = null;
   let experienciasUsuario = [];
 
@@ -872,28 +828,7 @@ function togglePasswordVisibility(inputId, btn) {
 
     if (warning) warning.style.display = 'none';
 
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', currentUser.id)
-      .maybeSingle();
-
-    currentRole = profile?.role || 'user';
-
-    const title = document.getElementById('myExperiencesTitle');
-    const subtitle = document.getElementById('myExperiencesSubtitle');
-    const badge = document.getElementById('adminBadge');
-    const filters = document.getElementById('myExperiencesFilters');
-
-    if (currentRole === 'admin') {
-      if (title) title.firstChild.textContent = 'Todas las experiencias ';
-      if (subtitle) subtitle.textContent = 'Como administrador podés revisar, editar y eliminar experiencias de todos los usuarios.';
-      badge?.classList.add('show');
-      if (filters) filters.style.display = 'grid';
-    } else {
-      if (filters) filters.style.display = 'none';
-    }
-
+    // Completa el correo con el usuario autenticado si está vacío.
     const emailInput = document.getElementById('email');
     if (emailInput && !emailInput.value) emailInput.value = currentUser.email || '';
 
@@ -927,64 +862,7 @@ function togglePasswordVisibility(inputId, btn) {
     }
 
     experienciasUsuario = data || [];
-    poblarFiltroJurisdicciones(experienciasUsuario);
-    aplicarFiltrosExperiencias();
-  }
-
-  function normalizeSearch(value) {
-    return String(value || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
-  }
-
-  function poblarFiltroJurisdicciones(items) {
-    const select = document.getElementById('myExpJurFilter');
-    if (!select || currentRole !== 'admin') return;
-
-    const current = select.value;
-    const jurisdictions = [...new Set(
-      items.map(item => item.jurisdiccion).filter(Boolean)
-    )].sort((a,b) => a.localeCompare(b, 'es'));
-
-    select.innerHTML = '<option value="">Todas las jurisdicciones</option>' +
-      jurisdictions.map(j => `<option value="${escapeHtml(j)}">${escapeHtml(j)}</option>`).join('');
-
-    if (jurisdictions.includes(current)) select.value = current;
-  }
-
-  function aplicarFiltrosExperiencias() {
-    if (currentRole !== 'admin') {
-      renderMisExperiencias(experienciasUsuario);
-      return;
-    }
-
-    const q = normalizeSearch(document.getElementById('myExpSearch')?.value);
-    const estadoFiltro = document.getElementById('myExpStatusFilter')?.value || '';
-    const jurisdiccionFiltro = document.getElementById('myExpJurFilter')?.value || '';
-
-    const filtered = experienciasUsuario.filter(exp => {
-      const estado = exp.estado_publicacion === 'VALIDADO'
-        ? 'VALIDADO'
-        : (exp.estado_curaduria || 'PENDIENTE');
-
-      const searchable = normalizeSearch([
-        exp.titulo,
-        exp.nombre,
-        exp.email,
-        exp.institucion,
-        exp.jurisdiccion,
-        exp.nivel,
-        exp.area
-      ].join(' '));
-
-      return (!q || searchable.includes(q))
-        && (!estadoFiltro || estado === estadoFiltro)
-        && (!jurisdiccionFiltro || exp.jurisdiccion === jurisdiccionFiltro);
-    });
-
-    renderMisExperiencias(filtered);
+    renderMisExperiencias(experienciasUsuario);
   }
 
   function renderMisExperiencias(items) {
@@ -1011,9 +889,6 @@ function togglePasswordVisibility(inputId, btn) {
           <td>
             <div class="my-exp-title">${escapeHtml(exp.titulo || 'Sin título')}</div>
             <div class="my-exp-muted">${escapeHtml(exp.institucion || '')}</div>
-            ${currentRole === 'admin'
-              ? `<div class="my-exp-muted" style="margin-top:4px">${escapeHtml(exp.nombre || '')} · ${escapeHtml(exp.email || '')}</div>`
-              : ''}
           </td>
           <td>
             <span class="status-pill status-${escapeHtml(estado)}">${escapeHtml(estado)}</span>
