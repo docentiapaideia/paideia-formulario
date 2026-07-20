@@ -469,7 +469,7 @@ async function enviarUnCorreo(r,asuntoBase,cuerpoEditado,esMultiple){
   const asunto=asuntoBase;
   const cuerpo=esMultiple?construirCuerpo(r):cuerpoEditado;
   const {data,error}=await supabaseClient.functions.invoke('enviar-correo',{body:{
-    registro_id:r.id,destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
+    experiencia_id:r.id,destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
   }});
   if(error)throw new Error(error.message||'Falló la Edge Function.');
   if(data?.error)throw new Error(data.error);
