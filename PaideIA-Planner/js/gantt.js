@@ -1,7 +1,8 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v13");
+console.log("Gantt PaideIA Planner conectado a Supabase v14");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
+let escalaGantt = null;
 
 document.addEventListener("DOMContentLoaded", cargarGantt);
 
@@ -169,6 +170,8 @@ function renderizarGantt(tareas) {
     return;
   }
 
+  escalaGantt = calcularEscalaGantt(tareas);
+  actualizarPeriodoGantt(escalaGantt);
   wrapper.innerHTML = crearCabeceraGantt();
 
   if (!tareas || tareas.length === 0) {
@@ -191,19 +194,12 @@ function renderizarGantt(tareas) {
 }
 
 function crearCabeceraGantt() {
+  const etiquetas = escalaGantt?.etiquetas || ["01", "04", "07", "10", "13", "16", "19", "22", "25", "28"];
+
   return `
     <div class="gantt-grid gantt-head">
       <div class="gantt-task-head">Tarea</div>
-      <div class="gantt-date">01</div>
-      <div class="gantt-date">04</div>
-      <div class="gantt-date">07</div>
-      <div class="gantt-date">10</div>
-      <div class="gantt-date">13</div>
-      <div class="gantt-date">16</div>
-      <div class="gantt-date">19</div>
-      <div class="gantt-date">22</div>
-      <div class="gantt-date">25</div>
-      <div class="gantt-date">28</div>
+      ${etiquetas.map(etiqueta => `<div class="gantt-date">${escaparHTML(etiqueta)}</div>`).join("")}
     </div>
   `;
 }
@@ -217,6 +213,8 @@ function crearFilaGantt(tarea) {
 
   const claseBarra = obtenerClaseBarra(tarea);
   const posicion = calcularPosicionBarra(tarea);
+  const izquierda = 300 + ((posicion.inicio - 2) * 90) + 8;
+  const ancho = Math.max(50, ((posicion.fin - posicion.inicio) * 90) - 16);
 
   return `
     <div class="gantt-grid gantt-row">
@@ -227,7 +225,7 @@ function crearFilaGantt(tarea) {
 
       ${crearCeldasVacias()}
 
-      <div class="gantt-bar ${claseBarra}" style="grid-column: ${posicion.inicio} / ${posicion.fin};">
+      <div class="gantt-bar ${claseBarra}" style="left:${izquierda}px; width:${ancho}px;">
         <span>${escaparHTML(estado)} · ${avance}%</span>
       </div>
     </div>
@@ -255,8 +253,8 @@ function calcularPosicionBarra(tarea) {
     };
   }
 
-  const inicio = convertirFechaASlot(fechaInicio);
-  const fin = convertirFechaASlot(fechaFin);
+  const inicio = convertirFechaASlot(fechaInicio, escalaGantt);
+  const fin = convertirFechaASlot(fechaFin, escalaGantt);
 
   let columnaInicio = inicio + 1;
   let columnaFin = fin + 2;
@@ -277,30 +275,63 @@ function calcularPosicionBarra(tarea) {
   };
 }
 
-function convertirFechaASlot(fechaTexto) {
-  if (!fechaTexto) {
-    return 1;
+function convertirFechaASlot(fechaTexto, escala) {
+  const fecha = parsearFechaGantt(fechaTexto);
+  if (!fecha || !escala) return 1;
+
+  const proporcion = (fecha.getTime() - escala.inicio.getTime()) / escala.duracion;
+  return Math.max(1, Math.min(10, Math.floor(proporcion * 10) + 1));
+}
+
+function calcularEscalaGantt(tareas) {
+  const fechas = tareas
+    .flatMap(tarea => [parsearFechaGantt(tarea.fecha_inicio), parsearFechaGantt(tarea.fecha_limite)])
+    .filter(Boolean)
+    .sort((a, b) => a - b);
+
+  let inicio;
+  let fin;
+
+  if (fechas.length === 0) {
+    inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    fin = new Date(inicio);
+    fin.setDate(fin.getDate() + 30);
+  } else {
+    inicio = new Date(fechas[0]);
+    fin = new Date(fechas[fechas.length - 1]);
+    if (fin.getTime() === inicio.getTime()) {
+      fin.setDate(fin.getDate() + 1);
+    }
   }
 
-  const fecha = new Date(String(fechaTexto).slice(0, 10) + "T00:00:00");
+  const duracion = Math.max(86400000, fin.getTime() - inicio.getTime());
+  const etiquetas = Array.from({ length: 10 }, (_, indice) => {
+    const fecha = new Date(inicio.getTime() + (duracion * indice / 9));
+    return formatearFechaCortaGantt(fecha);
+  });
 
-  if (isNaN(fecha.getTime())) {
-    return 1;
-  }
+  return { inicio, fin, duracion, etiquetas };
+}
 
-  const dia = fecha.getDate();
+function parsearFechaGantt(valor) {
+  if (!valor) return null;
+  const fecha = new Date(String(valor).slice(0, 10) + "T00:00:00");
+  return isNaN(fecha.getTime()) ? null : fecha;
+}
 
-  if (dia <= 3) return 1;
-  if (dia <= 6) return 2;
-  if (dia <= 9) return 3;
-  if (dia <= 12) return 4;
-  if (dia <= 15) return 5;
-  if (dia <= 18) return 6;
-  if (dia <= 21) return 7;
-  if (dia <= 24) return 8;
-  if (dia <= 27) return 9;
+function formatearFechaCortaGantt(fecha) {
+  return fecha.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
+}
 
-  return 10;
+function actualizarPeriodoGantt(escala) {
+  const badge = document.getElementById("ganttPeriodo");
+  if (!badge || !escala) return;
+
+  const formato = { day: "2-digit", month: "short", year: "numeric" };
+  const desde = escala.inicio.toLocaleDateString("es-AR", formato);
+  const hasta = escala.fin.toLocaleDateString("es-AR", formato);
+  badge.textContent = `${desde} – ${hasta}`;
 }
 
 function obtenerClaseBarra(tarea) {
@@ -322,17 +353,32 @@ function obtenerClaseBarra(tarea) {
   return "gantt-blue";
 }
 
-function descargarGanttPDF() {
+async function descargarGanttPDF() {
   const element = document.querySelector(".gantt-panel");
   if (!element) return;
+
   if (window.html2pdf) {
-    html2pdf().set({
-      margin: 8,
-      filename: "gantt_paideia.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-    }).from(element).save();
+    element.classList.add("gantt-pdf-export");
+
+    try {
+      await html2pdf().set({
+        margin: [8, 8, 10, 8],
+        filename: "gantt_paideia.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 1240
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+        pagebreak: { mode: ["css", "legacy"], avoid: [".gantt-row"] }
+      }).from(element).save();
+    } finally {
+      element.classList.remove("gantt-pdf-export");
+    }
   } else {
     window.print();
   }
