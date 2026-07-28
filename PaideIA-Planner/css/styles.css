@@ -1387,15 +1387,14 @@ a {
 
 .gantt-pdf-page {
   width: 1248px;
-  min-height: 760px;
+  height: 850px;
   padding: 24px;
   margin: 0;
   background: var(--blanco);
   box-shadow: none;
+  overflow: hidden;
   break-after: page;
   page-break-after: always;
-  break-inside: avoid;
-  page-break-inside: avoid;
 }
 
 .gantt-pdf-page:last-child {
