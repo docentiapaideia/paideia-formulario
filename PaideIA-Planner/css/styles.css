@@ -1234,7 +1234,7 @@ a {
 }
 
 .gantt-pdf-export {
-  width: 1240px;
+  width: 1280px;
   max-width: none;
   margin: 0;
   box-shadow: none;
@@ -1275,6 +1275,107 @@ a {
   padding: 0 10px;
   font-size: 10px;
   box-shadow: none;
+}
+
+.gantt-task-table-section {
+  margin-top: 28px;
+  break-before: page;
+  page-break-before: always;
+}
+
+.gantt-task-table-title {
+  margin-bottom: 14px;
+}
+
+.gantt-task-table-title h3 {
+  margin-bottom: 4px;
+  font-size: 20px;
+  color: var(--azul-oscuro);
+}
+
+.gantt-task-table-title p {
+  color: var(--gris-texto);
+  font-size: 13px;
+}
+
+.gantt-task-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--gris-borde);
+  border-radius: 16px;
+}
+
+.gantt-task-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--blanco);
+}
+
+.gantt-task-table th,
+.gantt-task-table td {
+  padding: 11px 12px;
+  border-right: 1px solid var(--gris-borde);
+  border-bottom: 1px solid var(--gris-borde);
+  text-align: left;
+  vertical-align: top;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.gantt-task-table th {
+  background: var(--azul-oscuro);
+  color: var(--blanco);
+  font-weight: 800;
+}
+
+.gantt-task-table th:nth-child(1),
+.gantt-task-table td:nth-child(1) {
+  width: 24%;
+}
+
+.gantt-task-table th:nth-child(2),
+.gantt-task-table td:nth-child(2) {
+  width: 46%;
+}
+
+.gantt-task-table th:nth-child(3),
+.gantt-task-table td:nth-child(3),
+.gantt-task-table th:nth-child(4),
+.gantt-task-table td:nth-child(4) {
+  width: 15%;
+  white-space: nowrap;
+}
+
+.gantt-task-table th:last-child,
+.gantt-task-table td:last-child {
+  border-right: none;
+}
+
+.gantt-task-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.gantt-task-table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.gantt-detail-empty {
+  text-align: center !important;
+  color: var(--gris-texto);
+}
+
+.gantt-pdf-export .gantt-task-table-wrapper {
+  overflow: visible;
+}
+
+.gantt-pdf-export .gantt-task-table-section {
+  margin-top: 18px;
+}
+
+.gantt-pdf-export .gantt-task-table th,
+.gantt-pdf-export .gantt-task-table td {
+  padding: 8px 9px;
+  font-size: 10px;
 }
 
 .gantt-bar span {
