@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v19");
+console.log("Gantt PaideIA Planner conectado a Supabase v20");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -401,8 +401,8 @@ async function descargarGanttPDF() {
     const documentoPDF = document.createElement("div");
     documentoPDF.className = "gantt-pdf-document";
 
-    escenarioPDF.style.position = "fixed";
-    escenarioPDF.style.left = "0";
+    escenarioPDF.style.position = "absolute";
+    escenarioPDF.style.left = "-100000px";
     escenarioPDF.style.top = "0";
     escenarioPDF.style.width = "1248px";
     escenarioPDF.style.margin = "0";
@@ -417,32 +417,81 @@ async function descargarGanttPDF() {
     construirDocumentoPDFGantt(documentoPDF, tareasGanttFiltradas);
 
     try {
-      await html2pdf().set({
-        margin: [5, 5, 5, 5],
-        filename: "gantt_paideia.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0,
-          width: 1248,
-          windowWidth: 1248
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-        pagebreak: {
-          mode: ["css"]
-        }
-      }).from(documentoPDF).save();
+      await generarPDFPorPaginas(documentoPDF);
+    } catch (error) {
+      console.error("No se pudo generar el PDF del Gantt:", error);
+      alert("No se pudo generar el PDF. Revisá la consola para ver el detalle.");
     } finally {
       escenarioPDF.remove();
     }
   } else {
     window.print();
   }
+}
+
+async function generarPDFPorPaginas(documentoPDF) {
+  const paginas = [...documentoPDF.querySelectorAll(".gantt-pdf-page")];
+  if (!paginas.length) {
+    throw new Error("No se generaron páginas para exportar.");
+  }
+
+  const opciones = {
+    margin: [5, 5, 5, 5],
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      scrollX: 0,
+      scrollY: 0,
+      width: 1248,
+      windowWidth: 1248
+    },
+    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+  };
+
+  const primerWorker = html2pdf()
+    .set(opciones)
+    .from(paginas[0])
+    .toPdf();
+
+  const pdf = await primerWorker.get("pdf");
+  while (pdf.getNumberOfPages() > 1) {
+    pdf.deletePage(pdf.getNumberOfPages());
+  }
+
+  const anchoPagina = pdf.internal.pageSize.getWidth();
+  const altoPagina = pdf.internal.pageSize.getHeight();
+  const margen = 5;
+  const anchoUtil = anchoPagina - (margen * 2);
+  const altoUtil = altoPagina - (margen * 2);
+
+  for (let indice = 1; indice < paginas.length; indice++) {
+    const workerCanvas = html2pdf()
+      .set(opciones)
+      .from(paginas[indice])
+      .toCanvas();
+
+    const canvas = await workerCanvas.get("canvas");
+    const altoImagen = Math.min(
+      altoUtil,
+      (canvas.height * anchoUtil) / canvas.width
+    );
+
+    pdf.addPage();
+    pdf.addImage(
+      canvas.toDataURL("image/jpeg", 0.98),
+      "JPEG",
+      margen,
+      margen,
+      anchoUtil,
+      altoImagen,
+      undefined,
+      "FAST"
+    );
+  }
+
+  pdf.save("gantt_paideia.pdf");
 }
 
 function construirDocumentoPDFGantt(documento, tareas) {
