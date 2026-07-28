@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v18");
+console.log("Gantt PaideIA Planner conectado a Supabase v19");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -398,7 +398,8 @@ async function descargarGanttPDF() {
 
   if (window.html2pdf) {
     const escenarioPDF = document.createElement("div");
-    const documentoPDF = crearDocumentoPDFGantt(tareasGanttFiltradas);
+    const documentoPDF = document.createElement("div");
+    documentoPDF.className = "gantt-pdf-document";
 
     escenarioPDF.style.position = "fixed";
     escenarioPDF.style.left = "0";
@@ -413,6 +414,7 @@ async function descargarGanttPDF() {
 
     escenarioPDF.appendChild(documentoPDF);
     document.body.appendChild(escenarioPDF);
+    construirDocumentoPDFGantt(documentoPDF, tareasGanttFiltradas);
 
     try {
       await html2pdf().set({
@@ -432,8 +434,7 @@ async function descargarGanttPDF() {
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
         pagebreak: {
-          mode: ["css"],
-          avoid: [".gantt-row", ".gantt-task-table tr"]
+          mode: ["css"]
         }
       }).from(documentoPDF).save();
     } finally {
@@ -444,41 +445,79 @@ async function descargarGanttPDF() {
   }
 }
 
-function crearDocumentoPDFGantt(tareas) {
-  const documento = document.createElement("div");
-  documento.className = "gantt-pdf-document";
+function construirDocumentoPDFGantt(documento, tareas) {
+  const paginasGantt = construirPaginasGanttPDF(documento, tareas);
+  numerarPaginasPDF(paginasGantt, "Cronograma");
 
-  const paginasGantt = dividirEnGrupos(tareas, 9);
-  paginasGantt.forEach((grupo, indice) => {
-    documento.appendChild(crearPaginaGanttPDF(grupo, indice + 1, paginasGantt.length));
-  });
-
-  const paginasDetalle = dividirEnGrupos(tareas, 6);
-  paginasDetalle.forEach((grupo, indice) => {
-    documento.appendChild(crearPaginaDetallePDF(grupo, indice + 1, paginasDetalle.length));
-  });
-
-  return documento;
+  const paginasDetalle = construirPaginasDetallePDF(documento, tareas);
+  numerarPaginasPDF(paginasDetalle, "Detalle");
 }
 
-function crearPaginaGanttPDF(tareas, numero, total) {
+function construirPaginasGanttPDF(documento, tareas) {
+  const paginas = [];
+  let pagina = crearPaginaGanttPDF();
+  documento.appendChild(pagina);
+  paginas.push(pagina);
+
+  for (const tarea of tareas) {
+    let wrapper = pagina.querySelector(".gantt-wrapper");
+    const fila = crearElementoDesdeHTML(crearFilaGantt(tarea));
+    wrapper.appendChild(fila);
+
+    if (pagina.scrollHeight > pagina.clientHeight) {
+      fila.remove();
+      pagina = crearPaginaGanttPDF();
+      documento.appendChild(pagina);
+      paginas.push(pagina);
+      wrapper = pagina.querySelector(".gantt-wrapper");
+      wrapper.appendChild(fila);
+    }
+  }
+
+  return paginas;
+}
+
+function construirPaginasDetallePDF(documento, tareas) {
+  const paginas = [];
+  let pagina = crearPaginaDetallePDF();
+  documento.appendChild(pagina);
+  paginas.push(pagina);
+
+  for (const tarea of tareas) {
+    let cuerpo = pagina.querySelector("tbody");
+    const fila = crearElementoDesdeHTML(crearFilasDetalleGantt([tarea]));
+    cuerpo.appendChild(fila);
+
+    if (pagina.scrollHeight > pagina.clientHeight) {
+      fila.remove();
+      pagina = crearPaginaDetallePDF();
+      documento.appendChild(pagina);
+      paginas.push(pagina);
+      cuerpo = pagina.querySelector("tbody");
+      cuerpo.appendChild(fila);
+    }
+  }
+
+  return paginas;
+}
+
+function crearPaginaGanttPDF() {
   const pagina = document.createElement("section");
   pagina.className = "gantt-pdf-page gantt-pdf-chart-page";
   pagina.innerHTML = `
-    ${crearEncabezadoPaginaPDF("Cronograma de tareas", numero, total, "Cronograma")}
+    ${crearEncabezadoPaginaPDF("Cronograma de tareas")}
     <div class="gantt-wrapper">
       ${crearCabeceraGantt()}
-      ${tareas.map(crearFilaGantt).join("")}
     </div>
   `;
   return pagina;
 }
 
-function crearPaginaDetallePDF(tareas, numero, total) {
+function crearPaginaDetallePDF() {
   const pagina = document.createElement("section");
   pagina.className = "gantt-pdf-page gantt-pdf-detail-page";
   pagina.innerHTML = `
-    ${crearEncabezadoPaginaPDF("Detalle de tareas", numero, total, "Detalle")}
+    ${crearEncabezadoPaginaPDF("Detalle de tareas")}
     <table class="gantt-task-table">
       <thead>
         <tr>
@@ -488,15 +527,13 @@ function crearPaginaDetallePDF(tareas, numero, total) {
           <th>Fecha de finalización</th>
         </tr>
       </thead>
-      <tbody>
-        ${crearFilasDetalleGantt(tareas)}
-      </tbody>
+      <tbody></tbody>
     </table>
   `;
   return pagina;
 }
 
-function crearEncabezadoPaginaPDF(titulo, numero, total, seccion) {
+function crearEncabezadoPaginaPDF(titulo) {
   const periodo = document.getElementById("ganttPeriodo")?.textContent || "Período del cronograma";
   return `
     <header class="gantt-pdf-page-header">
@@ -506,7 +543,7 @@ function crearEncabezadoPaginaPDF(titulo, numero, total, seccion) {
       </div>
       <div class="gantt-pdf-page-meta">
         <strong>${escaparHTML(periodo)}</strong>
-        <span>${escaparHTML(seccion)} ${numero} de ${total}</span>
+        <span class="gantt-pdf-page-number"></span>
       </div>
     </header>
   `;
@@ -523,12 +560,19 @@ function crearFilasDetalleGantt(tareas) {
   `).join("");
 }
 
-function dividirEnGrupos(items, cantidad) {
-  const grupos = [];
-  for (let indice = 0; indice < items.length; indice += cantidad) {
-    grupos.push(items.slice(indice, indice + cantidad));
-  }
-  return grupos;
+function numerarPaginasPDF(paginas, seccion) {
+  paginas.forEach((pagina, indice) => {
+    const numero = pagina.querySelector(".gantt-pdf-page-number");
+    if (numero) {
+      numero.textContent = `${seccion} ${indice + 1} de ${paginas.length}`;
+    }
+  });
+}
+
+function crearElementoDesdeHTML(html) {
+  const plantilla = document.createElement("template");
+  plantilla.innerHTML = html.trim();
+  return plantilla.content.firstElementChild;
 }
 
 function mostrarErrorGantt() {
