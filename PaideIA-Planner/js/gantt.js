@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v15");
+console.log("Gantt PaideIA Planner conectado a Supabase v16");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -24,7 +24,7 @@ async function cargarGantt() {
       .order("fecha_limite", { ascending: true, nullsFirst: false }),
     supabaseClient
       .from("planner_tareas")
-      .select("id, tarea_madre_id, eliminada")
+      .select("id, tarea_madre_id, eliminada, descripcion")
   ]);
 
   if (error) {
@@ -40,9 +40,16 @@ async function cargarGantt() {
   }
 
   const idsTareasVisibles = obtenerIdsTareasVisibles(tareasBase || []);
+  const tareasBasePorId = new Map(
+    (tareasBase || []).map(tarea => [String(tarea.id), tarea])
+  );
 
   tareasGantt = (data || [])
     .filter(tarea => idsTareasVisibles.has(String(tarea.id)))
+    .map(tarea => ({
+      ...tarea,
+      descripcion: tarea.descripcion || tareasBasePorId.get(String(tarea.id))?.descripcion || ""
+    }))
     .map(normalizarTareaGantt);
   console.log("Tareas Gantt reales:", tareasGantt);
 
@@ -76,6 +83,7 @@ function normalizarTareaGantt(t) {
     prioridad: t.prioridad || t.nombre_prioridad || "Sin prioridad",
     etiqueta: t.etiqueta || t.etiquetas || t.proyecto || t.nombre_etiqueta || t.tablero || "Sin etiqueta",
     estado_gantt: t.estado_gantt || t.estado || t.progreso || t.columna || "Sin fecha",
+    descripcion: t.descripcion || "",
     fecha_inicio: t.fecha_inicio || t.inicio || t.start_date || "",
     fecha_limite: t.fecha_limite || t.fecha_fin || t.vencimiento || t.due_date || "",
     porcentaje_avance: Number(t.porcentaje_avance ?? t.avance ?? t.progress ?? 0) || 0
@@ -173,6 +181,7 @@ function renderizarGantt(tareas) {
   escalaGantt = calcularEscalaGantt(tareas);
   actualizarPeriodoGantt(escalaGantt);
   wrapper.innerHTML = crearCabeceraGantt();
+  renderizarTablaDetalleGantt(tareas);
 
   if (!tareas || tareas.length === 0) {
     wrapper.innerHTML += `
@@ -191,6 +200,34 @@ function renderizarGantt(tareas) {
   tareas.forEach(tarea => {
     wrapper.innerHTML += crearFilaGantt(tarea);
   });
+}
+
+function renderizarTablaDetalleGantt(tareas) {
+  const cuerpo = document.getElementById("ganttDetalleBody");
+  if (!cuerpo) return;
+
+  if (!tareas || tareas.length === 0) {
+    cuerpo.innerHTML = `
+      <tr>
+        <td colspan="4" class="gantt-detail-empty">No hay tareas para mostrar.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  cuerpo.innerHTML = tareas.map(tarea => `
+    <tr>
+      <td><strong>${escaparHTML(tarea.titulo || "Sin título")}</strong></td>
+      <td>${escaparHTML(tarea.descripcion || "Sin descripción cargada")}</td>
+      <td>${escaparHTML(formatearFechaTablaGantt(tarea.fecha_inicio))}</td>
+      <td>${escaparHTML(formatearFechaTablaGantt(tarea.fecha_limite))}</td>
+    </tr>
+  `).join("");
+}
+
+function formatearFechaTablaGantt(valor) {
+  const fecha = parsearFechaGantt(valor);
+  return fecha ? fecha.toLocaleDateString("es-AR") : "Sin fecha";
 }
 
 function crearCabeceraGantt() {
@@ -364,12 +401,20 @@ async function descargarGanttPDF() {
     escenarioPDF.style.position = "fixed";
     escenarioPDF.style.left = "0";
     escenarioPDF.style.top = "0";
-    escenarioPDF.style.width = "1240px";
+    escenarioPDF.style.width = "1280px";
+    escenarioPDF.style.margin = "0";
+    escenarioPDF.style.padding = "0";
+    escenarioPDF.style.overflow = "visible";
     escenarioPDF.style.background = "#ffffff";
     escenarioPDF.style.zIndex = "-10000";
     escenarioPDF.style.pointerEvents = "none";
 
     copiaPDF.classList.add("gantt-pdf-export");
+    copiaPDF.style.position = "relative";
+    copiaPDF.style.left = "0";
+    copiaPDF.style.margin = "0";
+    copiaPDF.style.width = "1280px";
+    copiaPDF.style.transform = "none";
     escenarioPDF.appendChild(copiaPDF);
     document.body.appendChild(escenarioPDF);
 
@@ -384,6 +429,9 @@ async function descargarGanttPDF() {
           backgroundColor: "#ffffff",
           scrollX: 0,
           scrollY: 0,
+          x: 0,
+          y: 0,
+          width: 1280,
           windowWidth: 1280
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
@@ -422,7 +470,7 @@ function mostrarErrorGantt() {
     <div class="gantt-grid gantt-row">
       <div class="gantt-task-info">
         <strong>Error al cargar datos</strong>
-        <span>Revisar consola y confirmar que existe planner_vista_gantt.</span>
+        <span>No fue posible cargar la información del cronograma.</span>
       </div>
 
       ${crearCeldasVacias()}
