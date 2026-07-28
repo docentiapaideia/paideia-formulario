@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v16");
+console.log("Gantt PaideIA Planner conectado a Supabase v17");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -420,7 +420,7 @@ async function descargarGanttPDF() {
 
     try {
       await html2pdf().set({
-        margin: [8, 8, 10, 8],
+        margin: [8, 16, 10, 0],
         filename: "gantt_paideia.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
