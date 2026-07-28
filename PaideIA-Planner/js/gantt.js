@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v17");
+console.log("Gantt PaideIA Planner conectado a Supabase v18");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -391,17 +391,19 @@ function obtenerClaseBarra(tarea) {
 }
 
 async function descargarGanttPDF() {
-  const element = document.querySelector(".gantt-panel");
-  if (!element) return;
+  if (!tareasGanttFiltradas.length) {
+    alert("No hay tareas para exportar con los filtros seleccionados.");
+    return;
+  }
 
   if (window.html2pdf) {
     const escenarioPDF = document.createElement("div");
-    const copiaPDF = element.cloneNode(true);
+    const documentoPDF = crearDocumentoPDFGantt(tareasGanttFiltradas);
 
     escenarioPDF.style.position = "fixed";
     escenarioPDF.style.left = "0";
     escenarioPDF.style.top = "0";
-    escenarioPDF.style.width = "1280px";
+    escenarioPDF.style.width = "1248px";
     escenarioPDF.style.margin = "0";
     escenarioPDF.style.padding = "0";
     escenarioPDF.style.overflow = "visible";
@@ -409,18 +411,12 @@ async function descargarGanttPDF() {
     escenarioPDF.style.zIndex = "-10000";
     escenarioPDF.style.pointerEvents = "none";
 
-    copiaPDF.classList.add("gantt-pdf-export");
-    copiaPDF.style.position = "relative";
-    copiaPDF.style.left = "0";
-    copiaPDF.style.margin = "0";
-    copiaPDF.style.width = "1280px";
-    copiaPDF.style.transform = "none";
-    escenarioPDF.appendChild(copiaPDF);
+    escenarioPDF.appendChild(documentoPDF);
     document.body.appendChild(escenarioPDF);
 
     try {
       await html2pdf().set({
-        margin: [8, 16, 10, 0],
+        margin: [5, 5, 5, 5],
         filename: "gantt_paideia.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
@@ -431,18 +427,108 @@ async function descargarGanttPDF() {
           scrollY: 0,
           x: 0,
           y: 0,
-          width: 1280,
-          windowWidth: 1280
+          width: 1248,
+          windowWidth: 1248
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-        pagebreak: { mode: ["css", "legacy"], avoid: [".gantt-row"] }
-      }).from(copiaPDF).save();
+        pagebreak: {
+          mode: ["css"],
+          avoid: [".gantt-row", ".gantt-task-table tr"]
+        }
+      }).from(documentoPDF).save();
     } finally {
       escenarioPDF.remove();
     }
   } else {
     window.print();
   }
+}
+
+function crearDocumentoPDFGantt(tareas) {
+  const documento = document.createElement("div");
+  documento.className = "gantt-pdf-document";
+
+  const paginasGantt = dividirEnGrupos(tareas, 9);
+  paginasGantt.forEach((grupo, indice) => {
+    documento.appendChild(crearPaginaGanttPDF(grupo, indice + 1, paginasGantt.length));
+  });
+
+  const paginasDetalle = dividirEnGrupos(tareas, 6);
+  paginasDetalle.forEach((grupo, indice) => {
+    documento.appendChild(crearPaginaDetallePDF(grupo, indice + 1, paginasDetalle.length));
+  });
+
+  return documento;
+}
+
+function crearPaginaGanttPDF(tareas, numero, total) {
+  const pagina = document.createElement("section");
+  pagina.className = "gantt-pdf-page gantt-pdf-chart-page";
+  pagina.innerHTML = `
+    ${crearEncabezadoPaginaPDF("Cronograma de tareas", numero, total, "Cronograma")}
+    <div class="gantt-wrapper">
+      ${crearCabeceraGantt()}
+      ${tareas.map(crearFilaGantt).join("")}
+    </div>
+  `;
+  return pagina;
+}
+
+function crearPaginaDetallePDF(tareas, numero, total) {
+  const pagina = document.createElement("section");
+  pagina.className = "gantt-pdf-page gantt-pdf-detail-page";
+  pagina.innerHTML = `
+    ${crearEncabezadoPaginaPDF("Detalle de tareas", numero, total, "Detalle")}
+    <table class="gantt-task-table">
+      <thead>
+        <tr>
+          <th>Tarea</th>
+          <th>Descripción</th>
+          <th>Fecha de inicio</th>
+          <th>Fecha de finalización</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${crearFilasDetalleGantt(tareas)}
+      </tbody>
+    </table>
+  `;
+  return pagina;
+}
+
+function crearEncabezadoPaginaPDF(titulo, numero, total, seccion) {
+  const periodo = document.getElementById("ganttPeriodo")?.textContent || "Período del cronograma";
+  return `
+    <header class="gantt-pdf-page-header">
+      <div>
+        <h2>${escaparHTML(titulo)}</h2>
+        <p>Planificación general de tareas y períodos de ejecución.</p>
+      </div>
+      <div class="gantt-pdf-page-meta">
+        <strong>${escaparHTML(periodo)}</strong>
+        <span>${escaparHTML(seccion)} ${numero} de ${total}</span>
+      </div>
+    </header>
+  `;
+}
+
+function crearFilasDetalleGantt(tareas) {
+  return tareas.map(tarea => `
+    <tr>
+      <td><strong>${escaparHTML(tarea.titulo || "Sin título")}</strong></td>
+      <td>${escaparHTML(tarea.descripcion || "Sin descripción cargada")}</td>
+      <td>${escaparHTML(formatearFechaTablaGantt(tarea.fecha_inicio))}</td>
+      <td>${escaparHTML(formatearFechaTablaGantt(tarea.fecha_limite))}</td>
+    </tr>
+  `).join("");
+}
+
+function dividirEnGrupos(items, cantidad) {
+  const grupos = [];
+  for (let indice = 0; indice < items.length; indice += cantidad) {
+    grupos.push(items.slice(indice, indice + cantidad));
+  }
+  return grupos;
 }
 
 function mostrarErrorGantt() {
