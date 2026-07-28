@@ -1217,11 +1217,12 @@ a {
 }
 
 .gantt-bar {
-  grid-row: 1;
-  align-self: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   height: 34px;
+  box-sizing: border-box;
   border-radius: 999px;
-  margin: 0 8px;
   display: flex;
   align-items: center;
   padding: 0 14px;
@@ -1230,6 +1231,28 @@ a {
   font-weight: 900;
   box-shadow: 0 8px 20px rgba(11, 37, 69, 0.16);
   z-index: 3;
+}
+
+.gantt-pdf-export {
+  width: 1240px;
+  max-width: none;
+  margin: 0;
+  box-shadow: none;
+  background: var(--blanco);
+}
+
+.gantt-pdf-export .gantt-wrapper {
+  overflow: visible;
+}
+
+.gantt-pdf-export .gantt-row,
+.gantt-pdf-export .gantt-head {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.gantt-pdf-export .gantt-bar {
+  box-shadow: none;
 }
 
 .gantt-bar span {
