@@ -1393,13 +1393,6 @@ a {
   background: var(--blanco);
   box-shadow: none;
   overflow: hidden;
-  break-after: page;
-  page-break-after: always;
-}
-
-.gantt-pdf-page:last-child {
-  break-after: auto;
-  page-break-after: auto;
 }
 
 .gantt-pdf-page-header {
