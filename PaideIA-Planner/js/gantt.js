@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v12");
+console.log("Gantt PaideIA Planner conectado a Supabase v13");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -12,11 +12,19 @@ async function cargarGantt() {
     return;
   }
 
-  const { data, error } = await supabaseClient
-    .from("planner_vista_gantt")
-    .select("*")
-    .order("fecha_inicio", { ascending: true, nullsFirst: false })
-    .order("fecha_limite", { ascending: true, nullsFirst: false });
+  const [
+    { data, error },
+    { data: tareasBase, error: errorTareasBase }
+  ] = await Promise.all([
+    supabaseClient
+      .from("planner_vista_gantt")
+      .select("*")
+      .order("fecha_inicio", { ascending: true, nullsFirst: false })
+      .order("fecha_limite", { ascending: true, nullsFirst: false }),
+    supabaseClient
+      .from("planner_tareas")
+      .select("id, tarea_madre_id, eliminada")
+  ]);
 
   if (error) {
     console.error("Error al cargar Gantt:", error);
@@ -24,11 +32,39 @@ async function cargarGantt() {
     return;
   }
 
-  tareasGantt = (data || []).map(normalizarTareaGantt);
+  if (errorTareasBase) {
+    console.error("No se pudo verificar el borrado lógico de las tareas:", errorTareasBase);
+    mostrarErrorGantt();
+    return;
+  }
+
+  const idsTareasVisibles = obtenerIdsTareasVisibles(tareasBase || []);
+
+  tareasGantt = (data || [])
+    .filter(tarea => idsTareasVisibles.has(String(tarea.id)))
+    .map(normalizarTareaGantt);
   console.log("Tareas Gantt reales:", tareasGantt);
 
   poblarFiltrosGantt(tareasGantt);
   aplicarFiltrosGantt();
+}
+
+function obtenerIdsTareasVisibles(tareas) {
+  const tareasPorId = new Map(
+    tareas.map(tarea => [String(tarea.id), tarea])
+  );
+
+  return new Set(
+    tareas
+      .filter(tarea => {
+        if (tarea.eliminada === true) return false;
+        if (!tarea.tarea_madre_id) return true;
+
+        const tareaMadre = tareasPorId.get(String(tarea.tarea_madre_id));
+        return !tareaMadre || tareaMadre.eliminada !== true;
+      })
+      .map(tarea => String(tarea.id))
+  );
 }
 
 function normalizarTareaGantt(t) {
