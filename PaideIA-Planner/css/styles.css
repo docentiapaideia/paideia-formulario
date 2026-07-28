@@ -1251,7 +1251,29 @@ a {
   page-break-inside: avoid;
 }
 
+.gantt-pdf-export .gantt-row {
+  min-height: 54px;
+}
+
+.gantt-pdf-export .gantt-task-info {
+  padding: 8px 10px;
+}
+
+.gantt-pdf-export .gantt-task-info strong {
+  margin-bottom: 3px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.gantt-pdf-export .gantt-task-info span {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
 .gantt-pdf-export .gantt-bar {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 10px;
   box-shadow: none;
 }
 
