@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v14");
+console.log("Gantt PaideIA Planner conectado a Supabase v15");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -328,7 +328,7 @@ function actualizarPeriodoGantt(escala) {
   const badge = document.getElementById("ganttPeriodo");
   if (!badge || !escala) return;
 
-  const formato = { day: "2-digit", month: "short", year: "numeric" };
+  const formato = { month: "long", year: "numeric" };
   const desde = escala.inicio.toLocaleDateString("es-AR", formato);
   const hasta = escala.fin.toLocaleDateString("es-AR", formato);
   badge.textContent = `${desde} – ${hasta}`;
@@ -358,7 +358,20 @@ async function descargarGanttPDF() {
   if (!element) return;
 
   if (window.html2pdf) {
-    element.classList.add("gantt-pdf-export");
+    const escenarioPDF = document.createElement("div");
+    const copiaPDF = element.cloneNode(true);
+
+    escenarioPDF.style.position = "fixed";
+    escenarioPDF.style.left = "0";
+    escenarioPDF.style.top = "0";
+    escenarioPDF.style.width = "1240px";
+    escenarioPDF.style.background = "#ffffff";
+    escenarioPDF.style.zIndex = "-10000";
+    escenarioPDF.style.pointerEvents = "none";
+
+    copiaPDF.classList.add("gantt-pdf-export");
+    escenarioPDF.appendChild(copiaPDF);
+    document.body.appendChild(escenarioPDF);
 
     try {
       await html2pdf().set({
@@ -371,13 +384,13 @@ async function descargarGanttPDF() {
           backgroundColor: "#ffffff",
           scrollX: 0,
           scrollY: 0,
-          windowWidth: 1240
+          windowWidth: 1280
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
         pagebreak: { mode: ["css", "legacy"], avoid: [".gantt-row"] }
-      }).from(element).save();
+      }).from(copiaPDF).save();
     } finally {
-      element.classList.remove("gantt-pdf-export");
+      escenarioPDF.remove();
     }
   } else {
     window.print();
