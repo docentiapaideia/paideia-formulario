@@ -208,7 +208,7 @@
         <div class="panel-header">
           <div>
             <h3>Cronograma de tareas</h3>
-            <p>Visualización real desde Supabase con la vista planner_vista_gantt.</p>
+            <p>Planificación general de tareas y períodos de ejecución.</p>
           </div>
 
           <span class="panel-badge" id="ganttPeriodo">Período del cronograma</span>
@@ -371,6 +371,27 @@
 
         </div>
 
+        <section class="gantt-task-table-section">
+          <div class="gantt-task-table-title">
+            <h3>Detalle de tareas</h3>
+            <p>Descripción y fechas previstas para cada actividad del cronograma.</p>
+          </div>
+
+          <div class="gantt-task-table-wrapper">
+            <table class="gantt-task-table">
+              <thead>
+                <tr>
+                  <th>Tarea</th>
+                  <th>Descripción</th>
+                  <th>Fecha de inicio</th>
+                  <th>Fecha de finalización</th>
+                </tr>
+              </thead>
+              <tbody id="ganttDetalleBody"></tbody>
+            </table>
+          </div>
+        </section>
+
       </section>
 
       <!-- GANTT DETAILS -->
@@ -431,6 +452,6 @@
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/app.js"></script>
-<script src="js/gantt.js?v=15"></script>
+<script src="js/gantt.js?v=16"></script>
 </body>
 </html>
