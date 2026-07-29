@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v22");
+console.log("Gantt PaideIA Planner conectado a Supabase v23");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -396,7 +396,7 @@ async function descargarGanttPDF() {
     return;
   }
 
-  if (window.html2pdf) {
+  if (window.html2canvas && window.jspdf?.jsPDF) {
     const escenarioPDF = document.createElement("div");
     const mascaraPDF = crearMascaraGenerandoPDF();
     const documentoPDF = document.createElement("div");
@@ -458,19 +458,27 @@ async function generarPDFPorPaginas(documentoPDF) {
     throw new Error("No se generaron páginas para exportar.");
   }
 
-  const opciones = {
-    margin: [5, 5, 5, 5],
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
+  const pdf = new window.jspdf.jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+    compress: true
+  });
+
+  const anchoPagina = pdf.internal.pageSize.getWidth();
+  const altoPagina = pdf.internal.pageSize.getHeight();
+  const margen = 7;
+  const anchoUtil = anchoPagina - (margen * 2);
+  const altoUtil = altoPagina - (margen * 2);
+
+  for (let indice = 0; indice < paginas.length; indice++) {
+    const canvas = await window.html2canvas(paginas[indice], {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
       scrollX: 0,
       scrollY: 0,
-      x: 0,
-      y: 0,
-      width: 1248,
-      windowWidth: 1248,
+      logging: false,
       onclone: documentoClonado => {
         documentoClonado.querySelectorAll(".gantt-pdf-page").forEach(pagina => {
           pagina.style.position = "relative";
@@ -479,45 +487,27 @@ async function generarPDFPorPaginas(documentoPDF) {
           pagina.style.transform = "none";
         });
       }
-    },
-    jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-  };
+    });
 
-  const primerWorker = html2pdf()
-    .set(opciones)
-    .from(paginas[0])
-    .toPdf();
-
-  const pdf = await primerWorker.get("pdf");
-  while (pdf.getNumberOfPages() > 1) {
-    pdf.deletePage(pdf.getNumberOfPages());
-  }
-
-  const anchoPagina = pdf.internal.pageSize.getWidth();
-  const altoPagina = pdf.internal.pageSize.getHeight();
-  const margen = 5;
-  const anchoUtil = anchoPagina - (margen * 2);
-  const altoUtil = altoPagina - (margen * 2);
-
-  for (let indice = 1; indice < paginas.length; indice++) {
-    const workerCanvas = html2pdf()
-      .set(opciones)
-      .from(paginas[indice])
-      .toCanvas();
-
-    const canvas = await workerCanvas.get("canvas");
-    const altoImagen = Math.min(
-      altoUtil,
-      (canvas.height * anchoUtil) / canvas.width
+    const escala = Math.min(
+      anchoUtil / canvas.width,
+      altoUtil / canvas.height
     );
+    const anchoImagen = canvas.width * escala;
+    const altoImagen = canvas.height * escala;
+    const posicionX = (anchoPagina - anchoImagen) / 2;
+    const posicionY = (altoPagina - altoImagen) / 2;
 
-    pdf.addPage();
+    if (indice > 0) {
+      pdf.addPage();
+    }
+
     pdf.addImage(
       canvas.toDataURL("image/jpeg", 0.98),
       "JPEG",
-      margen,
-      margen,
-      anchoUtil,
+      posicionX,
+      posicionY,
+      anchoImagen,
       altoImagen,
       undefined,
       "FAST"
