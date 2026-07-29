@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v20");
+console.log("Gantt PaideIA Planner conectado a Supabase v21");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -398,22 +398,24 @@ async function descargarGanttPDF() {
 
   if (window.html2pdf) {
     const escenarioPDF = document.createElement("div");
+    const mascaraPDF = crearMascaraGenerandoPDF();
     const documentoPDF = document.createElement("div");
     documentoPDF.className = "gantt-pdf-document";
 
     escenarioPDF.style.position = "absolute";
-    escenarioPDF.style.left = "-100000px";
+    escenarioPDF.style.left = "0";
     escenarioPDF.style.top = "0";
     escenarioPDF.style.width = "1248px";
     escenarioPDF.style.margin = "0";
     escenarioPDF.style.padding = "0";
     escenarioPDF.style.overflow = "visible";
     escenarioPDF.style.background = "#ffffff";
-    escenarioPDF.style.zIndex = "-10000";
+    escenarioPDF.style.zIndex = "1";
     escenarioPDF.style.pointerEvents = "none";
 
     escenarioPDF.appendChild(documentoPDF);
     document.body.appendChild(escenarioPDF);
+    document.body.appendChild(mascaraPDF);
     construirDocumentoPDFGantt(documentoPDF, tareasGanttFiltradas);
 
     try {
@@ -423,10 +425,31 @@ async function descargarGanttPDF() {
       alert("No se pudo generar el PDF. Revisá la consola para ver el detalle.");
     } finally {
       escenarioPDF.remove();
+      mascaraPDF.remove();
     }
   } else {
     window.print();
   }
+}
+
+function crearMascaraGenerandoPDF() {
+  const mascara = document.createElement("div");
+  mascara.style.position = "fixed";
+  mascara.style.inset = "0";
+  mascara.style.zIndex = "999999";
+  mascara.style.display = "flex";
+  mascara.style.alignItems = "center";
+  mascara.style.justifyContent = "center";
+  mascara.style.background = "rgba(244, 248, 251, 0.98)";
+  mascara.style.color = "#0b2545";
+  mascara.style.fontFamily = '"Segoe UI", Arial, sans-serif';
+  mascara.innerHTML = `
+    <div style="background:#fff;border:1px solid #dce6ef;border-radius:20px;padding:24px 32px;box-shadow:0 18px 45px rgba(11,37,69,.12);text-align:center;">
+      <strong style="display:block;font-size:20px;margin-bottom:7px;">Generando PDF...</strong>
+      <span style="font-size:14px;color:#637381;">Preparando el cronograma y el detalle de tareas.</span>
+    </div>
+  `;
+  return mascara;
 }
 
 async function generarPDFPorPaginas(documentoPDF) {
