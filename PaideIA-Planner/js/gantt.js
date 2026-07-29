@@ -1,4 +1,4 @@
-console.log("Gantt PaideIA Planner conectado a Supabase v21");
+console.log("Gantt PaideIA Planner conectado a Supabase v22");
 
 let tareasGantt = [];
 let tareasGanttFiltradas = [];
@@ -467,8 +467,18 @@ async function generarPDFPorPaginas(documentoPDF) {
       backgroundColor: "#ffffff",
       scrollX: 0,
       scrollY: 0,
+      x: 0,
+      y: 0,
       width: 1248,
-      windowWidth: 1248
+      windowWidth: 1248,
+      onclone: documentoClonado => {
+        documentoClonado.querySelectorAll(".gantt-pdf-page").forEach(pagina => {
+          pagina.style.position = "relative";
+          pagina.style.left = "0";
+          pagina.style.margin = "0";
+          pagina.style.transform = "none";
+        });
+      }
     },
     jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
   };
