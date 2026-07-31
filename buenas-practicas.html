@@ -2017,7 +2017,7 @@ button.password-toggle:hover,
           <iframe
             class="bp-admin-frame"
             id="bpCuraduriaIframe"
-            src="./Buenas_Practicas/?v=20260720-2"
+            src="./Buenas_Practicas/?v=20260731-1"
             title="PAIDEIA - Curaduría y gestión de correos"
             loading="lazy"></iframe>
         </div>
@@ -3510,6 +3510,20 @@ function normalizeBpExperience(row) {
   };
 }
 
+function importedBpExperience(row) {
+  return normalizeBpExperience({
+    ...row,
+    q1: row.q1 ?? row.p1_proposito,
+    q2: row.q2 ?? row.p2_por_que_ia,
+    q3: row.q3 ?? row.p3_mirada_critica,
+    q4: row.q4 ?? row.p4_oportunidades,
+    q5: row.q5 ?? row.p5_innovacion,
+    q6: row.q6 ?? row.p6_ajustes,
+    q7: row.q7 ?? row.p7_transferencia,
+    _bp_source: "bp_registros"
+  });
+}
+
 async function loadExperienciasPublicas() {
   const container = document.getElementById("repoGrid");
   if (!container || !supabaseClient) return;
@@ -3525,7 +3539,17 @@ async function loadExperienciasPublicas() {
       .order("fecha_validacion", { ascending: false, nullsFirst: false });
 
     if (error) throw error;
-    publicExperiences = (data || []).map(normalizeBpExperience);
+    const { data: importedData, error: importedError } = await supabaseClient
+      .from("bp_registros")
+      .select("*")
+      .eq("estado_curaduria", "VALIDADO")
+      .eq("activo", true)
+      .order("fecha_ultima_revision", { ascending: false });
+    if (importedError) throw importedError;
+    publicExperiences = [
+      ...(data || []).map(row => normalizeBpExperience({...row, _bp_source:"bp_experiencias"})),
+      ...(importedData || []).map(importedBpExperience)
+    ];
     renderPublicExperiences(publicExperiences);
   } catch (error) {
     console.error("Error experiencias validadas:", error);
@@ -3908,7 +3932,23 @@ async function loadPendingExperiences() {
       .order("titulo", { ascending: true });
 
     if (error) throw error;
-    pendingExperiences = (data || []).map(normalizeBpExperience);
+
+    const latestImport = await getLatestBpImportacion();
+    let importedQuery = supabaseClient
+      .from("bp_registros")
+      .select("*")
+      .eq("estado_curaduria", "APTO")
+      .eq("activo", true);
+    if (latestImport?.id) importedQuery = importedQuery.eq("ultima_importacion_id", latestImport.id);
+    const { data: importedData, error: importedError } = await importedQuery
+      .order("jurisdiccion", { ascending: true })
+      .order("titulo", { ascending: true });
+    if (importedError) throw importedError;
+
+    pendingExperiences = [
+      ...(data || []).map(row => normalizeBpExperience({...row, _bp_source:"bp_experiencias"})),
+      ...(importedData || []).map(importedBpExperience)
+    ];
     renderPendingExperiences(pendingExperiences);
   } catch (err) {
     console.error("Error pendientes:", err);
@@ -3965,15 +4005,21 @@ async function validateExperience(index) {
 
   const fechaValidacion = new Date().toISOString();
 
+  const esImportada = exp._bp_source === "bp_registros";
+  const tabla = esImportada ? "bp_registros" : "bp_experiencias";
+  const cambios = esImportada
+    ? { estado_curaduria: "VALIDADO", fecha_ultima_revision: fechaValidacion }
+    : {
+        estado_presentacion: "VALIDADA",
+        estado_publicacion: "VALIDADO",
+        fecha_validacion: fechaValidacion,
+        validado_por: currentUser?.id || null,
+        observacion_validacion: null
+      };
+
   const { error } = await supabaseClient
-    .from("bp_experiencias")
-    .update({
-      estado_presentacion: "VALIDADA",
-      estado_publicacion: "VALIDADO",
-      fecha_validacion: fechaValidacion,
-      validado_por: currentUser?.id || null,
-      observacion_validacion: null
-    })
+    .from(tabla)
+    .update(cambios)
     .eq("id", exp.id)
     .eq("estado_curaduria", "APTO");
 
@@ -3983,14 +4029,15 @@ async function validateExperience(index) {
     return;
   }
 
-  const { error: logError } = await supabaseClient.from("bp_historial").insert({
-    experiencia_id: exp.id,
+  const historial = {
     usuario_id: currentUser?.id || null,
     accion: "EXPERIENCIA_VALIDADA",
     estado_anterior: "PENDIENTE",
     estado_nuevo: "VALIDADO",
-    detalle: { titulo: exp.titulo || "", origen: "panel_buenas_practicas" }
-  });
+    detalle: { titulo: exp.titulo || "", origen: "panel_buenas_practicas", tabla }
+  };
+  historial[esImportada ? "registro_id" : "experiencia_id"] = exp.id;
+  const { error: logError } = await supabaseClient.from("bp_historial").insert(historial);
 
   if (logError) {
     console.warn("La validación se guardó, pero no pudo registrarse el historial:", logError);
