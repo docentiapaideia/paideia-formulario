@@ -370,7 +370,9 @@ let registrosCorreo = [];
 let seleccionCorreos = new Set();
 
 function observacionCorreo(r){
-  const obs=Array.isArray(r.observaciones)?r.observaciones:[];
+  const obs=Array.isArray(r.observaciones)
+    ? r.observaciones
+    : (r.observaciones?[String(r.observaciones)]:[]);
   return obs.filter(x=>!String(x).toLowerCase().startsWith('correo ')).join('; ') || 'La presentación requiere completar o corregir información.';
 }
 function estadoUltimoCorreo(r){
@@ -394,22 +396,42 @@ async function cargarRegistrosCorreo(){
   $('#estadoCorreos').className='status';
   $('#estadoCorreos').textContent='Buscando experiencias observadas…';
 
-  const {data:obs,error}=await supabaseClient.from('bp_experiencias')
+  // Las presentaciones nuevas viven en bp_experiencias, mientras que las
+  // importaciones históricas del Excel se guardan en bp_registros. La bandeja
+  // debe reunir ambos orígenes para no mostrar cero cuando la curaduría visible
+  // proviene de una importación.
+  const {data:experiencias,error:errorExperiencias}=await supabaseClient.from('bp_experiencias')
     .select('id,nombre,email,institucion,titulo,observaciones_curaduria,estado_curaduria,updated_at,correo_notificacion_enviado,fecha_ultimo_correo')
     .eq('activo',true).eq('estado_curaduria','OBSERVADO').order('nombre');
-  if(error)throw error;
+  if(errorExperiencias)throw errorExperiencias;
 
-  registrosCorreo=(obs||[]).map(r=>({
+  const {data:importados,error:errorImportados}=await supabaseClient.from('bp_registros')
+    .select('*').eq('activo',true).eq('estado_curaduria','OBSERVADO').order('nombre');
+  if(errorImportados)throw errorImportados;
+
+  const desdeExperiencias=(experiencias||[]).map(r=>({
     ...r,
+    origen_tabla:'bp_experiencias',
     observaciones:r.observaciones_curaduria?[r.observaciones_curaduria]:[],
     ultimo_correo:r.correo_notificacion_enviado?{
       estado:'ENVIADO',fecha_envio:r.fecha_ultimo_correo
     }:null
   }));
+  const desdeImportados=(importados||[]).map(r=>({
+    ...r,
+    origen_tabla:'bp_registros',
+    observaciones:Array.isArray(r.observaciones)
+      ? r.observaciones
+      : (r.observaciones?[String(r.observaciones)]:[]),
+    ultimo_correo:r.correo_notificacion_enviado?{
+      estado:'ENVIADO',fecha_envio:r.fecha_ultimo_correo
+    }:null
+  }));
+  registrosCorreo=[...desdeExperiencias,...desdeImportados];
   seleccionCorreos.clear();
   mostrarCorreos();
   $('#estadoCorreos').className='status ok';
-  $('#estadoCorreos').textContent=`Se cargaron ${registrosCorreo.length} experiencias observadas desde bp_experiencias.`;
+  $('#estadoCorreos').textContent=`Se cargaron ${registrosCorreo.length} experiencias observadas (${desdeExperiencias.length} presentadas en línea y ${desdeImportados.length} importadas).`;
 }
 function correosFiltrados(){
   const filtro=$('#filtroCorreo').value;
@@ -469,7 +491,8 @@ async function enviarUnCorreo(r,asuntoBase,cuerpoEditado,esMultiple){
   const asunto=asuntoBase;
   const cuerpo=esMultiple?construirCuerpo(r):cuerpoEditado;
   const {data,error}=await supabaseClient.functions.invoke('enviar-correo',{body:{
-    experiencia_id:r.id,destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
+    experiencia_id:r.id,registro_id:r.id,origen:r.origen_tabla,
+    destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
   }});
   if(error)throw new Error(error.message||'Falló la Edge Function.');
   if(data?.error)throw new Error(data.error);
@@ -489,7 +512,12 @@ async function enviarSeleccionados(){
     const r=elegidos[i];
     $('#estadoEnvio').className='status';
     $('#estadoEnvio').textContent=`Enviando ${i+1} de ${elegidos.length}: ${r.nombre}…`;
-    try{await enviarUnCorreo(r,asunto,cuerpo,elegidos.length>1);await supabaseClient.from('bp_experiencias').update({correo_notificacion_enviado:true,fecha_ultimo_correo:new Date().toISOString()}).eq('id',r.id);enviados++;}
+    try{
+      await enviarUnCorreo(r,asunto,cuerpo,elegidos.length>1);
+      const tabla=r.origen_tabla==='bp_registros'?'bp_registros':'bp_experiencias';
+      await supabaseClient.from(tabla).update({correo_notificacion_enviado:true,fecha_ultimo_correo:new Date().toISOString()}).eq('id',r.id);
+      enviados++;
+    }
     catch(err){errores++;console.error('Error enviando a',r.email,err);}
   }
   $('#estadoEnvio').className='status '+(errores?'error':'ok');
