@@ -2132,7 +2132,8 @@ button.password-toggle:hover,
           </select>
           <input class="pa-input full" id="materialUrl" type="url" placeholder="URL pública del material">
           <textarea class="pa-textarea full" id="materialDescription" placeholder="Descripción breve"></textarea>
-          <button class="pa-btn" type="button" onclick="addSupportMaterial()">Agregar material</button>
+          <button class="pa-btn" id="materialSaveBtn" type="button" onclick="addSupportMaterial()">Agregar material</button>
+          <button class="pa-btn secondary" id="materialCancelEditBtn" type="button" onclick="cancelSupportMaterialEdit()" style="display:none;">Cancelar edición</button>
           <button class="pa-btn secondary" type="button" onclick="loadSupportMaterials()">Actualizar listado</button>
         </div>
       </div>
@@ -3723,6 +3724,7 @@ const DEFAULT_SUPPORT_MATERIALS = [
 
 let supportMaterialCategories = [];
 let supportMaterialCategoryFilter = "";
+let editingSupportMaterialId = null;
 
 function jsAttr(value) {
   return String(value ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, " ").replace(/\r/g, " ");
@@ -3851,8 +3853,12 @@ function renderSupportMaterials(items) {
           <span class="material-category-badge">${expEscape(categoryName)}</span>
         </div>
         <div class="mat-actions">
-          ${isPdf ? `<button class="mat-preview-btn" type="button" onclick="openMaterialPreview('${jsAttr(url)}','${jsAttr(title)}')">Vista previa</button>` : ""}
+          ${isPdf ? `<button class="mat-preview-btn" type="button" onclick="event.stopPropagation(); openMaterialPreview('${jsAttr(url)}','${jsAttr(title)}')">Vista previa</button>` : ""}
           <a href="${expEscape(url)}" target="_blank" rel="noopener" class="mat-dl">Abrir</a>
+          ${currentRole === "admin" && mat.id ? `
+            <button class="mat-preview-btn" type="button" onclick="event.stopPropagation(); editSupportMaterial('${jsAttr(mat.id)}')">Editar</button>
+            <button class="pa-btn danger" type="button" onclick="event.stopPropagation(); deleteSupportMaterial('${jsAttr(mat.id)}','${jsAttr(title)}')">Eliminar</button>
+          ` : ""}
         </div>
       </div>
     `;
@@ -3874,8 +3880,83 @@ async function loadSupportMaterials() {
   renderSupportMaterials([...custom, ...DEFAULT_SUPPORT_MATERIALS]);
 }
 
+function resetSupportMaterialForm() {
+  editingSupportMaterialId = null;
+  const title = document.getElementById("materialTitle");
+  const description = document.getElementById("materialDescription");
+  const url = document.getElementById("materialUrl");
+  const type = document.getElementById("materialType");
+  const category = document.getElementById("materialCategorySelect");
+  const saveBtn = document.getElementById("materialSaveBtn");
+  const cancelBtn = document.getElementById("materialCancelEditBtn");
+
+  if (title) title.value = "";
+  if (description) description.value = "";
+  if (url) url.value = "";
+  if (type) type.value = "";
+  if (category) category.value = "";
+  if (saveBtn) saveBtn.textContent = "Agregar material";
+  if (cancelBtn) cancelBtn.style.display = "none";
+}
+
+function cancelSupportMaterialEdit() {
+  resetSupportMaterialForm();
+}
+
+async function editSupportMaterial(id) {
+  if (currentRole !== "admin") return alert("Solo un administrador puede editar materiales.");
+  if (!supabaseClient) return alert("No hay conexión con Supabase.");
+
+  const { data, error } = await supabaseClient
+    .from("materials")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    alert("No se pudo cargar el material para editar: " + (error?.message || "registro no encontrado"));
+    return;
+  }
+
+  editingSupportMaterialId = data.id;
+  document.getElementById("materialTitle").value = data.title || "";
+  document.getElementById("materialDescription").value = data.description || "";
+  document.getElementById("materialUrl").value = data.url || "";
+  document.getElementById("materialType").value = data.type || "";
+  document.getElementById("materialCategorySelect").value = data.category_id || "";
+
+  const saveBtn = document.getElementById("materialSaveBtn");
+  const cancelBtn = document.getElementById("materialCancelEditBtn");
+  if (saveBtn) saveBtn.textContent = "Guardar cambios";
+  if (cancelBtn) cancelBtn.style.display = "inline-block";
+
+  document.getElementById("materialsAdminBox")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function deleteSupportMaterial(id, title) {
+  if (currentRole !== "admin") return alert("Solo un administrador puede eliminar materiales.");
+  if (!supabaseClient) return alert("No hay conexión con Supabase.");
+  if (!confirm(`¿Eliminar el material "${title || "seleccionado"}"?\n\nEsta acción lo borrará de Supabase.`)) return;
+
+  const { error } = await supabaseClient
+    .from("materials")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("No se pudo eliminar el material: " + error.message);
+    return;
+  }
+
+  if (String(editingSupportMaterialId) === String(id)) resetSupportMaterialForm();
+  alert("Material eliminado correctamente.");
+  await loadSupportMaterials();
+}
+
 async function addSupportMaterial() {
-  if (currentRole !== "admin") return alert("Solo un administrador puede agregar materiales.");
+  if (currentRole !== "admin") return alert(editingSupportMaterialId ? "Solo un administrador puede editar materiales." : "Solo un administrador puede agregar materiales.");
+  if (!supabaseClient) return alert("No hay conexión con Supabase.");
+
   const title = document.getElementById("materialTitle")?.value.trim();
   const description = document.getElementById("materialDescription")?.value.trim();
   const url = document.getElementById("materialUrl")?.value.trim();
@@ -3883,18 +3964,28 @@ async function addSupportMaterial() {
   const category_id = document.getElementById("materialCategorySelect")?.value || null;
   if (!title || !url) return alert("Completá al menos título y URL pública del material.");
 
-  const payload = { title, description, url, type, category_id, created_by: currentUser?.id || null };
-  const { error } = await supabaseClient.from("materials").insert(payload);
+  const payload = { title, description, url, type, category_id };
+  let error;
+
+  if (editingSupportMaterialId) {
+    ({ error } = await supabaseClient
+      .from("materials")
+      .update(payload)
+      .eq("id", editingSupportMaterialId));
+  } else {
+    ({ error } = await supabaseClient
+      .from("materials")
+      .insert({ ...payload, created_by: currentUser?.id || null }));
+  }
+
   if (error) {
-    alert("No se pudo guardar el material: " + error.message + "\n\nRevisá que la tabla materials tenga la columna category_id.");
+    alert((editingSupportMaterialId ? "No se pudo actualizar el material: " : "No se pudo guardar el material: ") + error.message + "\n\nRevisá los permisos de la tabla materials en Supabase.");
     return;
   }
-  document.getElementById("materialTitle").value = "";
-  document.getElementById("materialDescription").value = "";
-  document.getElementById("materialUrl").value = "";
-  document.getElementById("materialType").value = "";
-  document.getElementById("materialCategorySelect").value = "";
-  alert("Material agregado correctamente.");
+
+  const wasEditing = Boolean(editingSupportMaterialId);
+  resetSupportMaterialForm();
+  alert(wasEditing ? "Material actualizado correctamente." : "Material agregado correctamente.");
   await loadSupportMaterials();
 }
 
