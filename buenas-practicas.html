@@ -3717,11 +3717,6 @@ function setRepoLevelFilter(level) {
   filterPublicExperiences();
 }
 
-const DEFAULT_SUPPORT_MATERIALS = [
-  { title: "Inteligencia Artificial en la escuela secundaria", description: "Propuestas didácticas para una integración crítica y creativa en el aula", url: "documento_ia-aula_secundaria_-_28-digital_1.pdf", type: "PDF", category_name: "Guías" },
-  { title: "Guía para la Integración de las Inteligencias Artificiales en Educación", description: "Documento orientador para docentes y directivos sobre el uso de IA en educación", url: "documento_guia_de_integracion_vf_digital.pdf", type: "PDF", category_name: "Guías" }
-];
-
 let supportMaterialCategories = [];
 let supportMaterialCategoryFilter = "";
 let editingSupportMaterialId = null;
@@ -3824,13 +3819,13 @@ async function addSupportCategory() {
 function renderSupportMaterials(items) {
   const list = document.getElementById("materialsList");
   if (!list) return;
-  let all = Array.isArray(items) && items.length ? items : DEFAULT_SUPPORT_MATERIALS;
+  let all = Array.isArray(items) ? items : [];
 
   if (supportMaterialCategoryFilter) {
     all = all.filter(mat => getMaterialCategoryName(mat) === supportMaterialCategoryFilter);
   }
 
-  renderMaterialCategoryFilters(Array.isArray(items) ? items : DEFAULT_SUPPORT_MATERIALS);
+  renderMaterialCategoryFilters(all);
 
   if (!all.length) {
     list.innerHTML = `<div class="pa-empty">No hay materiales cargados en esta categoría.</div>`;
@@ -3877,7 +3872,7 @@ async function loadSupportMaterials() {
     if (!error && Array.isArray(data)) custom = data;
     if (error) console.warn("No se pudieron leer materiales dinámicos:", error.message);
   }
-  renderSupportMaterials([...custom, ...DEFAULT_SUPPORT_MATERIALS]);
+  renderSupportMaterials(custom);
 }
 
 function resetSupportMaterialForm() {
@@ -3938,13 +3933,19 @@ async function deleteSupportMaterial(id, title) {
   if (!supabaseClient) return alert("No hay conexión con Supabase.");
   if (!confirm(`¿Eliminar el material "${title || "seleccionado"}"?\n\nEsta acción lo borrará de Supabase.`)) return;
 
-  const { error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("materials")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     alert("No se pudo eliminar el material: " + error.message);
+    return;
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    alert("El material no se eliminó. Supabase no modificó ningún registro. Revisá la política RLS de DELETE para administradores en la tabla materials.");
     return;
   }
 
@@ -3966,20 +3967,30 @@ async function addSupportMaterial() {
 
   const payload = { title, description, url, type, category_id };
   let error;
+  let data;
 
   if (editingSupportMaterialId) {
-    ({ error } = await supabaseClient
+    ({ data, error } = await supabaseClient
       .from("materials")
       .update(payload)
-      .eq("id", editingSupportMaterialId));
+      .eq("id", editingSupportMaterialId)
+      .select("id"));
   } else {
-    ({ error } = await supabaseClient
+    ({ data, error } = await supabaseClient
       .from("materials")
-      .insert({ ...payload, created_by: currentUser?.id || null }));
+      .insert({ ...payload, created_by: currentUser?.id || null })
+      .select("id"));
   }
 
   if (error) {
     alert((editingSupportMaterialId ? "No se pudo actualizar el material: " : "No se pudo guardar el material: ") + error.message + "\n\nRevisá los permisos de la tabla materials en Supabase.");
+    return;
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    alert(editingSupportMaterialId
+      ? "El material no se actualizó. Supabase no modificó ningún registro. Revisá la política RLS de UPDATE para administradores en la tabla materials."
+      : "El material no se guardó. Supabase no devolvió ningún registro creado. Revisá los permisos de INSERT en la tabla materials.");
     return;
   }
 
