@@ -401,7 +401,7 @@ async function cargarRegistrosCorreo(){
   // debe reunir ambos orígenes para no mostrar cero cuando la curaduría visible
   // proviene de una importación.
   const {data:experiencias,error:errorExperiencias}=await supabaseClient.from('bp_experiencias')
-    .select('id,nombre,email,institucion,titulo,observaciones_curaduria,estado_curaduria,updated_at,correo_notificacion_enviado,fecha_ultimo_correo')
+    .select('id,nombre,email,institucion,jurisdiccion,titulo,observaciones_curaduria,estado_curaduria,updated_at,correo_notificacion_enviado,fecha_ultimo_correo')
     .eq('activo',true).eq('estado_curaduria','OBSERVADO').order('nombre');
   if(errorExperiencias)throw errorExperiencias;
 
@@ -474,15 +474,61 @@ function seleccionarVisibles(){
   }
   mostrarCorreos();
 }
-function abrirPrevisualizacion(){
+let referentesCorreoCache=null;
+
+async function cargarReferentesCorreo(){
+  if(Array.isArray(referentesCorreoCache))return referentesCorreoCache;
+  const {data,error}=await supabaseClient.from('contacts')
+    .select('email,full_name,jurisdiccion');
+  if(error){
+    console.error('No se pudo cargar la base de referentes jurisdiccionales:',error);
+    throw new Error('No se pudo consultar el correo del referente jurisdiccional.');
+  }
+  referentesCorreoCache=(data||[]).filter(c=>emailUtilizable(c.email));
+  return referentesCorreoCache;
+}
+
+async function destinatariosDeExperiencia(r){
+  const principales=extraerEmails(r.email);
+  const jurisdiccion=canon(r.jurisdiccion);
+  let referentes=[];
+  if(jurisdiccion){
+    const contactos=await cargarReferentesCorreo();
+    referentes=contactos
+      .filter(c=>canon(c.jurisdiccion)===jurisdiccion)
+      .flatMap(c=>extraerEmails(c.email));
+  }
+  const todos=[...principales,...referentes]
+    .map(x=>x.trim())
+    .filter(emailValidoSimple);
+  return [...new Map(todos.map(x=>[x.toLowerCase(),x])).values()];
+}
+
+async function resumenDestinatarios(r){
+  const todos=await destinatariosDeExperiencia(r);
+  const principales=extraerEmails(r.email).map(x=>x.toLowerCase());
+  const referentes=todos.filter(x=>!principales.includes(x.toLowerCase()));
+  const principal=`Destinatario principal: ${r.nombre} <${extraerEmails(r.email).join(', ')}>`;
+  const ref=referentes.length
+    ? `Referente jurisdiccional: ${referentes.join(', ')}`
+    : `Referente jurisdiccional: sin correo encontrado para ${r.jurisdiccion||'la jurisdicción indicada'}`;
+  return `${principal} · ${ref}`;
+}
+
+async function abrirPrevisualizacion(){
   const elegidos=registrosCorreo.filter(r=>seleccionCorreos.has(r.id));
   if(!elegidos.length)return;
   const primero=elegidos[0];
   $('#correoAsunto').value=construirAsunto();
   $('#correoCuerpo').value=construirCuerpo(primero);
-  $('#resumenSeleccion').textContent=elegidos.length===1
-    ? `Destinatario: ${primero.nombre} <${primero.email}>`
-    : `${elegidos.length} destinatarios seleccionados. El texto se personalizará automáticamente para cada registro.`;
+  try{
+    $('#resumenSeleccion').textContent=elegidos.length===1
+      ? await resumenDestinatarios(primero)
+      : `${elegidos.length} experiencias seleccionadas. Cada informe se enviará al correo de la experiencia y también al/los referente(s) de su jurisdicción.`;
+  }catch(err){
+    $('#resumenSeleccion').textContent=`Destinatario principal: ${primero.nombre} <${primero.email}> · No se pudo consultar el referente jurisdiccional.`;
+    console.error(err);
+  }
   $('#estadoEnvio').className='status';
   $('#estadoEnvio').textContent='Revisá el contenido antes de enviar.';
   $('#modalCorreo').showModal();
@@ -490,9 +536,11 @@ function abrirPrevisualizacion(){
 async function enviarUnCorreo(r,asuntoBase,cuerpoEditado,esMultiple){
   const asunto=asuntoBase;
   const cuerpo=esMultiple?construirCuerpo(r):cuerpoEditado;
+  const destinatarios=await destinatariosDeExperiencia(r);
+  if(!destinatarios.length)throw new Error('La experiencia no tiene destinatarios válidos.');
   const {data,error}=await supabaseClient.functions.invoke('enviar-correo',{body:{
     experiencia_id:r.id,registro_id:r.id,origen:r.origen_tabla,
-    destinatario:extraerEmails(r.email).join(','),asunto,cuerpo,tipo:'OBSERVACION'
+    destinatario:destinatarios.join(','),asunto,cuerpo,tipo:'OBSERVACION'
   }});
   if(error)throw new Error(error.message||'Falló la Edge Function.');
   if(data?.error)throw new Error(data.error);
