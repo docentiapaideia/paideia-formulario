@@ -1139,49 +1139,153 @@ header {
 }
 .repo-admin-panel.show { display: block; }
 .repo-toolbar {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(220px, .75fr) auto 1fr;
+  align-items: end;
   gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+  margin-bottom: 18px;
 }
-.repo-toolbar .pa-input { max-width: 420px; }
-.repo-pending-list { display: flex; flex-direction: column; gap: 14px; }
-.repo-pending-card {
-  background: #fff;
-  border: 1.5px solid rgba(13,31,78,.08);
-  border-radius: 14px;
-  padding: 18px;
-  box-shadow: 0 1px 8px rgba(13,31,78,.04);
-}
-.repo-pending-head {
+.repo-filter-group {
   display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
 }
-.repo-pending-title {
-  font-size: 1rem;
+.repo-filter-label {
+  font-size: .72rem;
+  letter-spacing: .06em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.repo-toolbar .pa-input,
+.repo-toolbar select {
+  width: 100%;
+}
+.repo-table-shell {
+  border: 1px solid rgba(13,31,78,.08);
+  border-radius: 18px;
+  overflow: auto;
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 8px 24px rgba(13,31,78,.04);
+}
+.bp-pending-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 1100px;
+}
+.bp-pending-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, #f8faff 0%, #eef3fb 100%);
+  color: var(--navy);
+  font-size: .76rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(13,31,78,.10);
+  white-space: nowrap;
+}
+.bp-pending-table tbody td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(13,31,78,.08);
+  vertical-align: top;
+  font-size: .92rem;
+}
+.bp-pending-table tbody tr:hover {
+  background: rgba(13,31,78,.025);
+}
+.bp-pending-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.pending-title-cell {
+  min-width: 280px;
+}
+.pending-title-main {
   font-weight: 700;
   color: var(--navy);
-  margin-bottom: 6px;
+  font-size: 1rem;
+  line-height: 1.35;
+  margin-bottom: 8px;
 }
-.repo-pending-meta {
+.pending-title-sub {
   color: var(--muted);
-  font-size: .78rem;
-  line-height: 1.5;
-}
-.repo-pending-desc {
-  margin-top: 10px;
-  color: var(--text);
-  font-size: .86rem;
+  font-size: .84rem;
   line-height: 1.55;
 }
-.repo-actions {
-  display: flex;
+.pending-jurisdiction-badge {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(13,31,78,.08), rgba(26,48,112,.05));
+  color: var(--navy);
+  border: 1px solid rgba(13,31,78,.10);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pending-jurisdiction-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgba(201,162,39,.12);
+}
+.pending-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(13,31,78,.05);
+  color: var(--navy-mid);
+  font-size: .76rem;
+  font-weight: 700;
+  margin: 0 6px 6px 0;
+}
+.pending-desc {
+  color: var(--text);
+  line-height: 1.6;
+  font-size: .88rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 520px;
+}
+.pending-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  flex-shrink: 0;
+}
+.pending-count-pill {
+  justify-self: end;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(13,31,78,.05);
+  color: var(--navy-soft);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pending-empty-row td {
+  padding: 22px 18px !important;
+}
+@media(max-width:1180px){
+  .repo-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pending-count-pill {
+    justify-self: start;
+  }
+}
+@media(max-width:760px){
+  .repo-toolbar {
+    grid-template-columns: 1fr;
+  }
 }
 .repo-empty {
   background: rgba(13,31,78,.04);
@@ -2039,15 +2143,37 @@ button.password-toggle:hover,
           </p>
 
           <div class="repo-toolbar">
-            <input class="pa-input" id="pendingSearch" type="text"
-                   placeholder="Buscar pendientes..." onkeyup="filterPendingExperiences()">
+            <div class="repo-filter-group">
+              <label class="repo-filter-label" for="pendingSearch">Buscar</label>
+              <input class="pa-input" id="pendingSearch" type="text"
+                     placeholder="Buscar por título, autor, institución o contenido..." onkeyup="filterPendingExperiences()">
+            </div>
+            <div class="repo-filter-group">
+              <label class="repo-filter-label" for="pendingJurisdictionFilter">Jurisdicción</label>
+              <select class="pa-input" id="pendingJurisdictionFilter" onchange="filterPendingExperiences()">
+                <option value="">Todas las jurisdicciones</option>
+              </select>
+            </div>
             <button class="pa-btn secondary" type="button"
                     onclick="loadPendingExperiences()">Actualizar pendientes</button>
-            <span class="contacts-count" id="pendingCount">Pendientes: —</span>
+            <span class="pending-count-pill" id="pendingCount">Pendientes: —</span>
           </div>
 
-          <div class="repo-pending-list" id="pendingExperiencesList">
-            <div class="repo-empty">Ingresá como administrador para revisar las experiencias aptas.</div>
+          <div class="repo-table-shell">
+            <table class="bp-pending-table">
+              <thead>
+                <tr>
+                  <th>Jurisdicción</th>
+                  <th>Experiencia</th>
+                  <th>Nivel y año</th>
+                  <th>Resumen</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="pendingExperiencesList">
+                <tr class="pending-empty-row"><td colspan="5"><div class="repo-empty">Ingresá como administrador para revisar las experiencias aptas.</div></td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -3406,6 +3532,7 @@ const EXPERIENCE_SHEET_URL = "https://script.googleusercontent.com/macros/echo?u
 let publicExperiences = [];
 let pendingExperiences = [];
 let repoLevelFilter = "";
+let pendingJurisdictionFilter = "";
 
 function normalizeText(value) {
   return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -4020,7 +4147,7 @@ async function loadPendingExperiences() {
   if (!panel || !list || currentRole !== "admin") return;
 
   panel.classList.add("show");
-  list.innerHTML = '<div class="repo-empty">Cargando experiencias pendientes de validación...</div>';
+  list.innerHTML = '<tr class="pending-empty-row"><td colspan="5"><div class="repo-empty">Cargando experiencias pendientes de validación...</div></td></tr>';
   if (count) count.textContent = "Pendientes: —";
 
   try {
@@ -4054,9 +4181,46 @@ async function loadPendingExperiences() {
     renderPendingExperiences(pendingExperiences);
   } catch (err) {
     console.error("Error pendientes:", err);
-    list.innerHTML = `<div class="repo-empty">No se pudieron cargar las experiencias pendientes: ${expEscape(err.message)}</div>`;
+    list.innerHTML = `<tr class="pending-empty-row"><td colspan="5"><div class="repo-empty">No se pudieron cargar las experiencias pendientes: ${expEscape(err.message)}</div></td></tr>`;
     if (count) count.textContent = "Error";
   }
+}
+
+function updatePendingJurisdictionOptions(items) {
+  const select = document.getElementById("pendingJurisdictionFilter");
+  if (!select) return;
+  const current = select.value || pendingJurisdictionFilter || "";
+  const jurisdictions = [...new Set((items || [])
+    .map(exp => String(exp.jurisdiccion || "").trim())
+    .filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+  select.innerHTML = '<option value="">Todas las jurisdicciones</option>' + jurisdictions.map(j =>
+    `<option value="${expEscape(j)}">${expEscape(j)}</option>`
+  ).join('');
+
+  const hasCurrent = jurisdictions.some(j => normalizeText(j) === normalizeText(current));
+  select.value = hasCurrent ? current : "";
+  pendingJurisdictionFilter = select.value;
+}
+
+function pendingExperiencesFiltered() {
+  const q = normalizeText(document.getElementById("pendingSearch")?.value || "");
+  const selectedJurisdiction = normalizeText(document.getElementById("pendingJurisdictionFilter")?.value || pendingJurisdictionFilter || "");
+  return pendingExperiences.filter(exp => {
+    const matchText = !q || normalizeText([
+      exp.titulo,
+      exp.nombre,
+      exp.email,
+      exp.institucion,
+      exp.jurisdiccion,
+      exp.nivel,
+      exp.area,
+      exp.descripcion
+    ].join(" ")).includes(q);
+    const matchJurisdiction = !selectedJurisdiction || normalizeText(exp.jurisdiccion) === selectedJurisdiction;
+    return matchText && matchJurisdiction;
+  });
 }
 
 function renderPendingExperiences(items, totalFromSheet) {
@@ -4064,37 +4228,59 @@ function renderPendingExperiences(items, totalFromSheet) {
   const count = document.getElementById("pendingCount");
   if (!list) return;
 
-  if (!items || !items.length) {
-    list.innerHTML = '<div class="repo-empty">No hay experiencias pendientes de validación.</div>';
-    if (count) count.textContent = "Pendientes: 0";
+  updatePendingJurisdictionOptions(pendingExperiences);
+  const visibleItems = Array.isArray(items) ? items : pendingExperiencesFiltered();
+
+  if (!visibleItems || !visibleItems.length) {
+    list.innerHTML = '<tr class="pending-empty-row"><td colspan="5"><div class="repo-empty">No hay experiencias pendientes para el filtro seleccionado.</div></td></tr>';
+    if (count) count.textContent = `Pendientes: 0${pendingExperiences.length ? ` de ${pendingExperiences.length}` : ''}`;
     return;
   }
 
-  list.innerHTML = items.map((exp, idx) => `
-    <div class="repo-pending-card">
-      <div class="repo-pending-head">
-        <div>
-          <div class="repo-pending-title">${expEscape(exp.titulo || "Sin título")}</div>
-          <div class="repo-pending-meta">
-            ${expEscape(exp.nombre || "Sin autor")} · ${expEscape(exp.email || "")}<br>
-            ${expEscape(exp.jurisdiccion || "Sin jurisdicción")} · ${expEscape(exp.nivel || "")} · ${expEscape(exp.anio || "")}
+  list.innerHTML = visibleItems.map((exp, idx) => {
+    const realIndex = pendingExperiences.findIndex(item => item.id === exp.id && item._bp_source === exp._bp_source);
+    const nivel = exp.nivel || 'Sin nivel';
+    const anio = exp.anio || 'Sin año';
+    const institucion = exp.institucion || 'Institución no informada';
+    const autor = exp.nombre || 'Autor no informado';
+    const correo = exp.email || 'Sin correo';
+    const jurisdiccion = exp.jurisdiccion || 'Sin jurisdicción';
+    const enlaceHtml = exp.enlace
+      ? `<a class="pa-btn secondary exp-btn-link" href="${expEscape(exp.enlace)}" target="_blank" rel="noopener">Ver evidencia</a>`
+      : '<span class="pending-mini-badge">Sin evidencia</span>';
+    return `
+      <tr>
+        <td><span class="pending-jurisdiction-badge">${expEscape(jurisdiccion)}</span></td>
+        <td class="pending-title-cell">
+          <div class="pending-title-main">${expEscape(exp.titulo || 'Sin título')}</div>
+          <div class="pending-title-sub">
+            <strong>${expEscape(autor)}</strong><br>
+            ${expEscape(correo)}<br>
+            ${expEscape(institucion)}
           </div>
-        </div>
-        <div class="repo-actions">
-          ${exp.enlace ? `<a class="pa-btn secondary exp-btn-link" href="${expEscape(exp.enlace)}" target="_blank" rel="noopener">Ver evidencia</a>` : ""}
-          <button class="pa-btn" type="button" onclick="validateExperience(${idx})">✓ Validar</button>
-        </div>
-      </div>
-      <div class="repo-pending-desc">${expEscape(exp.descripcion || "Sin descripción.")}</div>
-    </div>
-  `).join("");
-  if (count) count.textContent = `Pendientes: ${items.length}`;
+        </td>
+        <td>
+          <span class="pending-mini-badge">${expEscape(nivel)}</span>
+          <span class="pending-mini-badge">${expEscape(anio)}</span>
+          ${exp.area ? `<span class="pending-mini-badge">${expEscape(exp.area)}</span>` : ''}
+        </td>
+        <td><div class="pending-desc">${expEscape(exp.descripcion || 'Sin descripción.')}</div></td>
+        <td>
+          <div class="pending-actions">
+            ${enlaceHtml}
+            <button class="pa-btn" type="button" onclick="validateExperience(${realIndex})">✓ Validar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  if (count) count.textContent = `Pendientes: ${visibleItems.length}${pendingExperiences.length !== visibleItems.length ? ` de ${pendingExperiences.length}` : ''}`;
 }
 
 function filterPendingExperiences() {
-  const q = normalizeText(document.getElementById("pendingSearch")?.value || "");
-  if (!q) return renderPendingExperiences(pendingExperiences);
-  renderPendingExperiences(pendingExperiences.filter(exp => normalizeText(Object.values(exp).join(" ")).includes(q)));
+  pendingJurisdictionFilter = document.getElementById("pendingJurisdictionFilter")?.value || "";
+  renderPendingExperiences(pendingExperiencesFiltered());
 }
 
 async function validateExperience(index) {
@@ -4147,7 +4333,7 @@ async function validateExperience(index) {
 
   alert("Experiencia validada.");
   pendingExperiences = pendingExperiences.filter(item => item.id !== exp.id);
-  renderPendingExperiences(pendingExperiences);
+  renderPendingExperiences(pendingExperiencesFiltered());
   await loadExperienciasPublicas();
 }
 
