@@ -1140,7 +1140,7 @@ header {
 .repo-admin-panel.show { display: block; }
 .repo-toolbar {
   display: grid;
-  grid-template-columns: minmax(240px, 1.2fr) minmax(220px, .75fr) auto 1fr;
+  grid-template-columns: minmax(300px, 1.35fr) minmax(250px, .8fr) auto auto auto;
   align-items: end;
   gap: 12px;
   margin-bottom: 18px;
@@ -1262,6 +1262,17 @@ header {
   justify-content: flex-end;
   flex-wrap: wrap;
 }
+.repo-dashboard-btn {
+  width: auto !important;
+  min-width: 112px;
+  padding: 11px 16px !important;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+}
 .pending-count-pill {
   justify-self: end;
   padding: 10px 14px;
@@ -1276,7 +1287,7 @@ header {
 }
 @media(max-width:1180px){
   .repo-toolbar {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr auto;
   }
   .pending-count-pill {
     justify-self: start;
@@ -2156,7 +2167,7 @@ button.password-toggle:hover,
             </div>
             <button class="pa-btn secondary" type="button"
                     onclick="loadPendingExperiences()">Actualizar pendientes</button>
-            <a class="pa-btn" href="dashboard_buenas_practicas_V3.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Dashboard</a>
+            <a class="pa-btn repo-dashboard-btn" href="dashboard_buenas_practicas_V4.html" target="_blank" rel="noopener">Dashboard</a>
             <span class="pending-count-pill" id="pendingCount">Pendientes: —</span>
           </div>
 

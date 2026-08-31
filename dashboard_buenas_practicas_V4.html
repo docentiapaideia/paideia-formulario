@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PAIDEIA · Dashboard de Buenas Prácticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+  <script src="https://code.highcharts.com/mapdata/countries/ar/ar-all.js"></script>
+  <style>
+    :root{
+      --navy:#0d1f4e;
+      --navy-2:#183271;
+      --ink:#1a2340;
+      --muted:#69799f;
+      --bg:#eef2f8;
+      --panel:#ffffff;
+      --line:rgba(13,31,78,.10);
+      --gold:#c9a227;
+      --good:#1b7f4c;
+      --good-soft:#dff4e8;
+      --warn:#a66b00;
+      --warn-soft:#fff0ce;
+      --bad:#b03f3f;
+      --bad-soft:#f9dfdf;
+      --info:#2d58c6;
+      --info-soft:#e7edff;
+      --neutral:#667085;
+      --neutral-soft:#edf1f7;
+      --shadow:0 16px 40px rgba(13,31,78,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,#f5f7fb 0%,#eef3f8 100%);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif}
+    body{min-height:100vh}
+    .page{max-width:1680px;margin:0 auto;padding:24px}
+    .hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);color:#fff;border-radius:28px;padding:28px 32px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:22px;position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-110px;top:-120px;background:radial-gradient(circle,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 70%)}
+    .hero h1{font-family:"Playfair Display",serif;font-size:clamp(32px,4vw,52px);line-height:1.02;margin:0 0 8px}
+    .hero p{margin:0;color:rgba(255,255,255,.82);max-width:900px;font-size:16px;line-height:1.6}
+    .hero-badge{position:relative;z-index:1;padding:12px 16px;border-radius:999px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);font-size:13px;font-weight:700;white-space:nowrap}
+
+    .layout{display:grid;grid-template-columns:340px minmax(0,1fr) 265px;gap:18px;align-items:start}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panel-head{padding:18px 18px 12px;border-bottom:1px solid rgba(13,31,78,.06)}
+    .panel-head h2,.panel-head h3{margin:0;color:var(--navy)}
+    .panel-head p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+    .panel-body{padding:16px 18px 20px}
+
+    .kpis{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+    .kpi{background:linear-gradient(180deg,#fbfcff 0%,#f5f8fd 100%);border:1px solid rgba(13,31,78,.08);border-radius:18px;padding:16px 16px 14px;min-height:94px}
+    .kpi span{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+    .kpi strong{font-size:30px;line-height:1;color:var(--navy);display:block}
+    .kpi small{display:block;margin-top:8px;color:var(--muted);font-size:12px}
+
+    .status-row{display:grid;grid-template-columns:2fr 1.2fr;gap:16px;margin-bottom:16px}
+    .card-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+    .subcard{background:#fff;border:1px solid rgba(13,31,78,.08);border-radius:20px;padding:18px}
+    .subcard h3{margin:0 0 14px;color:var(--navy);font-size:18px}
+
+    .map-shell{padding:20px 18px 20px}
+    .map-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+    .map-title h2{margin:0;color:var(--navy);font-size:24px}
+    .map-title p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+    .map-reset{border:0;background:var(--neutral-soft);color:var(--navy);padding:9px 12px;border-radius:999px;font-weight:700;cursor:pointer}
+    .map-chart-shell{
+      background:linear-gradient(180deg,#f8fbff 0%,#f4f7fc 100%);
+      border:1px solid rgba(13,31,78,.08);
+      border-radius:20px;
+      padding:10px;
+      min-height:640px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    #argentinaMap{width:100%;height:620px;}
+    .highcharts-background{fill:transparent;}
+    .map-legend{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:12px 14px;background:#f6f8fc;border:1px solid rgba(13,31,78,.06);border-radius:16px}
+    .legend-scale{display:flex;align-items:center;gap:8px;flex:1}
+    .legend-band{height:10px;border-radius:999px;flex:1;background:linear-gradient(90deg,#eef2f8 0%, #d6e0fb 25%, #a8bffc 55%, #6d8ef1 80%, #274cc5 100%)}
+    .legend-text{font-size:12px;color:var(--muted);white-space:nowrap}
+    .map-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .summary-box{background:#fafbfd;border:1px solid rgba(13,31,78,.06);border-radius:16px;padding:14px}
+    .summary-box span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:7px}
+    .summary-box strong{font-size:22px;color:var(--navy)}
+
+    .status-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .status-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;font-weight:700;font-size:13px;border:1px solid transparent}
+    .status-chip .dot{width:10px;height:10px;border-radius:50%}
+    .status-chip.good{background:var(--good-soft);color:var(--good);border-color:rgba(27,127,76,.10)}
+    .status-chip.warn{background:var(--warn-soft);color:var(--warn);border-color:rgba(166,107,0,.10)}
+    .status-chip.bad{background:var(--bad-soft);color:var(--bad);border-color:rgba(176,63,63,.10)}
+    .status-chip.info{background:var(--info-soft);color:var(--info);border-color:rgba(45,88,198,.10)}
+    .status-chip.neutral{background:var(--neutral-soft);color:var(--neutral);border-color:rgba(102,112,133,.10)}
+
+    .bar-list{display:flex;flex-direction:column;gap:12px}
+    .bar-item{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,2.2fr) 54px;gap:12px;align-items:center}
+    .bar-label{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3}
+    .bar-track{height:14px;background:#eef2f8;border-radius:999px;overflow:hidden;position:relative}
+    .bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#6888ec 0%, #274cc5 100%)}
+    .bar-value{text-align:right;font-weight:800;color:var(--navy);font-size:13px}
+
+    .split-metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .mini-list{display:flex;flex-direction:column;gap:12px}
+    .mini-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(0,1.4fr) 42px;gap:10px;align-items:center}
+    .mini-row span{font-size:13px;color:var(--ink);font-weight:600}
+    .mini-track{height:10px;background:#eff3f8;border-radius:999px;overflow:hidden}
+    .mini-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#1a3070 0%, #355fd4 100%)}
+    .mini-value{text-align:right;font-size:12px;color:var(--navy);font-weight:800}
+
+    .table-wrap{overflow:auto;border:1px solid rgba(13,31,78,.08);border-radius:18px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:780px}
+    th,td{padding:14px 16px;border-bottom:1px solid rgba(13,31,78,.08);text-align:left;vertical-align:top}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8faff;position:sticky;top:0;z-index:1}
+    td{font-size:14px;color:var(--ink)}
+    tbody tr:hover{background:#fafcff}
+    tbody tr:last-child td{border-bottom:0}
+    .title-cell strong{display:block;color:var(--navy);margin-bottom:6px}
+    .muted{color:var(--muted)}
+    .badge{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+    .badge.VALIDADO{background:var(--good-soft);color:var(--good)}
+    .badge.APTO{background:var(--info-soft);color:var(--info)}
+    .badge.OBSERVADO{background:var(--warn-soft);color:var(--warn)}
+    .badge.DUPLICADO{background:var(--bad-soft);color:var(--bad)}
+    .badge.OTRO,.badge.NUEVA{background:var(--neutral-soft);color:var(--neutral)}
+
+    .filters-shell{position:sticky;top:18px}
+    .filter-group{margin-bottom:16px}
+    .filter-group label{display:block;margin-bottom:8px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .input,.select{width:100%;padding:11px 12px;border-radius:14px;border:1px solid rgba(13,31,78,.12);background:#fff;color:var(--ink);font:inherit;outline:none}
+    .input:focus,.select:focus{border-color:#355fd4;box-shadow:0 0 0 4px rgba(53,95,212,.10)}
+    .filter-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .btn{border:0;border-radius:14px;padding:12px 16px;font-weight:800;cursor:pointer;font:inherit}
+    .btn.primary{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);color:#fff}
+    .btn.secondary{background:#eef2f8;color:var(--navy)}
+    .btn.ghost{background:#fff;border:1px solid rgba(13,31,78,.12);color:var(--navy)}
+    .aside-note{margin-top:16px;padding:16px;border-radius:18px;background:linear-gradient(135deg,#f9fbff 0%,#f3f7fe 100%);border:1px solid rgba(13,31,78,.08)}
+    .aside-note h4{margin:0 0 8px;color:var(--navy)}
+    .aside-note p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+
+    .dataset-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:12px}
+    .loading,.error,.empty{padding:22px;border-radius:18px;border:1px dashed rgba(13,31,78,.18);background:#fafcff;color:var(--muted);font-size:15px;line-height:1.6}
+    .error{background:#fff5f5;color:#8e3333;border-color:rgba(176,63,63,.22)}
+
+    @media(max-width:1420px){
+      .layout{grid-template-columns:300px minmax(0,1fr) 250px}
+      .kpis{grid-template-columns:repeat(3,1fr)}
+    }
+    @media(max-width:1220px){
+      .layout{grid-template-columns:1fr}
+      .filters-shell{position:static}
+      .map-grid{min-height:auto}
+      .status-row,.card-grid,.split-metrics{grid-template-columns:1fr}
+    }
+    @media(max-width:760px){
+      .page{padding:14px}
+      .hero{padding:22px 18px;flex-direction:column;align-items:flex-start}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .map-summary{grid-template-columns:1fr}
+      .bar-item{grid-template-columns:1fr}
+      .mini-row{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div>
+        <h1>Dashboard federal de Buenas Prácticas</h1>
+        <p>Visualización integral de las experiencias PAIDEIA. A la izquierda, un mapa provincial de la Argentina coloreado según la cantidad de experiencias; en el centro, indicadores y resúmenes; a la derecha, filtros para explorar el conjunto completo.</p>
+      </div>
+      <div class="hero-badge" id="heroBadge">Cargando datos…</div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <div class="map-shell">
+          <div class="map-title">
+            <div>
+              <h2>Mapa nacional</h2>
+              <p>Mapa provincial de la Argentina. Cada jurisdicción tiene un color propio; al pasar el mouse se destaca en azul. Hacé clic en una provincia para filtrar el tablero.</p>
+            </div>
+            <button class="map-reset" id="clearMapBtn" type="button">Limpiar</button>
+          </div>
+          <div class="map-chart-shell">
+            <div id="argentinaMap"><div class="loading">Armando mapa nacional…</div></div>
+          </div>
+            <span class="legend-text">Mayor volumen</span>
+          </div>
+          <div class="map-summary">
+            <div class="summary-box">
+              <span>Jurisdicciones con registros</span>
+              <strong id="summaryJurisdictions">—</strong>
+            </div>
+            <div class="summary-box">
+              <span>Jurisdicción destacada</span>
+              <strong id="summarySelected">Todas</strong>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="kpis" id="kpis"></div>
+
+        <div class="status-row">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Estado general del conjunto</h3>
+              <p>Resumen del estado de curaduría y validación del recorte actualmente filtrado.</p>
+            </div>
+            <div class="panel-body">
+              <div class="status-chips" id="statusChips"></div>
+              <div class="split-metrics">
+                <div class="subcard">
+                  <h3>Distribución por estado</h3>
+                  <div class="mini-list" id="statusBars"></div>
+                </div>
+                <div class="subcard">
+                  <h3>Indicadores de completitud</h3>
+                  <div class="mini-list" id="completenessBars"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Top jurisdicciones</h3>
+              <p>Cantidad de experiencias según los filtros activos.</p>
+            </div>
+            <div class="panel-body">
+              <div class="bar-list" id="jurisdictionBars"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="card-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Distribuciones principales</h3>
+              <p>Niveles y años más frecuentes dentro del recorte activo.</p>
+            </div>
+            <div class="panel-body split-metrics">
+              <div class="subcard">
+                <h3>Nivel educativo</h3>
+                <div class="mini-list" id="levelBars"></div>
+              </div>
+              <div class="subcard">
+                <h3>Año informado</h3>
+                <div class="mini-list" id="yearBars"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Fuentes del repositorio</h3>
+              <p>Origen de las experiencias integradas en este dashboard.</p>
+            </div>
+            <div class="panel-body">
+              <div class="subcard">
+                <h3>Origen de los registros</h3>
+                <div class="mini-list" id="sourceBars"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </main>
+
+      <aside class="panel filters-shell">
+        <div class="panel-head">
+          <h3>Filtros de exploración</h3>
+          <p>Usá estos controles para navegar el dashboard y recortar el conjunto de experiencias.</p>
+        </div>
+        <div class="panel-body">
+          <div class="filter-group">
+            <label for="searchInput">Buscar</label>
+            <input class="input" id="searchInput" type="search" placeholder="Título, autor, institución, descripción…">
+          </div>
+          <div class="filter-group">
+            <label for="statusFilter">Estado</label>
+            <select class="select" id="statusFilter">
+              <option value="">Todos los estados</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="jurisdictionFilter">Jurisdicción</label>
+            <select class="select" id="jurisdictionFilter">
+              <option value="">Todas las jurisdicciones</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="levelFilter">Nivel</label>
+            <select class="select" id="levelFilter">
+              <option value="">Todos los niveles</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="yearFilter">Año</label>
+            <select class="select" id="yearFilter">
+              <option value="">Todos los años</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="sourceFilter">Origen</label>
+            <select class="select" id="sourceFilter">
+              <option value="">Todas las fuentes</option>
+              <option value="Formulario">Formulario</option>
+              <option value="Importación">Importación</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn primary" type="button" id="refreshBtn">Actualizar datos</button>
+            <button class="btn secondary" type="button" id="resetBtn">Limpiar filtros</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://mhwcnlkrwylloyxpmmqu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od2NubGtyd3lsbG95eHBtbXF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDU0MDIsImV4cCI6MjA5MjUyMTQwMn0.gKVGu5aLGQFp2g_GyC-9n-h9pdNULcenw50DsGm6qaU';
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    const $ = sel => document.querySelector(sel);
+    const state = {
+      all: [],
+      filtered: [],
+      lastUpdated: null,
+      filters: {
+        search: '',
+        status: '',
+        jurisdiction: '',
+        level: '',
+        year: '',
+        source: ''
+      }
+    };
+
+    const JURISDICTION_ALIASES = {
+      'ciudad autonoma de buenos aires':'CABA',
+      'ciudad autónoma de buenos aires':'CABA',
+      'caba':'CABA',
+      'capital federal':'CABA',
+      'buenos aires':'Buenos Aires',
+      'provincia de buenos aires':'Buenos Aires',
+      'cordoba':'Córdoba',
+      'córdoba':'Córdoba',
+      'entre rios':'Entre Ríos',
+      'entre ríos':'Entre Ríos',
+      'rio negro':'Río Negro',
+      'río negro':'Río Negro',
+      'neuquen':'Neuquén',
+      'neuquén':'Neuquén',
+      'misiones':'Misiones',
+      'santa fe':'Santa Fe',
+      'santa cruz':'Santa Cruz',
+      'tierra del fuego':'Tierra del Fuego',
+      'la pampa':'La Pampa',
+      'la rioja':'La Rioja',
+      'san juan':'San Juan',
+      'san luis':'San Luis',
+      'santiago del estero':'Santiago del Estero',
+      'tucuman':'Tucumán',
+      'tucumán':'Tucumán',
+      'chaco':'Chaco',
+      'corrientes':'Corrientes',
+      'formosa':'Formosa',
+      'catamarca':'Catamarca',
+      'chubut':'Chubut',
+      'mendoza':'Mendoza',
+      'salta':'Salta',
+      'jujuy':'Jujuy'
+    };
+
+    function norm(v){
+      return String(v ?? '').trim();
+    }
+    function canon(v){
+      return norm(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    }
+    function esc(v){
+      return String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+    function statusClass(status){
+      return ['VALIDADO','APTO','OBSERVADO','DUPLICADO'].includes(status) ? status : 'OTRO';
+    }
+    function statusLabel(status){
+      return status || 'OTRO';
+    }
+    function canonicalJurisdiction(value){
+      const cleaned = canon(value);
+      return JURISDICTION_ALIASES[cleaned] || norm(value) || 'Sin jurisdicción';
+    }
+    function deriveStatus(row, source){
+      if(source === 'Formulario'){
+        const pub = norm(row.estado_publicacion).toUpperCase();
+        const cur = norm(row.estado_curaduria).toUpperCase();
+        if(pub === 'VALIDADO') return 'VALIDADO';
+        if(cur === 'DUPLICADO') return 'DUPLICADO';
+        if(cur === 'OBSERVADO') return 'OBSERVADO';
+        if(cur === 'APTO') return 'APTO';
+        return cur || pub || 'NUEVA';
+      }
+      const cur = norm(row.estado_curaduria).toUpperCase();
+      if(cur === 'VALIDADO') return 'VALIDADO';
+      if(cur === 'DUPLICADO') return 'DUPLICADO';
+      if(cur === 'OBSERVADO') return 'OBSERVADO';
+      if(cur === 'APTO') return 'APTO';
+      return cur || 'NUEVA';
+    }
+    function normalizeLevel(value){
+      const raw = norm(value);
+      if(!raw) return 'Sin nivel';
+      const c = canon(raw);
+      if(c.includes('inicial')) return 'Inicial';
+      if(c.includes('primaria') || c.includes('primario')) return 'Primario';
+      if(c.includes('secundaria') || c.includes('secundario')) return 'Secundario';
+      if(c.includes('superior')) return 'Superior';
+      return raw;
+    }
+    function normalizeYear(value){
+      const raw = norm(value);
+      const m = raw.match(/20\d{2}/);
+      return m ? m[0] : (raw || 'Sin año');
+    }
+    function hasUseful(v){
+      return !!norm(v) && canon(v) !== 'no informado';
+    }
+    function formatDate(iso){
+      if(!iso) return '—';
+      try{
+        return new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short'}).format(new Date(iso));
+      }catch{
+        return iso;
+      }
+    }
+    function countBy(items, fn){
+      const out = {};
+      items.forEach(item => {
+        const key = fn(item);
+        out[key] = (out[key] || 0) + 1;
+      });
+      return out;
+    }
+    function sortEntries(obj){
+      return Object.entries(obj).sort((a,b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]),'es',{sensitivity:'base'}));
+    }
+
+    async function loadData(){
+      if(!supabaseClient){
+        showError('No se pudo inicializar Supabase en este navegador.');
+        return;
+      }
+      setHero('Actualizando dataset…');
+      try{
+        const [{data:formData,error:formError},{data:importData,error:importError}] = await Promise.all([
+          supabaseClient.from('bp_experiencias').select('*').eq('activo', true).order('updated_at',{ascending:false}),
+          supabaseClient.from('bp_registros').select('*').eq('activo', true).order('fecha_ultima_revision',{ascending:false, nullsFirst:false})
+        ]);
+        if(formError) throw formError;
+        if(importError) throw importError;
+
+        const fromFormulario = (formData || []).map(row => normalizeRecord(row, 'Formulario'));
+        const fromImportacion = (importData || []).map(row => normalizeRecord(row, 'Importación'));
+        state.all = [...fromFormulario, ...fromImportacion]
+          .sort((a,b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        state.lastUpdated = new Date().toISOString();
+        fillFilterOptions();
+        applyFilters();
+        setHero(`${state.all.length} experiencias integradas`);
+      }catch(err){
+        console.error(err);
+        showError('No se pudieron cargar los datos: ' + (err.message || err));
+      }
+    }
+
+    function normalizeRecord(row, source){
+      const updatedAt = row.updated_at || row.fecha_ultima_revision || row.created_at || row.fecha_validacion || null;
+      return {
+        id: row.id || row.fila_origen || cryptoRandom(),
+        source,
+        title: norm(row.titulo || row['Título'] || row['Titulo']),
+        author: norm(row.nombre || row['Nombre'] || row['Nombre y apellido']),
+        email: norm(row.email || row['Email']),
+        institution: norm(row.institucion || row['Institución'] || row['Institucion']),
+        jurisdiction: canonicalJurisdiction(row.jurisdiccion || row['Jurisdicción'] || row['Jurisdiccion'] || row['Provincia']),
+        level: normalizeLevel(row.nivel || row['Nivel']),
+        area: norm(row.area || row['Área'] || row['Area']),
+        year: normalizeYear(row.anio || row['Año'] || row['Ano']),
+        description: norm(row.descripcion || row['Descripción'] || row['Descripcion']),
+        link: norm(row.enlace || row['Enlace']),
+        status: deriveStatus(row, source),
+        createdAt: row.created_at || null,
+        updatedAt,
+        raw: row
+      };
+    }
+
+    function cryptoRandom(){
+      return 'tmp-' + Math.random().toString(36).slice(2,10);
+    }
+
+    function showError(message){
+      $('#argentinaMap').innerHTML = `<div class="error">${esc(message)}</div>`;
+      $('#kpis').innerHTML = `<div class="error" style="grid-column:1/-1;">${esc(message)}</div>`;
+      $('#heroBadge').textContent = 'Error de carga';
+    }
+    function setHero(text){
+      $('#heroBadge').textContent = text;
+    }
+
+    function fillFilterOptions(){
+      fillSelect('#statusFilter', uniqueSorted(state.all.map(r => r.status), statusSorter), 'Todos los estados');
+      fillSelect('#jurisdictionFilter', uniqueSorted(state.all.map(r => r.jurisdiction)), 'Todas las jurisdicciones');
+      fillSelect('#levelFilter', uniqueSorted(state.all.map(r => r.level)), 'Todos los niveles');
+      fillSelect('#yearFilter', uniqueSorted(state.all.map(r => r.year), (a,b) => String(b).localeCompare(String(a))), 'Todos los años');
+    }
+    function fillSelect(selector, values, firstLabel){
+      const select = $(selector);
+      const current = select.value;
+      select.innerHTML = `<option value="">${esc(firstLabel)}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      if(values.includes(current)) select.value = current;
+    }
+    function uniqueSorted(values, sorter){
+      const list = [...new Set(values.filter(Boolean))];
+      return list.sort(sorter || ((a,b) => String(a).localeCompare(String(b),'es',{sensitivity:'base'})));
+    }
+    function statusSorter(a,b){
+      const order = ['VALIDADO','APTO','OBSERVADO','DUPLICADO','NUEVA','OTRO'];
+      return order.indexOf(a) - order.indexOf(b);
+    }
+
+    function readFilters(){
+      state.filters.search = norm($('#searchInput').value);
+      state.filters.status = $('#statusFilter').value;
+      state.filters.jurisdiction = $('#jurisdictionFilter').value;
+      state.filters.level = $('#levelFilter').value;
+      state.filters.year = $('#yearFilter').value;
+      state.filters.source = $('#sourceFilter').value;
+    }
+
+    function applyFilters(){
+      readFilters();
+      const q = canon(state.filters.search);
+      state.filtered = state.all.filter(r => {
+        const searchOk = !q || canon([r.title,r.author,r.institution,r.description,r.area,r.email].join(' ')).includes(q);
+        const statusOk = !state.filters.status || r.status === state.filters.status;
+        const jurisdictionOk = !state.filters.jurisdiction || r.jurisdiction === state.filters.jurisdiction;
+        const levelOk = !state.filters.level || r.level === state.filters.level;
+        const yearOk = !state.filters.year || r.year === state.filters.year;
+        const sourceOk = !state.filters.source || r.source === state.filters.source;
+        return searchOk && statusOk && jurisdictionOk && levelOk && yearOk && sourceOk;
+      });
+      renderAll();
+    }
+
+    function renderAll(){
+      renderKpis();
+      renderMap();
+      renderStatusSummary();
+      renderTopJurisdictions();
+      renderDistributions();
+    }
+
+    function renderKpis(){
+      const items = state.filtered;
+      const total = items.length;
+      const validado = items.filter(x => x.status === 'VALIDADO').length;
+      const apto = items.filter(x => x.status === 'APTO').length;
+      const observado = items.filter(x => x.status === 'OBSERVADO').length;
+      const conEvidencia = items.filter(x => hasUseful(x.link)).length;
+      const conCorreo = items.filter(x => hasUseful(x.email)).length;
+      $('#kpis').innerHTML = [
+        {label:'Total filtrado', value: total, small:'Registros visibles'},
+        {label:'Validadas', value: validado, small: pct(validado,total)},
+        {label:'Aptas', value: apto, small: pct(apto,total)},
+        {label:'Observadas', value: observado, small: pct(observado,total)},
+        {label:'Con evidencia', value: conEvidencia, small: pct(conEvidencia,total)},
+        {label:'Con correo', value: conCorreo, small: pct(conCorreo,total)}
+      ].map(k => `<div class="kpi"><span>${esc(k.label)}</span><strong>${esc(String(k.value))}</strong><small>${esc(k.small)}</small></div>`).join('');
+    }
+
+    function pct(n,total){
+      if(!total) return '0% del total';
+      return `${Math.round((n/total)*100)}% del total`;
+    }
+
+
+    const PROVINCE_COLORS = [
+      '#e74c3c','#f39c12','#27ae60','#8e44ad','#16a085','#d35400',
+      '#2ecc71','#9b59b6','#e67e22','#1abc9c','#c0392b','#7f8c8d',
+      '#f1c40f','#00a8cc','#6c5ce7','#00b894','#fd79a8','#e17055',
+      '#55efc4','#a29bfe','#fab1a0','#74b9ff','#ffeaa7','#81ecec'
+    ];
+
+    function renderMap(){
+      const container = document.getElementById('argentinaMap');
+      const mapData = window.Highcharts && Highcharts.maps ? Highcharts.maps['countries/ar/ar-all'] : null;
+      if(!container || !mapData){
+        if(container) container.innerHTML = '<div class="error">No se pudo cargar el mapa geográfico de Argentina.</div>';
+        return;
+      }
+
+      const byJur = countBy(state.filtered, r => r.jurisdiction);
+      const max = Math.max(1, ...Object.values(byJur));
+      const activeJur = state.filters.jurisdiction;
+      const features = mapData.features || [];
+      const seriesData = features.map((feature, index) => {
+        const props = feature.properties || {};
+        const displayName = canonicalJurisdiction(props.name || props.NAME_1 || props['woe-name'] || '');
+        const value = byJur[displayName] || 0;
+        return {
+          'hc-key': props['hc-key'],
+          value,
+          name: displayName,
+          color: PROVINCE_COLORS[index % PROVINCE_COLORS.length],
+          selected: activeJur === displayName
+        };
+      });
+
+      Highcharts.mapChart('argentinaMap', {
+        chart: {
+          map: mapData,
+          backgroundColor: 'transparent',
+          spacing: [4,4,4,4],
+          style: { fontFamily: 'Inter, system-ui, Arial, sans-serif' }
+        },
+        title: { text: null },
+        credits: { enabled: false },
+        exporting: { enabled: false },
+        legend: { enabled: false },
+        mapNavigation: { enabled: false },
+        tooltip: {
+          useHTML: true,
+          borderWidth: 0,
+          shadow: true,
+          backgroundColor: 'rgba(255,255,255,.97)',
+          formatter: function(){
+            const name = this.point.name || 'Jurisdicción';
+            const value = this.point.value || 0;
+            return `<div style="padding:6px 8px"><strong style="color:#0d1f4e">${esc(name)}</strong><br><span style="color:#69799f">${value} ${value===1?'experiencia':'experiencias'}</span></div>`;
+          }
+        },
+        plotOptions: {
+          map: {
+            allAreas: true,
+            nullColor: '#f4f6fa',
+            borderColor: '#ffffff',
+            borderWidth: 1.5,
+            states: {
+              hover: { color: '#2563eb', borderColor: '#ffffff' },
+              select: { color: '#123b9c', borderColor: '#0d1f4e', borderWidth: 2 }
+            },
+            allowPointSelect: true,
+            point: {
+              events: {
+                click: function(){
+                  const name = this.name || '';
+                  const next = state.filters.jurisdiction === name ? '' : name;
+                  const sel = document.getElementById('jurisdictionFilter');
+                  if(sel) sel.value = next;
+                  applyFilters();
+                }
+              }
+            }
+          }
+        },
+        series: [{
+          data: seriesData,
+          joinBy: 'hc-key',
+          name: 'Experiencias',
+          dataLabels: {
+            enabled: false
+          }
+        }]
+      });
+
+      const countJur = Object.values(byJur).filter(n => n > 0).length;
+      $('#summaryJurisdictions').textContent = countJur;
+      $('#summarySelected').textContent = activeJur || 'Todas';
+    }
+
+    function renderStatusSummary(){
+      const byStatus = countBy(state.filtered, r => r.status || 'OTRO');
+      const total = state.filtered.length || 1;
+      const statuses = [
+        {key:'VALIDADO', label:'Validadas', class:'good', dot:'#1b7f4c'},
+        {key:'APTO', label:'Aptas', class:'info', dot:'#2d58c6'},
+        {key:'OBSERVADO', label:'Observadas', class:'warn', dot:'#a66b00'},
+        {key:'DUPLICADO', label:'Duplicadas', class:'bad', dot:'#b03f3f'}
+      ];
+      $('#statusChips').innerHTML = statuses.map(s => `
+        <span class="status-chip ${s.class}"><span class="dot" style="background:${s.dot}"></span>${s.label}: ${byStatus[s.key] || 0}</span>
+      `).join('');
+
+      $('#statusBars').innerHTML = renderMiniList(statuses.map(s => ({
+        label:s.label,
+        value:byStatus[s.key] || 0,
+        total,
+        colorClass:s.class
+      })));
+
+      const completeness = [
+        {label:'Con evidencia', value: state.filtered.filter(x => hasUseful(x.link)).length, total},
+        {label:'Con correo', value: state.filtered.filter(x => hasUseful(x.email)).length, total},
+        {label:'Con descripción', value: state.filtered.filter(x => hasUseful(x.description)).length, total},
+        {label:'Con institución', value: state.filtered.filter(x => hasUseful(x.institution)).length, total}
+      ];
+      $('#completenessBars').innerHTML = renderMiniList(completeness);
+    }
+
+    function renderTopJurisdictions(){
+      const entries = sortEntries(countBy(state.filtered, r => r.jurisdiction)).slice(0,8);
+      if(!entries.length){
+        $('#jurisdictionBars').innerHTML = '<div class="empty">No hay datos para mostrar con este filtro.</div>';
+        return;
+      }
+      const max = entries[0][1] || 1;
+      $('#jurisdictionBars').innerHTML = entries.map(([label,val]) => `
+        <div class="bar-item">
+          <div class="bar-label">${esc(label)}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(val/max)*100}%"></div></div>
+          <div class="bar-value">${val}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderDistributions(){
+      const byLevel = sortEntries(countBy(state.filtered, r => r.level)).slice(0,6);
+      const byYear = sortEntries(countBy(state.filtered, r => r.year)).slice(0,6);
+      const bySource = sortEntries(countBy(state.filtered, r => r.source)).slice(0,4);
+      $('#levelBars').innerHTML = byLevel.length ? renderMiniList(byLevel.map(([label,value]) => ({label,value,total:state.filtered.length || 1}))) : '<div class="empty">Sin datos.</div>';
+      $('#yearBars').innerHTML = byYear.length ? renderMiniList(byYear.map(([label,value]) => ({label,value,total:state.filtered.length || 1}))) : '<div class="empty">Sin datos.</div>';
+      $('#sourceBars').innerHTML = bySource.length ? renderMiniList(bySource.map(([label,value]) => ({label,value,total:state.filtered.length || 1}))) : '<div class="empty">Sin datos.</div>';
+    }
+
+    function renderMiniList(items){
+      const max = Math.max(1, ...items.map(i => i.value));
+      return items.map(i => `
+        <div class="mini-row">
+          <span>${esc(i.label)}</span>
+          <div class="mini-track"><div class="mini-fill" style="width:${(i.value/max)*100}%"></div></div>
+          <div class="mini-value">${i.value}</div>
+        </div>
+      `).join('');
+    }
+
+    function resetFilters(){
+      $('#searchInput').value = '';
+      $('#statusFilter').value = '';
+      $('#jurisdictionFilter').value = '';
+      $('#levelFilter').value = '';
+      $('#yearFilter').value = '';
+      $('#sourceFilter').value = '';
+      applyFilters();
+    }
+
+    ['#searchInput','#statusFilter','#jurisdictionFilter','#levelFilter','#yearFilter','#sourceFilter'].forEach(sel => {
+      const el = $(sel);
+      const eventName = sel === '#searchInput' ? 'input' : 'change';
+      el.addEventListener(eventName, applyFilters);
+    });
+    $('#resetBtn').addEventListener('click', resetFilters);
+    $('#clearMapBtn').addEventListener('click', () => { $('#jurisdictionFilter').value = ''; applyFilters(); });
+    $('#refreshBtn').addEventListener('click', loadData);
+
+    loadData();
+  </script>
+</body>
+</html>
