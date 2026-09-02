@@ -50,13 +50,13 @@
     .panel-head p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
     .panel-body{padding:16px 18px 20px}
 
-    .kpis{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:12px;margin-bottom:16px}
     .kpi{background:linear-gradient(180deg,#fbfcff 0%,#f5f8fd 100%);border:1px solid rgba(13,31,78,.08);border-radius:18px;padding:16px 16px 14px;min-height:94px}
     .kpi span{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
     .kpi strong{font-size:30px;line-height:1;color:var(--navy);display:block}
     .kpi small{display:block;margin-top:8px;color:var(--muted);font-size:12px}
 
-    .status-row{display:grid;grid-template-columns:2fr 1.2fr;gap:16px;margin-bottom:16px}
+    .status-row{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px}
     .card-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
     .subcard{background:#fff;border:1px solid rgba(13,31,78,.08);border-radius:20px;padding:18px}
     .subcard h3{margin:0 0 14px;color:var(--navy);font-size:18px}
@@ -240,7 +240,7 @@
       }
 
       .kpis{
-        grid-template-columns:repeat(6,minmax(0,1fr));
+        grid-template-columns:repeat(5,minmax(0,1fr));
         gap:8px;
         margin:0;
         flex:0 0 auto;
@@ -263,7 +263,7 @@
       }
 
       .status-row{
-        grid-template-columns:minmax(0,1.55fr) minmax(260px,.9fr);
+        grid-template-columns:1fr;
         gap:10px;
         margin:0;
         flex:1 1 0;
@@ -537,15 +537,6 @@
             </div>
           </section>
 
-          <section class="panel">
-            <div class="panel-head">
-              <h3>Top jurisdicciones</h3>
-              <p>Cantidad de experiencias según los filtros activos.</p>
-            </div>
-            <div class="panel-body">
-              <div class="bar-list" id="jurisdictionBars"></div>
-            </div>
-          </section>
         </div>
 
         <div class="card-grid">
@@ -875,21 +866,18 @@
       renderKpis();
       renderMap();
       renderStatusSummary();
-      renderTopJurisdictions();
       renderDistributions();
     }
 
     function renderKpis(){
       const items = state.filtered;
       const total = items.length;
-      const validado = items.filter(x => x.status === 'VALIDADO').length;
       const apto = items.filter(x => x.status === 'APTO').length;
       const observado = items.filter(x => x.status === 'OBSERVADO').length;
       const conEvidencia = items.filter(x => hasUseful(x.link)).length;
       const conCorreo = items.filter(x => hasUseful(x.email)).length;
       $('#kpis').innerHTML = [
         {label:'Total filtrado', value: total, small:'Registros visibles'},
-        {label:'Validadas', value: validado, small: pct(validado,total)},
         {label:'Aptas', value: apto, small: pct(apto,total)},
         {label:'Observadas', value: observado, small: pct(observado,total)},
         {label:'Con evidencia', value: conEvidencia, small: pct(conEvidencia,total)},
@@ -1024,22 +1012,6 @@
         {label:'Con institución', value: state.filtered.filter(x => hasUseful(x.institution)).length, total}
       ];
       $('#completenessBars').innerHTML = renderMiniList(completeness);
-    }
-
-    function renderTopJurisdictions(){
-      const entries = sortEntries(countBy(state.filtered, r => r.jurisdiction)).slice(0,8);
-      if(!entries.length){
-        $('#jurisdictionBars').innerHTML = '<div class="empty">No hay datos para mostrar con este filtro.</div>';
-        return;
-      }
-      const max = entries[0][1] || 1;
-      $('#jurisdictionBars').innerHTML = entries.map(([label,val]) => `
-        <div class="bar-item">
-          <div class="bar-label">${esc(label)}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${(val/max)*100}%"></div></div>
-          <div class="bar-value">${val}</div>
-        </div>
-      `).join('');
     }
 
     function renderDistributions(){
