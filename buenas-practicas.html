@@ -4538,30 +4538,49 @@ window.addEventListener('message', (event) => {
 <script>
 /* ===== CONTACTOS: MODIFICAR / ELIMINAR ===== */
 async function paideiaAdminAction(payload) {
-  let { data: sessionData } = await supabaseClient.auth.getSession();
-  let token = sessionData?.session?.access_token;
-
-  if (!token) {
-    const refreshed = await supabaseClient.auth.refreshSession();
-    token = refreshed.data?.session?.access_token;
+  if (!supabaseClient) {
+    throw new Error('Supabase no está inicializado.');
   }
-  if (!token) throw new Error('No hay sesión activa.');
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
-    method: 'POST',
+  // Usar el SDK de Supabase para invocar la Edge Function.
+  // Evita el "Failed to fetch" que estaba dando el fetch manual.
+  let { data: sessionData } = await supabaseClient.auth.getSession();
+  let session = sessionData?.session || null;
+
+  if (!session?.access_token) {
+    const refreshed = await supabaseClient.auth.refreshSession();
+    session = refreshed.data?.session || null;
+  }
+
+  if (!session?.access_token) {
+    throw new Error('No hay una sesión activa.');
+  }
+
+  const { data, error } = await supabaseClient.functions.invoke('create-user', {
+    body: payload,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_ANON_KEY
-    },
-    body: JSON.stringify(payload)
+      Authorization: `Bearer ${session.access_token}`
+    }
   });
 
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(result.error || result.message || `Error ${response.status}`);
+  if (error) {
+    let detalle = error.message || 'Error al invocar create-user';
+
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        const body = await error.context.json();
+        detalle = body?.error || body?.message || detalle;
+      }
+    } catch (_) {}
+
+    throw new Error(detalle);
   }
-  return result;
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data || {};
 }
 
 function paideiaContactByEmail(email) {
