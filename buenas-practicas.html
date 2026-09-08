@@ -1871,31 +1871,58 @@ button.password-toggle:hover,
 }
 
 
-/* ===== CORRECCIÓN QUIRÚRGICA DE ALTURA/SCROLL ===== */
+/* ===== CORRECCIÓN DEFINITIVA SOLO DE SCROLL ===== */
 #appContent{
   height:100vh !important;
   height:100dvh !important;
-  min-height:0 !important;
+  min-height:100vh !important;
+  min-height:100dvh !important;
   overflow:hidden !important;
-}
-#appContent > header{
-  flex:0 0 var(--header-h) !important;
-}
-#appContent > .layout{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  height:auto !important;
-  overflow:hidden !important;
-}
-#main.main{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  height:auto !important;
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-  -webkit-overflow-scrolling:touch;
 }
 
+#appContent > header{
+  height:var(--header-h) !important;
+  min-height:var(--header-h) !important;
+  max-height:var(--header-h) !important;
+  flex:0 0 var(--header-h) !important;
+}
+
+#appContent > .layout{
+  display:flex !important;
+  flex:0 0 calc(100vh - var(--header-h)) !important;
+  flex:0 0 calc(100dvh - var(--header-h)) !important;
+  height:calc(100vh - var(--header-h)) !important;
+  height:calc(100dvh - var(--header-h)) !important;
+  min-height:0 !important;
+  max-height:calc(100vh - var(--header-h)) !important;
+  max-height:calc(100dvh - var(--header-h)) !important;
+  overflow:hidden !important;
+}
+
+#main.main{
+  flex:1 1 auto !important;
+  height:100% !important;
+  min-height:0 !important;
+  max-height:100% !important;
+  overflow-y:scroll !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+}
+
+#main.main::-webkit-scrollbar{
+  width:10px !important;
+}
+#main.main::-webkit-scrollbar-track{
+  background:rgba(13,31,78,.05) !important;
+}
+#main.main::-webkit-scrollbar-thumb{
+  background:rgba(13,31,78,.30) !important;
+  border-radius:8px !important;
+}
+#main.main::-webkit-scrollbar-thumb:hover{
+  background:rgba(13,31,78,.45) !important;
+}
 
 /* ===== CONTACTOS: ACCIONES AISLADAS ===== */
 .contact-actions{display:flex;gap:7px;flex-wrap:wrap;min-width:165px}
