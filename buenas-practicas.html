@@ -1660,65 +1660,11 @@ button.password-toggle:hover,
 }
 
 
-/* ===== FIX PAIDEIA: SCROLL Y ALTURA DEL CONTENIDO ===== */
-#appContent{
-  height:100vh !important;
-  height:100dvh !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-}
-#appContent > header{
-  flex:0 0 var(--header-h) !important;
-}
-#appContent > .layout{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  height:auto !important;
-  overflow:hidden !important;
-}
-#main.main{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  height:auto !important;
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-}
-#main.main .section.active{
-  display:block !important;
-}
-
-
-/* ===== CONTACTOS: BOTONES MODIFICAR / ELIMINAR ===== */
-.contact-actions{
-  display:flex;
-  gap:7px;
-  align-items:center;
-  flex-wrap:wrap;
-  min-width:170px;
-}
-.contact-row-btn{
-  border:0;
-  border-radius:8px;
-  padding:7px 10px;
-  font:inherit;
-  font-size:.78rem;
-  font-weight:700;
-  cursor:pointer;
-}
-.contact-row-btn.edit{
-  background:#eaf1ff;
-  color:#173a78;
-  border:1px solid #bfd0f3;
-}
-.contact-row-btn.delete{
-  background:#fff0f0;
-  color:#a51d1d;
-  border:1px solid #efb7b7;
-}
-.contact-row-btn:hover{filter:brightness(.98);transform:translateY(-1px);}
-.contact-row-btn:disabled{opacity:.55;cursor:wait;transform:none;}
+/* ===== RECUPERACION TOTAL PAIDEIA: LAYOUT/SCROLL ===== */
+#appContent{height:100vh !important;height:100dvh !important;min-height:0 !important;overflow:hidden !important;}
+#appContent > header{flex:0 0 var(--header-h) !important;}
+#appContent > .layout{flex:1 1 auto !important;min-height:0 !important;height:auto !important;overflow:hidden !important;}
+#main.main{flex:1 1 auto !important;min-height:0 !important;height:auto !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch;}
 
 </style>
 </head>
@@ -2185,7 +2131,7 @@ button.password-toggle:hover,
       </div>
     </div>
 
-    <!-- BUENAS PRÁCTICAS<!-- BUENAS PRÁCTICAS 
+    <!-- BUENAS PRÁCTICAS -->
     <div class="section" id="s-practicas">
       <div class="section-header">
         <div class="breadcrumb">PAIDEIA · Recursos</div>
@@ -2419,12 +2365,11 @@ button.password-toggle:hover,
                 <th>Cargo</th>
                 <th>Teléfono</th>
                 <th>Responsable</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="contactsTableBody">
               <tr>
-                <td colspan="8" class="contact-empty-cell">Cargando contactos...</td>
+                <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
               </tr>
             </tbody>
           </table>
@@ -2434,7 +2379,6 @@ button.password-toggle:hover,
 
 </main>
 </div>
--->
 <script>
 
 function togglePasswordVisibility(inputId, btn) {
@@ -3048,193 +2992,27 @@ function renderContactsTable(items) {
   if (!items || !items.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" class="contact-empty-cell">No hay contactos para mostrar.</td>
+        <td colspan="7" class="contact-empty-cell">No hay contactos para mostrar.</td>
       </tr>
     `;
     if (count) count.textContent = '0 contactos';
     return;
   }
 
-  tbody.innerHTML = items.map(c => {
-    const emailEncoded = encodeURIComponent(c.email || '');
-    return `
-      <tr>
-        <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>
-          <div class="contact-actions">
-            <button class="contact-row-btn edit" type="button"
-              onclick="editContact(decodeURIComponent('${emailEncoded}'))">Modificar</button>
-            <button class="contact-row-btn delete" type="button"
-              onclick="deleteContact(decodeURIComponent('${emailEncoded}'))">Eliminar</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
+    </tr>
+  `).join('');
 
   if (count) {
     count.textContent = `${items.length} contacto${items.length === 1 ? '' : 's'}`;
-  }
-}
-
-async function callContactAdminAction(payload) {
-  if (!supabaseClient) throw new Error('Supabase no está inicializado.');
-
-  let { data: sessionData } = await supabaseClient.auth.getSession();
-  let token = sessionData?.session?.access_token;
-
-  if (!token) {
-    const refreshed = await supabaseClient.auth.refreshSession();
-    token = refreshed.data?.session?.access_token;
-  }
-
-  if (!token) {
-    throw new Error('No hay sesión activa. Cerrá sesión e ingresá nuevamente.');
-  }
-
-  let response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_ANON_KEY
-    },
-    body: JSON.stringify(payload)
-  });
-
-  let result = await response.json().catch(() => ({}));
-
-  if (response.status === 401) {
-    const refreshed = await supabaseClient.auth.refreshSession();
-    const retryToken = refreshed.data?.session?.access_token;
-
-    if (retryToken) {
-      response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${retryToken}`,
-          'apikey': SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify(payload)
-      });
-      result = await response.json().catch(() => ({}));
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(result.error || result.message || `Error ${response.status}`);
-  }
-
-  return result;
-}
-
-function findContactByEmail(email) {
-  return allContacts.find(c =>
-    String(c.email || '').trim().toLowerCase() === String(email || '').trim().toLowerCase()
-  );
-}
-
-async function editContact(email) {
-  if (currentRole !== 'admin') {
-    alert('Solo el administrador puede modificar contactos.');
-    return;
-  }
-
-  const c = findContactByEmail(email);
-  if (!c) {
-    alert('No se encontró el contacto.');
-    return;
-  }
-
-  const full_name = prompt('Nombre completo:', c.full_name || '');
-  if (full_name === null) return;
-
-  const newEmail = prompt('Correo electrónico:', c.email || '');
-  if (newEmail === null) return;
-
-  const jurisdiccion = prompt('Jurisdicción:', c.jurisdiccion || '');
-  if (jurisdiccion === null) return;
-
-  const institucion = prompt('Institución:', c.institucion || '');
-  if (institucion === null) return;
-
-  const cargo = prompt('Cargo:', c.cargo || '');
-  if (cargo === null) return;
-
-  const telefono = prompt('Teléfono:', c.telefono || '');
-  if (telefono === null) return;
-
-  const responsable = prompt('Responsable:', c.responsable || '');
-  if (responsable === null) return;
-
-  const role = confirm('¿Este usuario debe ser ADMINISTRADOR?
-
-Aceptar = Administrador
-Cancelar = Usuario')
-    ? 'admin'
-    : 'user';
-
-  try {
-    await callContactAdminAction({
-      action: 'update',
-      target_id: c.id ?? null,
-      original_email: c.email || '',
-      email: String(newEmail).trim(),
-      full_name: String(full_name).trim(),
-      jurisdiccion: String(jurisdiccion).trim(),
-      institucion: String(institucion).trim(),
-      cargo: String(cargo).trim(),
-      telefono: String(telefono).trim(),
-      responsable: String(responsable).trim(),
-      role
-    });
-
-    await loadContacts();
-    alert('Contacto actualizado correctamente.');
-  } catch (err) {
-    alert('No se pudo actualizar: ' + err.message);
-  }
-}
-
-async function deleteContact(email) {
-  if (currentRole !== 'admin') {
-    alert('Solo el administrador puede eliminar contactos.');
-    return;
-  }
-
-  const c = findContactByEmail(email);
-  if (!c) {
-    alert('No se encontró el contacto.');
-    return;
-  }
-
-  const nombre = c.full_name || c.email || 'este usuario';
-  const ok = confirm(
-    `¿Seguro que querés eliminar a ${nombre}?
-
-` +
-    `También se eliminará su acceso de Supabase Auth si existe.`
-  );
-  if (!ok) return;
-
-  try {
-    await callContactAdminAction({
-      action: 'delete',
-      target_id: c.id ?? null,
-      email: c.email || ''
-    });
-
-    await loadContacts();
-    alert('Usuario/contacto eliminado correctamente.');
-  } catch (err) {
-    alert('No se pudo eliminar: ' + err.message);
   }
 }
 
