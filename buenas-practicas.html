@@ -1898,33 +1898,37 @@ button.password-toggle:hover,
 }
 
 
-/* ===== FIX SOLO CONTACTOS: SCROLL INTERNO ===== */
-#s-contactos{
-  height:100%;
-  min-height:0;
-  overflow:hidden;
-}
+
+/* ===== FIX CONTACTOS REAL: SCROLL DEL PANEL ===== */
 #s-contactos.active{
-  display:flex !important;
-  flex-direction:column;
+  display:block !important;
 }
-#s-contactos .section-header{
-  flex:0 0 auto;
-}
-#s-contactos .contacts-admin-only{
-  flex:1 1 auto;
-  min-height:0;
-  overflow-y:auto;
-  overflow-x:hidden;
-  padding-right:4px;
+
+#s-contactos .contacts-admin-panel{
+  max-height:calc(100vh - var(--header-h) - 185px) !important;
+  max-height:calc(100dvh - var(--header-h) - 185px) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
   -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
 }
-#s-contactos .contacts-admin-only::-webkit-scrollbar{
-  width:8px;
+
+#s-contactos .contacts-admin-panel::-webkit-scrollbar{
+  width:9px;
 }
-#s-contactos .contacts-admin-only::-webkit-scrollbar-thumb{
-  background:rgba(13,31,78,.28);
+
+#s-contactos .contacts-admin-panel::-webkit-scrollbar-track{
+  background:rgba(13,31,78,.04);
   border-radius:8px;
+}
+
+#s-contactos .contacts-admin-panel::-webkit-scrollbar-thumb{
+  background:rgba(13,31,78,.30);
+  border-radius:8px;
+}
+
+#s-contactos .contacts-admin-panel::-webkit-scrollbar-thumb:hover{
+  background:rgba(13,31,78,.45);
 }
 
 </style>
