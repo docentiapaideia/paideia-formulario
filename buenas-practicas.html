@@ -1061,72 +1061,6 @@ header {
 }
 
 
-
-.contact-actions {
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  min-width:155px;
-}
-.contact-action-btn {
-  border:0;
-  border-radius:8px;
-  padding:7px 10px;
-  font:inherit;
-  font-size:.78rem;
-  font-weight:700;
-  cursor:pointer;
-  transition:transform .12s ease, opacity .12s ease;
-}
-.contact-action-btn:hover { transform:translateY(-1px); }
-.contact-action-btn.edit {
-  background:#e8f0ff;
-  color:#173b7a;
-  border:1px solid #bfd0f4;
-}
-.contact-action-btn.delete {
-  background:#fff0f0;
-  color:#a21d1d;
-  border:1px solid #efb9b9;
-}
-.contact-action-btn:disabled { opacity:.55; cursor:wait; transform:none; }
-
-.contact-edit-backdrop {
-  position:fixed;
-  inset:0;
-  background:rgba(6,18,45,.55);
-  z-index:9998;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-}
-.contact-edit-modal {
-  width:min(720px,96vw);
-  max-height:90vh;
-  overflow:auto;
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 24px 70px rgba(0,0,0,.25);
-  padding:22px;
-}
-.contact-edit-modal h3 { color:var(--navy); margin-bottom:6px; }
-.contact-edit-modal .modal-note { color:var(--muted); font-size:.9rem; margin-bottom:16px; }
-.contact-edit-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.contact-edit-actions {
-  display:flex;
-  justify-content:flex-end;
-  gap:10px;
-  margin-top:18px;
-}
-@media(max-width:700px){
-  .contact-edit-grid{ grid-template-columns:1fr; }
-}
-
 /* ── TABLA CONTACTOS ADMIN ─────────────────────────────────────── */
 .contacts-admin-panel {
   background: var(--white);
@@ -2424,12 +2358,11 @@ button.password-toggle:hover,
                 <th>Cargo</th>
                 <th>Teléfono</th>
                 <th>Responsable</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="contactsTableBody">
               <tr>
-                <td colspan="8" class="contact-empty-cell">Cargando contactos...</td>
+                <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
               </tr>
             </tbody>
           </table>
@@ -2945,85 +2878,6 @@ async function deleteForumTopic(topicId) {
 /* ── CONTACTOS ──────────────────────────────────────────────────── */
 let allContacts = [];
 
-async function getFreshAdminToken() {
-  if (!supabaseClient) throw new Error('Supabase no está inicializado.');
-
-  let { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
-  let session = sessionData?.session || null;
-
-  if (sessionError) console.warn('getSession:', sessionError);
-
-  // Si la sesión está cerca de vencer o el token guardado quedó viejo, lo renovamos.
-  const expiresAtMs = session?.expires_at ? session.expires_at * 1000 : 0;
-  const needsRefresh = !session || (expiresAtMs && expiresAtMs - Date.now() < 120000);
-
-  if (needsRefresh) {
-    const refreshed = await supabaseClient.auth.refreshSession();
-    if (refreshed.error) {
-      throw new Error('La sesión administrativa venció. Cerrá sesión e ingresá nuevamente.');
-    }
-    session = refreshed.data?.session || null;
-  }
-
-  if (!session?.access_token) {
-    throw new Error('No hay una sesión administrativa activa.');
-  }
-
-  // Verificación real contra Auth; evita enviar un JWT local ya inválido.
-  const verified = await supabaseClient.auth.getUser(session.access_token);
-  if (verified.error || !verified.data?.user) {
-    const refreshed = await supabaseClient.auth.refreshSession();
-    session = refreshed.data?.session || null;
-    if (refreshed.error || !session?.access_token) {
-      throw new Error('La sesión administrativa no es válida. Cerrá sesión e ingresá nuevamente.');
-    }
-  }
-
-  return session.access_token;
-}
-
-async function callUserAdminFunction(payload) {
-  const token = await getFreshAdminToken();
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_ANON_KEY
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const result = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    // Si el backend detecta sesión vencida, intentamos UNA renovación automática.
-    const msg = String(result?.error || result?.message || '');
-    if (response.status === 401 || /sesión|sesion|jwt|token/i.test(msg)) {
-      const refreshed = await supabaseClient.auth.refreshSession();
-      const retryToken = refreshed.data?.session?.access_token;
-      if (!refreshed.error && retryToken) {
-        const retry = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${retryToken}`,
-            'apikey': SUPABASE_ANON_KEY
-          },
-          body: JSON.stringify(payload)
-        });
-        const retryResult = await retry.json().catch(() => ({}));
-        if (retry.ok) return retryResult;
-        throw new Error(retryResult.error || retryResult.message || `Error ${retry.status}`);
-      }
-    }
-    throw new Error(result.error || result.message || `Error ${response.status}`);
-  }
-
-  return result;
-}
-
 async function createUserFromAdminForm() {
   if (currentRole !== 'admin') {
     alert('Solo el administrador puede crear usuarios.');
@@ -3032,7 +2886,6 @@ async function createUserFromAdminForm() {
 
   const status = document.getElementById('newUserStatus');
   const payload = {
-    action: 'create',
     email: document.getElementById('newUserEmail')?.value.trim() || '',
     full_name: document.getElementById('newUserFullName')?.value.trim() || '',
     jurisdiccion: document.getElementById('newUserJurisdiccion')?.value.trim() || '',
@@ -3049,8 +2902,30 @@ async function createUserFromAdminForm() {
 
   if (status) status.textContent = 'Creando usuario...';
 
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const token = sessionData?.session?.access_token;
+
+  if (!token) {
+    if (status) status.textContent = '';
+    alert('No hay sesión activa. Volvé a iniciar sesión.');
+    return;
+  }
+
   try {
-    await callUserAdminFunction(payload);
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || 'No se pudo crear el usuario.');
+    }
 
     if (status) status.textContent = `Usuario creado correctamente: ${payload.email}`;
 
@@ -3076,7 +2951,7 @@ async function loadContacts() {
 
   tbody.innerHTML = `
     <tr>
-      <td colspan="8" class="contact-empty-cell">Cargando contactos...</td>
+      <td colspan="7" class="contact-empty-cell">Cargando contactos...</td>
     </tr>
   `;
   if (count) count.textContent = 'Cargando contactos...';
@@ -3091,7 +2966,7 @@ async function loadContacts() {
     console.error('Error cargando contactos:', error);
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" class="contact-empty-cell">No se pudieron cargar los contactos: ${escapeHtml(error.message)}</td>
+        <td colspan="7" class="contact-empty-cell">No se pudieron cargar los contactos: ${escapeHtml(error.message)}</td>
       </tr>
     `;
     if (count) count.textContent = 'Error al cargar';
@@ -3102,14 +2977,6 @@ async function loadContacts() {
   renderContactsTable(allContacts);
 }
 
-function contactKey(c) {
-  return c?.id ?? c?.email ?? '';
-}
-
-function findContactByKey(key) {
-  return allContacts.find(c => String(contactKey(c)) === String(key));
-}
-
 function renderContactsTable(items) {
   const tbody = document.getElementById('contactsTableBody');
   const count = document.getElementById('contactsCount');
@@ -3118,155 +2985,27 @@ function renderContactsTable(items) {
   if (!items || !items.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" class="contact-empty-cell">No hay contactos para mostrar.</td>
+        <td colspan="7" class="contact-empty-cell">No hay contactos para mostrar.</td>
       </tr>
     `;
     if (count) count.textContent = '0 contactos';
     return;
   }
 
-  tbody.innerHTML = items.map(c => {
-    const key = escapeHtml(String(contactKey(c)));
-    return `
-      <tr>
-        <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
-        <td>
-          <div class="contact-actions">
-            <button class="contact-action-btn edit" type="button" onclick="openEditContactModal('${key}')">Modificar</button>
-            <button class="contact-action-btn delete" type="button" onclick="deleteContact('${key}')">Eliminar</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  tbody.innerHTML = items.map(c => `
+    <tr>
+      <td>${escapeHtml(c.full_name || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${c.email ? `<span class="contact-email">${escapeHtml(c.email)}</span>` : '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.jurisdiccion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.institucion || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.cargo || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.telefono || '') || '<span class="contact-empty-cell">—</span>'}</td>
+      <td>${escapeHtml(c.responsable || '') || '<span class="contact-empty-cell">—</span>'}</td>
+    </tr>
+  `).join('');
 
   if (count) {
     count.textContent = `${items.length} contacto${items.length === 1 ? '' : 's'}`;
-  }
-}
-
-function closeEditContactModal() {
-  document.getElementById('contactEditBackdrop')?.remove();
-}
-
-function openEditContactModal(key) {
-  if (currentRole !== 'admin') return;
-  const c = findContactByKey(key);
-  if (!c) {
-    alert('No se encontró el contacto.');
-    return;
-  }
-
-  closeEditContactModal();
-
-  const wrap = document.createElement('div');
-  wrap.className = 'contact-edit-backdrop';
-  wrap.id = 'contactEditBackdrop';
-  wrap.addEventListener('click', e => {
-    if (e.target === wrap) closeEditContactModal();
-  });
-
-  wrap.innerHTML = `
-    <div class="contact-edit-modal" role="dialog" aria-modal="true">
-      <h3>Modificar usuario/contacto</h3>
-      <div class="modal-note">Los cambios se guardarán en la base y, cuando corresponda, también en el perfil del usuario.</div>
-      <div class="contact-edit-grid">
-        <input class="pa-input" id="editContactEmail" type="email" placeholder="Correo electrónico" value="${escapeHtml(c.email || '')}">
-        <input class="pa-input" id="editContactFullName" placeholder="Nombre completo" value="${escapeHtml(c.full_name || '')}">
-        <input class="pa-input" id="editContactJurisdiccion" placeholder="Jurisdicción" value="${escapeHtml(c.jurisdiccion || '')}">
-        <input class="pa-input" id="editContactInstitucion" placeholder="Institución" value="${escapeHtml(c.institucion || '')}">
-        <input class="pa-input" id="editContactCargo" placeholder="Cargo" value="${escapeHtml(c.cargo || '')}">
-        <input class="pa-input" id="editContactTelefono" placeholder="Teléfono" value="${escapeHtml(c.telefono || '')}">
-        <input class="pa-input" id="editContactResponsable" placeholder="Responsable" value="${escapeHtml(c.responsable || '')}">
-        <select class="pa-input" id="editContactRole">
-          <option value="user">Usuario</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </div>
-      <div class="contact-edit-actions">
-        <button class="pa-btn secondary" type="button" onclick="closeEditContactModal()">Cancelar</button>
-        <button class="pa-btn" id="saveContactEditBtn" type="button" onclick="saveContactEdit('${escapeHtml(String(contactKey(c)))}')">Guardar cambios</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(wrap);
-}
-
-async function saveContactEdit(key) {
-  const original = findContactByKey(key);
-  if (!original) {
-    alert('No se encontró el contacto original.');
-    return;
-  }
-
-  const btn = document.getElementById('saveContactEditBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
-
-  const payload = {
-    action: 'update',
-    target_id: original.id ?? null,
-    original_email: original.email || '',
-    email: document.getElementById('editContactEmail')?.value.trim() || '',
-    full_name: document.getElementById('editContactFullName')?.value.trim() || '',
-    jurisdiccion: document.getElementById('editContactJurisdiccion')?.value.trim() || '',
-    institucion: document.getElementById('editContactInstitucion')?.value.trim() || '',
-    cargo: document.getElementById('editContactCargo')?.value.trim() || '',
-    telefono: document.getElementById('editContactTelefono')?.value.trim() || '',
-    responsable: document.getElementById('editContactResponsable')?.value.trim() || '',
-    role: document.getElementById('editContactRole')?.value || 'user'
-  };
-
-  if (!payload.email) {
-    alert('El correo electrónico no puede quedar vacío.');
-    if (btn) { btn.disabled = false; btn.textContent = 'Guardar cambios'; }
-    return;
-  }
-
-  try {
-    await callUserAdminFunction(payload);
-    closeEditContactModal();
-    await loadContacts();
-    alert('Usuario/contacto actualizado correctamente.');
-  } catch (err) {
-    alert('No se pudo modificar: ' + err.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Guardar cambios'; }
-  }
-}
-
-async function deleteContact(key) {
-  if (currentRole !== 'admin') return;
-  const c = findContactByKey(key);
-  if (!c) {
-    alert('No se encontró el contacto.');
-    return;
-  }
-
-  const nombre = c.full_name || c.email || 'este usuario';
-  const ok = confirm(
-    `¿Eliminar a ${nombre}?
-
-` +
-    `Esta acción elimina el contacto y, si existe una cuenta Auth asociada al correo, también elimina ese acceso.`
-  );
-  if (!ok) return;
-
-  try {
-    await callUserAdminFunction({
-      action: 'delete',
-      target_id: c.id ?? null,
-      email: c.email || ''
-    });
-    await loadContacts();
-    alert('Usuario/contacto eliminado correctamente.');
-  } catch (err) {
-    alert('No se pudo eliminar: ' + err.message);
   }
 }
 
