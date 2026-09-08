@@ -363,7 +363,7 @@ button.password-toggle:hover,
 
 
   <!-- MIS EXPERIENCIAS -->
-  <section class="my-exp-panel" id="misExperienciasPanel">
+  <section class="my-exp-panel" id="misExperienciasPanel" style="display:none">
     <div class="my-exp-head">
       <div>
         <h2>Mis experiencias</h2>
@@ -819,13 +819,18 @@ function togglePasswordVisibility(inputId, btn) {
     const { data: sessionData } = await supabaseClient.auth.getSession();
     currentUser = sessionData?.session?.user || null;
 
+    const panel = document.getElementById('misExperienciasPanel');
     const warning = document.getElementById('authWarning');
+
+    // El formulario es público para docentes. "Mis experiencias" es una función
+    // exclusiva de usuarios autenticados (administradores y referentes).
     if (!currentUser) {
-      if (warning) warning.style.display = 'block';
-      renderMisExperiencias([]);
+      if (panel) panel.style.display = 'none';
+      if (warning) warning.style.display = 'none';
       return;
     }
 
+    if (panel) panel.style.display = '';
     if (warning) warning.style.display = 'none';
 
     // Completa el correo con el usuario autenticado si está vacío.
@@ -853,6 +858,7 @@ function togglePasswordVisibility(inputId, btn) {
       .from('bp_experiencias')
       .select('*')
       .eq('activo', true)
+      .eq('user_id', currentUser.id)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -1004,7 +1010,8 @@ function togglePasswordVisibility(inputId, btn) {
         activo: false,
         estado_presentacion: 'ELIMINADA'
       })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', currentUser.id);
 
     if (error) {
       alert('No se pudo eliminar: ' + error.message);
@@ -1093,8 +1100,10 @@ function togglePasswordVisibility(inputId, btn) {
     const { data: sessionData } = await supabaseClient.auth.getSession();
     currentUser = sessionData?.session?.user || null;
 
-    if (!currentUser) {
-      showMsg('error', 'Necesitás iniciar sesión en el portal para guardar la experiencia.');
+    // La carga de una experiencia nueva es pública para docentes que llegan
+    // mediante el enlace directo. Solo la edición requiere una sesión válida.
+    if (experienciaEditandoId && !currentUser) {
+      showMsg('error', 'La sesión venció. Volvé a ingresar al portal para editar esta experiencia.');
       return;
     }
 
@@ -1109,6 +1118,7 @@ function togglePasswordVisibility(inputId, btn) {
         .from('bp_experiencias')
         .update(payload)
         .eq('id', experienciaEditandoId)
+        .eq('user_id', currentUser.id)
         .select('id')
         .single();
 
@@ -1119,16 +1129,16 @@ function togglePasswordVisibility(inputId, btn) {
         .from('bp_experiencias')
         .insert({
           ...payload,
-          user_id: currentUser.id,
+          user_id: currentUser?.id || null,
           estado_presentacion: 'PRESENTADA',
           estado_curaduria: 'PENDIENTE',
           estado_publicacion: 'PENDIENTE'
-        })
-        .select('id')
-        .single();
+        });
 
+      // No pedimos SELECT de la fila recién creada: el docente anónimo solo
+      // necesita permiso de INSERT y no debe poder leer registros de la tabla.
       error = result.error;
-      savedId = result.data?.id || null;
+      savedId = null;
     }
 
     if (error) {
@@ -1141,7 +1151,7 @@ function togglePasswordVisibility(inputId, btn) {
     await enviarRespaldoSheet(payload);
 
     experienciaEditandoId = null;
-    await cargarMisExperiencias();
+    if (currentUser) await cargarMisExperiencias();
 
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({
