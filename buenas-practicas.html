@@ -1897,6 +1897,36 @@ button.password-toggle:hover,
   border-radius:8px;
 }
 
+
+/* ===== FIX SOLO CONTACTOS: SCROLL INTERNO ===== */
+#s-contactos{
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+#s-contactos.active{
+  display:flex !important;
+  flex-direction:column;
+}
+#s-contactos .section-header{
+  flex:0 0 auto;
+}
+#s-contactos .contacts-admin-only{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:4px;
+  -webkit-overflow-scrolling:touch;
+}
+#s-contactos .contacts-admin-only::-webkit-scrollbar{
+  width:8px;
+}
+#s-contactos .contacts-admin-only::-webkit-scrollbar-thumb{
+  background:rgba(13,31,78,.28);
+  border-radius:8px;
+}
+
 </style>
 </head>
 <body>
