@@ -1871,64 +1871,31 @@ button.password-toggle:hover,
 }
 
 
-/* ===== CORRECCIÓN DEFINITIVA SOLO DE SCROLL ===== */
-#appContent{
-  height:100vh !important;
-  height:100dvh !important;
-  min-height:100vh !important;
-  min-height:100dvh !important;
-  overflow:hidden !important;
-}
-
-#appContent > header{
-  height:var(--header-h) !important;
-  min-height:var(--header-h) !important;
-  max-height:var(--header-h) !important;
-  flex:0 0 var(--header-h) !important;
-}
-
-#appContent > .layout{
-  display:flex !important;
-  flex:0 0 calc(100vh - var(--header-h)) !important;
-  flex:0 0 calc(100dvh - var(--header-h)) !important;
-  height:calc(100vh - var(--header-h)) !important;
-  height:calc(100dvh - var(--header-h)) !important;
-  min-height:0 !important;
-  max-height:calc(100vh - var(--header-h)) !important;
-  max-height:calc(100dvh - var(--header-h)) !important;
-  overflow:hidden !important;
-}
-
-#main.main{
-  flex:1 1 auto !important;
-  height:100% !important;
-  min-height:0 !important;
-  max-height:100% !important;
-  overflow-y:scroll !important;
-  overflow-x:hidden !important;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-gutter:stable;
-}
-
-#main.main::-webkit-scrollbar{
-  width:10px !important;
-}
-#main.main::-webkit-scrollbar-track{
-  background:rgba(13,31,78,.05) !important;
-}
-#main.main::-webkit-scrollbar-thumb{
-  background:rgba(13,31,78,.30) !important;
-  border-radius:8px !important;
-}
-#main.main::-webkit-scrollbar-thumb:hover{
-  background:rgba(13,31,78,.45) !important;
-}
-
 /* ===== CONTACTOS: ACCIONES AISLADAS ===== */
 .contact-actions{display:flex;gap:7px;flex-wrap:wrap;min-width:165px}
 .contact-action-btn{border:0;border-radius:8px;padding:7px 10px;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}
 .contact-action-btn.edit{background:#eaf1ff;color:#173a78;border:1px solid #bfd0f3}
 .contact-action-btn.delete{background:#fff0f0;color:#a51d1d;border:1px solid #efb7b7}
+
+
+/* ===== FIX MINIMO DE SCROLL: SOLO MAIN ===== */
+#main.main{
+  height:calc(100vh - var(--header-h)) !important;
+  height:calc(100dvh - var(--header-h)) !important;
+  max-height:calc(100vh - var(--header-h)) !important;
+  max-height:calc(100dvh - var(--header-h)) !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+}
+#main.main::-webkit-scrollbar{
+  width:8px;
+}
+#main.main::-webkit-scrollbar-thumb{
+  background:rgba(13,31,78,.28);
+  border-radius:8px;
+}
 
 </style>
 </head>
@@ -1948,7 +1915,7 @@ button.password-toggle:hover,
 </div>
 
 <!-- CONTENIDO PROTEGIDO -->
-<div id="appContent" style="display:none;flex-direction:column;height:100vh;min-height:0;overflow:hidden;">
+<div id="appContent" style="display:none;flex-direction:column;min-height:100vh;">
 
 <!-- HEADER -->
 <header>
