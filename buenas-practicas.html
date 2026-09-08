@@ -1931,6 +1931,29 @@ button.password-toggle:hover,
   background:rgba(13,31,78,.45);
 }
 
+
+/* ===== FIX MENU: independiente del scroll ===== */
+.sidebar{
+  position:fixed !important;
+  left:0 !important;
+  top:var(--header-h) !important;
+  height:calc(100vh - var(--header-h)) !important;
+  height:calc(100dvh - var(--header-h)) !important;
+  z-index:10000 !important;
+}
+.overlay{
+  position:fixed !important;
+  left:0 !important;
+  right:0 !important;
+  top:var(--header-h) !important;
+  bottom:0 !important;
+  z-index:9999 !important;
+}
+.menu-open-btn{
+  position:relative !important;
+  z-index:10001 !important;
+}
+
 </style>
 </head>
 <body>
@@ -4611,18 +4634,45 @@ async function deleteContactSafe(email) {
   }
 
   try {
-    await paideiaAdminAction({
+    const result = await paideiaAdminAction({
       action: 'delete',
       target_id: c.id ?? null,
       email: c.email || ''
     });
 
+    allContacts = allContacts.filter(x => {
+      if (c.id != null && x.id != null) return String(x.id) !== String(c.id);
+      return String(x.email || '').trim().toLowerCase() !== String(c.email || '').trim().toLowerCase();
+    });
+
+    renderContactsTable(allContacts);
     await loadContacts();
-    alert('Usuario/contacto eliminado correctamente.');
+
+    alert(result?.message || 'Usuario/contacto eliminado correctamente.');
   } catch (err) {
     alert('No se pudo eliminar: ' + err.message);
   }
 }
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.querySelector('.menu-open-btn');
+  const side = document.getElementById('sidebar');
+  const ov = document.getElementById('overlay');
+  const mn = document.getElementById('main');
+
+  if (btn && side && ov) {
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      side.classList.add('open');
+      ov.classList.add('show');
+      if (mn) mn.classList.add('blurred');
+    });
+  }
+});
 </script>
 
 </body>
