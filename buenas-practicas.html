@@ -4556,7 +4556,7 @@ async function paideiaAdminAction(payload) {
     throw new Error('No hay una sesión activa.');
   }
 
-  const { data, error } = await supabaseClient.functions.invoke('create-user', {
+  const { data, error } = await supabaseClient.functions.invoke('crear-usuario', {
     body: payload,
     headers: {
       Authorization: `Bearer ${session.access_token}`
