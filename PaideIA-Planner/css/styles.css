@@ -2949,3 +2949,23 @@ body.modal-open {
     width: 100%;
   }
 }
+
+/* ===== VISTA MENSUAL ESTILO TRELLO ===== */
+.monthly-panel{background:#fff;border:1px solid #dae5ef;border-radius:20px;padding:22px 24px;margin:0 0 22px;box-shadow:0 7px 20px rgba(11,37,69,.045)}
+.monthly-heading{display:flex;gap:18px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.monthly-heading h3{font-size:25px;color:#0b2545;margin:5px 0}
+.monthly-heading p{color:#637381;font-size:14px}
+.monthly-kicker{color:#1d6fa5;font-size:11px;font-weight:800;letter-spacing:.12em}
+.monthly-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.monthly-actions strong{min-width:52px;text-align:center}
+.month-tabs{display:flex;gap:7px;overflow-x:auto;margin-top:20px;padding:4px 2px 10px;scrollbar-width:thin}
+.month-tab{flex:0 0 auto;border:1px solid #dce6ef;border-radius:10px;background:#f4f8fb;color:#34546f;min-width:91px;padding:11px 13px;font-weight:700;cursor:pointer;transition:.15s}
+.month-tab:hover{border-color:#1d6fa5;background:#e7f3ff}.month-tab.active{background:#124e78;color:white;border-color:#124e78;box-shadow:0 4px 12px #124e7826}
+.month-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid #edf1f5;padding-top:13px;font-size:13px;color:#566d7f}
+.undated-toggle{display:flex;align-items:center;gap:8px;cursor:pointer}.undated-toggle input{accent-color:#124e78;width:16px;height:16px}
+.kanban-board{display:grid;grid-template-columns:repeat(4,minmax(225px,1fr));gap:14px;align-items:start;overflow-x:auto;padding-bottom:18px}
+.kanban-column{min-width:225px;background:#eaf1f7;border:1px solid #d9e4ee;border-radius:16px;padding:14px;min-height:270px}
+.kanban-column .column-header{margin-bottom:12px}
+.kanban-column .task-card{background:white;border-radius:12px;box-shadow:0 2px 7px rgba(11,37,69,.07);margin-bottom:11px;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.kanban-column .task-card:hover{box-shadow:0 7px 18px rgba(11,37,69,.15);transform:translateY(-2px)}
+@media(max-width:1180px){.kanban-board{grid-template-columns:repeat(4,minmax(245px,1fr))}}
+@media(max-width:680px){.monthly-panel{padding:17px}.monthly-heading h3{font-size:21px}}
