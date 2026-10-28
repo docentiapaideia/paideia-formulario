@@ -6,6 +6,50 @@ let prioridadesSistema = [];
 let etiquetasSistema = [];
 let tareasTablero = [];
 let checklistPorTarea = {};
+const MESES_TABLERO = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const hoyPlanner = new Date();
+let anioTablero = hoyPlanner.getFullYear();
+let mesTablero = hoyPlanner.getMonth();
+
+function prepararNavegacionMensual() {
+  document.getElementById("btnMesActual")?.addEventListener("click", () => {anioTablero = new Date().getFullYear(); mesTablero = new Date().getMonth(); refrescarMes();});
+  document.getElementById("btnMesAnterior")?.addEventListener("click", () => {anioTablero--; refrescarMes();});
+  document.getElementById("btnMesSiguiente")?.addEventListener("click", () => {anioTablero++; refrescarMes();});
+  document.getElementById("mostrarSinFecha")?.addEventListener("change", aplicarFiltros);
+  refrescarMes();
+}
+function refrescarMes() {
+  const tabs = document.getElementById("monthTabs");
+  if (!tabs) return;
+  tabs.replaceChildren();
+  MESES_TABLERO.forEach((nombre, index) => {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "month-tab" + (index === mesTablero ? " active" : "");
+    boton.setAttribute("role", "tab");
+    boton.setAttribute("aria-selected", String(index === mesTablero));
+    boton.textContent = nombre;
+    boton.addEventListener("click", () => {mesTablero = index; refrescarMes();});
+    tabs.appendChild(boton);
+  });
+  const heading = document.getElementById("monthHeading");
+  if (heading) heading.textContent = `${MESES_TABLERO[mesTablero]} ${anioTablero}`;
+  const year = document.getElementById("monthYear");
+  if (year) year.textContent = String(anioTablero);
+  aplicarFiltros();
+}
+function fechaPrincipalTarea(tarea) {
+  // La fecha límite define el mes de planificación. Si falta, utilizar inicio.
+  const fecha = tarea.fecha_limite || tarea.fecha_inicio;
+  const match = fecha && String(fecha).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? { anio: Number(match[1]), mes: Number(match[2]) - 1 } : null;
+}
+function tareaEnMesSeleccionado(tarea) {
+  const fecha = fechaPrincipalTarea(tarea);
+  if (!fecha) return !!document.getElementById("mostrarSinFecha")?.checked;
+  return fecha.anio === anioTablero && fecha.mes === mesTablero;
+}
+
 
 /* =========================================================
    INICIO
@@ -15,6 +59,7 @@ document.addEventListener("DOMContentLoaded", iniciarTablero);
 
 async function iniciarTablero() {
   registrarEventos();
+  prepararNavegacionMensual();
   await cargarCatalogosSistema();
   await cargarTablero();
 
@@ -372,11 +417,12 @@ function aplicarFiltros() {
       titulo.includes(filtroBusqueda) ||
       descripcion.includes(filtroBusqueda);
 
-    return okResponsable && okPrioridad && okEtiqueta && okBusqueda;
+    return okResponsable && okPrioridad && okEtiqueta && okBusqueda && tareaEnMesSeleccionado(tarea);
   });
 
   renderizarTablero(filtradas);
-  renderizarPanelSemanal(filtradas);
+  const resumen = document.getElementById("monthSummary");
+  if (resumen) resumen.textContent = `${filtradas.length} ${filtradas.length === 1 ? "tarea visible" : "tareas visibles"} en ${MESES_TABLERO[mesTablero]} ${anioTablero}`;
 }
 
 function limpiarFiltros() {
@@ -597,7 +643,8 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false, ta
   setValor("newDescripcion", "");
   setValor("newChecklist", "");
   setValor("newAvance", 0);
-  setValor("newFechaInicio", "");
+  const fechaSugerida = `${anioTablero}-${String(mesTablero + 1).padStart(2, "0")}-01`;
+  setValor("newFechaInicio", fechaSugerida);
   setValor("newFechaLimite", "");
   limpiarSelectMultiple("newColaboradores");
 
