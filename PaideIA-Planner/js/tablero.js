@@ -73,7 +73,7 @@ function abrirNuevaTareaDesdeURL() {
     return;
   }
 
-  abrirModalNuevaTarea("Nuevo", false);
+  abrirModalNuevaTarea("En proceso", false);
 
   // Limpia el parámetro para que al actualizar no vuelva a abrirse.
   window.history.replaceState(
@@ -176,7 +176,16 @@ async function cargarTablero() {
     return;
   }
 
-  tareasTablero = data || [];
+  // La vista puede multiplicar registros al unir responsables, etiquetas o colaboradores.
+  // Solo una tarjeta por ID real. No se modifican ni eliminan tareas en Supabase.
+  const idsVistos = new Set();
+  tareasTablero = (data || []).filter(tarea => {
+    if (tarea.id == null) return true;
+    const id = String(tarea.id);
+    if (idsVistos.has(id)) return false;
+    idsVistos.add(id);
+    return true;
+  });
   console.log("Tareas reales cargadas desde Supabase:", tareasTablero);
 
   await cargarChecklistTareas(tareasTablero.map(tarea => tarea.id));
@@ -213,7 +222,7 @@ function renderizarTablero(tareas) {
 }
 
 function agregarTareaAColumna(tarea) {
-  const nombreColumna = tarea.columna || "Nuevo";
+  const nombreColumna = normalizarTexto(tarea.columna || "") === "nuevo" ? "En proceso" : (tarea.columna || "En proceso");
   const columnaDestino = buscarColumnaPorNombre(nombreColumna);
 
   if (!columnaDestino) {
@@ -635,7 +644,7 @@ function limpiarFechasModal() {
    MODAL NUEVA TAREA
 ========================================================= */
 
-async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false, tareaMadrePreseleccionadaId = null) {
+async function abrirModalNuevaTarea(columnaNombre = "En proceso", esMadre = false, tareaMadrePreseleccionadaId = null) {
   await cargarCatalogosSistema();
 
   setValor("newEsTareaMadre", esMadre ? "true" : "false");
@@ -648,7 +657,7 @@ async function abrirModalNuevaTarea(columnaNombre = "Nuevo", esMadre = false, ta
   setValor("newFechaLimite", "");
   limpiarSelectMultiple("newColaboradores");
 
-  cargarSelectColumnas(document.getElementById("newColumna"), null, columnaNombre || "Nuevo");
+  cargarSelectColumnas(document.getElementById("newColumna"), null, columnaNombre || "En proceso");
   cargarSelectTareasMadre(document.getElementById("newTareaMadre"), tareaMadrePreseleccionadaId, null);
   configurarGrupoTareaMadre("grupoNewTareaMadre", !esMadre);
   configurarTituloModalNueva(esMadre);
@@ -681,8 +690,10 @@ function limpiarFormularioNuevaTarea() {
   configurarTituloModalNueva(false);
 }
 
+let guardandoNuevaTarea = false;
 async function guardarNuevaTarea(event) {
   event.preventDefault();
+  if (guardandoNuevaTarea) return;
 
   const titulo = getValor("newTitulo").trim();
   const columnaId = getValor("newColumna");
@@ -700,6 +711,10 @@ async function guardarNuevaTarea(event) {
     return;
   }
 
+  guardandoNuevaTarea = true;
+  const botonGuardarNueva = document.querySelector('#formNuevaTarea button[type="submit"]');
+  if (botonGuardarNueva) botonGuardarNueva.disabled = true;
+  try {
   const nuevaTarea = {
     tablero_id: columnaSeleccionada.tablero_id,
     columna_id: columnaId,
@@ -767,7 +782,10 @@ async function guardarNuevaTarea(event) {
   }
   cerrarModalNuevaTarea();
   limpiarFormularioNuevaTarea();
-  await cargarTablero();
+  await cargarTablero();  } finally {
+    guardandoNuevaTarea = false;
+    if (botonGuardarNueva) botonGuardarNueva.disabled = false;
+  }
 }
 
 
@@ -953,7 +971,7 @@ async function agregarHijaDesdeMadre() {
   }
 
   cerrarModalEditarTarea();
-  await abrirModalNuevaTarea(tareaMadre.columna || "Nuevo", false, tareaMadreId);
+  await abrirModalNuevaTarea(tareaMadre.columna || "En proceso", false, tareaMadreId);
 }
 
 /* =========================================================
@@ -965,7 +983,7 @@ function cargarSelectColumnas(select, columnaIdActual, columnaNombreActual) {
 
   select.innerHTML = "";
 
-  columnasSistema.forEach(c => {
+  columnasSistema.filter(c => normalizarTexto(c.nombre) !== "nuevo").forEach(c => {
     const option = document.createElement("option");
     option.value = c.id;
     option.textContent = c.nombre;
@@ -1447,22 +1465,22 @@ function registrarEventos() {
   });
 
   document.getElementById("btnNuevaTarea")?.addEventListener("click", function() {
-    abrirModalNuevaTarea("Nuevo", false);
+    abrirModalNuevaTarea("En proceso", false);
   });
 
   document.getElementById("btnNuevaTareaMadre")?.addEventListener("click", function() {
-    abrirModalNuevaTarea("Nuevo", true);
+    abrirModalNuevaTarea("En proceso", true);
   });
 
   document.getElementById("btnAgregarTareaSemana")?.addEventListener("click", function() {
-    abrirModalNuevaTarea("Nuevo");
+    abrirModalNuevaTarea("En proceso");
   });
 
   document.getElementById("btnRecargarSemana")?.addEventListener("click", cargarTablero);
 
   document.querySelectorAll(".btnColNuevaTarea").forEach(btn => {
     btn.addEventListener("click", function() {
-      abrirModalNuevaTarea(btn.dataset.columna || "Nuevo", false);
+      abrirModalNuevaTarea(btn.dataset.columna || "En proceso", false);
     });
   });
 
