@@ -2969,3 +2969,7 @@ body.modal-open {
 .kanban-column .task-card:hover{box-shadow:0 7px 18px rgba(11,37,69,.15);transform:translateY(-2px)}
 @media(max-width:1180px){.kanban-board{grid-template-columns:repeat(4,minmax(245px,1fr))}}
 @media(max-width:680px){.monthly-panel{padding:17px}.monthly-heading h3{font-size:21px}}
+
+/* Planner: tres estados visibles, sin columna Nuevo. */
+.kanban-board{grid-template-columns:repeat(3,minmax(225px,1fr))}
+@media(max-width:1180px){.kanban-board{grid-template-columns:repeat(3,minmax(245px,1fr))}}
