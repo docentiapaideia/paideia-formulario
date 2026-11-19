@@ -27,7 +27,7 @@ body{
 .login-card button.main{width:100%;height:45px;border:1px solid rgba(212,178,74,.55);background:rgba(212,178,74,.16);color:#fff;font-weight:800;letter-spacing:.05em;cursor:pointer;transition:.2s;font-family:inherit}
 .login-card button.main:hover{background:rgba(212,178,74,.28)}
 .login-card button.main:disabled{opacity:.65;cursor:wait}
-.error{display:none;color:#ffb4b4;font-size:.88rem;margin-top:12px;line-height:1.35}
+.recovery-link{display:block;margin:14px auto 0;border:0;background:none;color:#bce9fb;font:600 .91rem "Source Sans 3",Arial,sans-serif;text-decoration:underline;cursor:pointer}.recovery-link:hover{color:#fff}.recovery-help{display:none;color:rgba(255,255,255,.85);font-size:.88rem;line-height:1.4;margin:14px 0 0}.notice{display:none;color:#c8f3df;font-size:.88rem;line-height:1.4;margin-top:12px}.error{display:none;color:#ffb4b4;font-size:.88rem;margin-top:12px;line-height:1.35}
 .portal{display:none;min-height:100vh;align-items:flex-start;justify-content:flex-start;padding-left:clamp(28px,6vw,96px);padding-right:24px;padding-top:clamp(360px,47vh,455px)}
 .access-panel{width:min(460px,92vw);margin-top:0}
 .portal-kicker,.portal-title,.portal-subtitle{display:none}
@@ -64,7 +64,12 @@ body{
       <button class="password-toggle" type="button" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Mostrar contraseña">👁️</button>
     </div>
     <button id="loginButton" class="main" type="button" onclick="login()">Ingresar</button>
-    <div id="authLoginError" class="error"></div>
+    <button id="forgotPasswordButton" class="recovery-link" type="button" onclick="sendPasswordReset()">¿Olvidaste tu contraseña?</button>
+    <div id="recoveryHelp" class="recovery-help">Ingresá tu correo electrónico arriba y seleccioná «Enviar enlace». Recibirás un correo con instrucciones para crear una contraseña nueva.</div>
+    <button id="resetRequestButton" class="main" type="button" style="display:none;margin-top:12px" onclick="sendPasswordResetEmail()">Enviar enlace</button>
+    <button id="cancelResetButton" class="recovery-link" type="button" style="display:none" onclick="cancelPasswordReset()">Volver al ingreso</button>
+    <div id="authLoginNotice" class="notice" role="status" aria-live="polite"></div>
+    <div id="authLoginError" class="error" role="alert"></div>
   </div>
 </section>
 <div id="topActions" class="top-actions"><button class="logout" type="button" onclick="logout()">Cerrar sesión</button></div>
@@ -87,6 +92,10 @@ let supabaseClient=null;let currentRole="user";
 function initSupabase(){if(!window.supabase){showLogin("No se pudo cargar Supabase. Recargá la página.");return false}if(!supabaseClient){supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}return true}
 function togglePasswordVisibility(inputId,btn){const input=document.getElementById(inputId);if(!input)return;const showing=input.type==="text";input.type=showing?"password":"text";if(btn)btn.textContent=showing?"👁️":"🙈"}
 function showLogin(message=""){document.getElementById("loginScreen").style.display="flex";document.getElementById("portalScreen").style.display="none";document.getElementById("topActions").classList.remove("visible");const err=document.getElementById("authLoginError");err.style.display=message?"block":"none";err.textContent=message}
+function setAuthNotice(message="",isError=false){const ok=document.getElementById("authLoginNotice"),err=document.getElementById("authLoginError");ok.style.display=message&&!isError?"block":"none";ok.textContent=!isError?message:"";err.style.display=message&&isError?"block":"none";err.textContent=isError?message:""}
+function sendPasswordReset(){document.getElementById("loginPassword").parentElement.style.display="none";document.getElementById("loginButton").style.display="none";document.getElementById("forgotPasswordButton").style.display="none";document.getElementById("recoveryHelp").style.display="block";document.getElementById("resetRequestButton").style.display="block";document.getElementById("cancelResetButton").style.display="block";setAuthNotice()}
+function cancelPasswordReset(){document.getElementById("loginPassword").parentElement.style.display="block";document.getElementById("loginButton").style.display="block";document.getElementById("forgotPasswordButton").style.display="block";document.getElementById("recoveryHelp").style.display="none";document.getElementById("resetRequestButton").style.display="none";document.getElementById("cancelResetButton").style.display="none";setAuthNotice()}
+async function sendPasswordResetEmail(){const email=document.getElementById("loginEmail").value.trim();if(!email||!document.getElementById("loginEmail").checkValidity()){setAuthNotice("Ingresá una dirección de correo válida.",true);return}if(!supabaseClient&&!initSupabase())return;const btn=document.getElementById("resetRequestButton");btn.disabled=true;btn.textContent="Enviando...";setAuthNotice();try{const redirectTo=new URL("reset-password.html",window.location.href).href;const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});if(error)throw error;setAuthNotice("Si ese correo está registrado, recibirás un enlace para restablecer tu contraseña. Revisá también la carpeta de correo no deseado.")}catch(e){console.error("Error al solicitar recuperación:",e);setAuthNotice("No se pudo enviar el enlace en este momento. Intentá nuevamente más tarde.",true)}finally{btn.disabled=false;btn.textContent="Enviar enlace"}}
 function showPortal(){document.getElementById("loginScreen").style.display="none";document.getElementById("portalScreen").style.display="flex";document.getElementById("topActions").classList.add("visible");applyRoleVisibility()}
 function applyRoleVisibility(){const isAdmin=currentRole==="admin";document.querySelectorAll("[data-admin-only]").forEach(el=>el.classList.toggle("visible",isAdmin));const hint=document.getElementById("adminHint");if(hint)hint.classList.toggle("visible",!isAdmin)}
 async function loadCurrentRole(){currentRole="user";const {data:userData}=await supabaseClient.auth.getUser();const user=userData?.user;if(!user)return"user";const {data,error}=await supabaseClient.from("profiles").select("role").eq("id",user.id).maybeSingle();if(error){console.warn("No se pudo leer el rol del perfil:",error.message);return"user"}currentRole=data?.role||"user";return currentRole}
